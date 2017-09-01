@@ -12,7 +12,7 @@
 
 #include "pin.h"
 #include "port.h"
-#include "avr_ports.h"
-#include "arduino_pins.h"
+#include "avr_hal.h"
+#include "arduino_hal.h"
 
 #endif

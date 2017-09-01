@@ -1,13 +1,13 @@
 /*
- * avr_ports.h
+ * arduino_hal.h
  *
  * Created: 31.08.2017 16:33:04
  *  Author: astr0
  */ 
  #pragma once
   
- #ifndef ARDUINO_PINS_H_
- #define ARDUINO_PINS_H_
+ #ifndef ARDUINO_HAL_H_
+ #define ARDUINO_HAL_H_
 
 namespace fasthal{
     namespace arduino{
@@ -36,4 +36,4 @@ namespace fasthal{
 }
 
 
- #endif  /* ARDUINO_PINS_H_ */
+ #endif  /* ARDUINO_HAL_H_ */
