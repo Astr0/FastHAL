@@ -8,8 +8,6 @@
 #ifndef FASTHAL_H_
 #define FASTHAL_H_
 
-
-
 #include "pin.h"
 #include "port.h"
 #include "avr_hal.h"

@@ -32,6 +32,15 @@ namespace fasthal{
         typedef fasthal::PinC3 PinA3;
         typedef fasthal::PinC4 PinA4;
         typedef fasthal::PinC5 PinA5;        
+
+        typedef fasthal::AdcA0 AdcA0;
+        typedef fasthal::AdcA1 AdcA1;
+        typedef fasthal::AdcA2 AdcA2;
+        typedef fasthal::AdcA3 AdcA3;
+        typedef fasthal::AdcA4 AdcA4;
+        typedef fasthal::AdcA5 AdcA5;
+        typedef fasthal::AdcA6 AdcA6;
+        typedef fasthal::AdcA7 AdcA7;
     }
 }
 
