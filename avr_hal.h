@@ -142,13 +142,7 @@ namespace fasthal{
         static const uint8_t External = 0;
     #endif 
 
-        static inline uint8_t get(){
-            return AdcRef::_ref;
-        }
-
-        static inline void set(uint8_t ref){
-            AdcRef::_ref = ref;
-        }
+        static uint8_t get();
     };
 
   
@@ -156,7 +150,7 @@ namespace fasthal{
     template<unsigned Channel>
     class AvrAdc{
     public:
-        static int read(){
+        static int32_t read(){
         #if defined(ADCSRB) && defined(MUX5)
             // the MUX5 bit of ADCSRB selects whether we're reading from channels
             // 0 to 7 (MUX5 low) or 8 to 15 (MUX5 high).
@@ -206,7 +200,7 @@ namespace fasthal{
     typedef AvrAdc<7> AdcA7;
 }
 
-#define FASTHAL_INITADC(x) uint8_t fasthal::AdcRef::_ref = x;
+#define FASTHAL_INITADC(x) uint8_t fasthal::AdcRef::get(){return x;}
 
 #undef FASTHAL_DECLAREPORT
 #undef FASTHAL_WRAPVARIABLE

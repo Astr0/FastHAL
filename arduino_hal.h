@@ -9,6 +9,11 @@
  #ifndef ARDUINO_HAL_H_
  #define ARDUINO_HAL_H_
 
+#define FASTHAL_ARDUINO_TIME()\
+uint32_t fasthal::Time::millis(){return ::millis();}\
+uint32_t fasthal::Time::micros(){return ::micros();}\
+void fasthal::Time::delay(uint32_t millis){::delay(millis);}
+
 namespace fasthal{
     namespace arduino{
         typedef fasthal::PinD0 PinD0;
