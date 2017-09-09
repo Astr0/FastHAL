@@ -12,9 +12,10 @@
 #include "pin.h"
 #include "port.h"
 #include "adc.h"
-#include "acs712.h"
 
-#include "avr_hal.h"
-#include "arduino_hal.h"
+#include "platform.h"
+
+#include "functions.h"
+#include "devices.h"
 
 #endif

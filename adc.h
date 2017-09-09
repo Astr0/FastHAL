@@ -39,7 +39,7 @@ namespace fasthal
     class AdcRms
     {
     public:
-        static int read(){
+        static float read(){
             uint32_t sum = 0, count = 0;
         
             uint32_t t_start = fasthal::Time::micros();

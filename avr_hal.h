@@ -51,6 +51,12 @@ namespace fasthal{
         }
     };
 
+    struct PinMode{
+        static const uint8_t Input = 0;
+        static const uint8_t Output = 1;
+        static const uint8_t InputPullup = 2;
+    };
+
     template<class DDRREG, class PORTREG, class PINREG>
 	class AvrPort
 	{
@@ -72,11 +78,11 @@ namespace fasthal{
 			NoInterrupts noInterrupts;
 			switch (mode)
 			{
-				case INPUT:
+				case PinMode::Input:
 					DDRREG::value() &= ~mask;
 					PORTREG::value() &= ~mask;
 					break;
-				case INPUT_PULLUP:
+				case PinMode::InputPullup:
 					DDRREG::value() &= ~mask;
 					PORTREG::value() |= mask;
 					break;
@@ -150,7 +156,7 @@ namespace fasthal{
     template<unsigned Channel>
     class AvrAdc{
     public:
-        static int32_t read(){
+        static int read(){
         #if defined(ADCSRB) && defined(MUX5)
             // the MUX5 bit of ADCSRB selects whether we're reading from channels
             // 0 to 7 (MUX5 low) or 8 to 15 (MUX5 high).
