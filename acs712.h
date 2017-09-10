@@ -8,29 +8,25 @@
 
 namespace fasthal
 {
-    template <class Adc, unsigned ACFrequency, unsigned VRef, unsigned AdcScale, unsigned Sensitivity>
+    template <class Adc, unsigned VRef, unsigned AdcScale, unsigned Sensitivity>
     class Acs712{
-        typedef AdcRms<Adc, fasthal::Time::freqToMicros(ACFrequency)> RmsAdc;
+       
         // (Vref / AdcScale) / (Sensitivity/100)
         static constexpr float _factor = ((float)VRef / (float)AdcScale) / ((float)Sensitivity / 1000.0f);
     public:
-        static inline float readAC(){
-            return RmsAdc::read() * _factor;
-        }
-
-        static inline float readDC(){
+        static inline float read(){
             return Adc::read() * _factor;                
         }
     };
 
-    template <class Adc, unsigned ACFrequency, unsigned VRef, unsigned AdcScale>
-    class Acs712_05B: public Acs712<Adc, ACFrequency, VRef, AdcScale, 185>{};
+    template <class Adc, unsigned VRef, unsigned AdcScale>
+    class Acs712_05B: public Acs712<Adc, VRef, AdcScale, 185>{};
 
-    template <class Adc, unsigned ACFrequency, unsigned VRef, unsigned AdcScale>
-    class Acs712_20A: public Acs712<Adc, ACFrequency, VRef, AdcScale, 100>{};
+    template <class Adc, unsigned VRef, unsigned AdcScale>
+    class Acs712_20A: public Acs712<Adc, VRef, AdcScale, 100>{};
 
-    template <class Adc, unsigned ACFrequency, unsigned VRef, unsigned AdcScale>
-    class Acs712_30A: public Acs712<Adc, ACFrequency, VRef, AdcScale, 66>{};
+    template <class Adc, unsigned VRef, unsigned AdcScale>
+    class Acs712_30A: public Acs712<Adc, VRef, AdcScale, 66>{};
 }
 
 #endif // ACS712_H_
