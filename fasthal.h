@@ -11,7 +11,6 @@
 #include "time.h"
 #include "pin.h"
 #include "port.h"
-#include "adc.h"
 
 #include "platform.h"
 
