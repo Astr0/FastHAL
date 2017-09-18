@@ -4,6 +4,7 @@
 #define DEVICES_H_
 
 #include "time.h"
+#include <inttypes.h>
 
 namespace fasthal{
     template<uint32_t (*GetTime)()>
@@ -21,45 +22,77 @@ namespace fasthal{
         bool elapsed(uint32_t time){
             return (GetTime() - _lastTime) >= time;
         }
+
+        bool elapsed(uint16_t time){
+            return (GetTime() - _lastTime) >= time;
+        }
     };
 
     class ElapsedMs: public Elapsed<fasthal::Time::millis>{
     };
 
-    template<class TPin>
-    class Button{
-    private:        
-        ElapsedMs _noBounce;
-        bool _pressed;
+    
 
+    template<class TPin, uint16_t Interval>
+    class Bounce{
+    private:   
+        enum BounceState{
+            Unstable = 0,
+            Debounced = 1,
+            Changed = 2
+        };
+        
+        ElapsedMs _elapsed;
+        uint8_t _state;
+        
     public:
-        Button():_pressed(false){
+        Bounce():_state(BounceState::Unstable){
+        }
+
+        Bounce(bool state): _state(state ? BounceState::Debounced : BounceState::Unstable){            
         }
 
         void begin(uint8_t mode){
             TPin::setMode(mode);
         }
 
-        bool debounce(uint32_t time){
-            bool pressed = TPin::read();
-            if (pressed != _pressed){
-                _pressed = pressed;
-                _noBounce.reset();
-                return false;
+        bool update(){
+            bool current = TPin::read();
+            _state &= ~BounceState::Changed;
+
+            if (current != readUnstable()){
+                _elapsed.reset();
+                _state ^= BounceState::Unstable;
+            } else if ((current != read()) && _elapsed.elapsed(Interval)){
+                // debounced state changed and threashold passed
+                _state = (_state ^ BounceState::Debounced) | BounceState::Changed;
+                return true;
             }
-            return _noBounce.elapsed(time);
+            return false;
         }
 
-        bool down(uint32_t time){
-            return debounce(time) && _pressed;
-        }
-        
-        bool up(uint32_t time){
-            return debounce(time) && !_pressed;
+        bool stateStable(uint16_t time){
+            return _elapsed.elapsed(time);
         }
 
-        bool pressed(){
-            return _pressed;
+        bool changed(){
+            return _state & BounceState::Changed;
+        }
+
+        bool readUnstable(){
+            return _state & BounceState::Unstable;
+        }
+
+        bool read(){
+            return _state & BounceState::Debounced;
+        }
+
+        bool fell(){
+            return changed() && !read();
+        }
+
+        bool rose(){
+            return changed() && read();
         }
     };
 
