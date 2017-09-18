@@ -11,17 +11,17 @@ namespace fasthal{
     class NoInterrupts{
         uint8_t _sreg;
     public:
-        NoInterrupts()
+        inline NoInterrupts()
         {
             _sreg = SREG;
             cli();
         }
 
-        ~NoInterrupts(){
+        inline ~NoInterrupts(){
             SREG = _sreg;	
         }
 
-        static bool enabled() { return bit_is_clear(SREG, SREG_I);}
+        static inline bool enabled() { return bit_is_clear(SREG, SREG_I);}
     };
 }
 

@@ -5,22 +5,18 @@
 
 #include "maskutils.h"
 #include <inttypes.h>
+#include <avr/interrupt.h>
+#include "functions.h"
 
-#define FASTHAL_WRAPREG(REGNAME, CODE)\
-struct REGNAME ## Reg ## CODE \
-{\
-static decltype(REGNAME ## CODE)& value(){return REGNAME ## CODE;}\
-};
-
-#define FASTHAL_DECLAREUART(CODE)\
+#define FASTHAL_DECLAREUART(NAME, CODE)\
 namespace priv\
 {\
-	FASTHAL_WRAPREG(UBRRH, CODE)\
-	FASTHAL_WRAPREG(UBRRL, CODE)\
-	FASTHAL_WRAPREG(UCSRA, CODE)\
-	FASTHAL_WRAPREG(UCSRB, CODE)\
-	FASTHAL_WRAPREG(UCSRC, CODE)\
-	FASTHAL_WRAPREG(UDR, CODE)\
+	FASTHAL_WRAPVARIABLE(UBRRHReg ## CODE, UBRR ## CODE ## H)\
+	FASTHAL_WRAPVARIABLE(UBRRLReg ## CODE, UBRR ## CODE ## L)\
+	FASTHAL_WRAPVARIABLE(UCSRAReg ## CODE, UCSR ## CODE ## A)\
+	FASTHAL_WRAPVARIABLE(UCSRBReg ## CODE, UCSR ## CODE ## B)\
+	FASTHAL_WRAPVARIABLE(UCSRCReg ## CODE, UCSR ## CODE ## C)\
+	FASTHAL_WRAPVARIABLE(UDRReg ## CODE, UDR ## CODE)\
 }\
 typedef AvrUart<\
     priv::UBRRHReg ## CODE, \
@@ -37,7 +33,7 @@ typedef AvrUart<\
     U2X ## CODE, \
     UPE ## CODE, \
     UDRE ## CODE \
-    > Uart ## CODE;
+    > Uart ## NAME;
 
 namespace fasthal{
     enum SerialConfig{
@@ -86,7 +82,8 @@ namespace fasthal{
         uint8_t UPEbit,
         uint8_t UDREbit
         >
-    class AvrUart{
+    class AvrUart{        
+    public:
         static void begin(uint32_t baud, uint8_t config)
         {
             // Try u2x mode first
@@ -131,30 +128,35 @@ namespace fasthal{
             disableTxReadyIrq();
         }
 
-        static void enableRx() { sbi(ucsrb::value(), RXENbit); }
-        static void disableRx() { cbi(ucsrb::value(), RXENbit); }
+        static inline void enableRx() { sbi(ucsrb::value(), RXENbit); }
+        static inline void disableRx() { cbi(ucsrb::value(), RXENbit); }
 
-        static void enableTx() { sbi(ucsrb::value(), TXENbit); }
-        static void disableTx() { cbi(ucsrb::value(), TXENbit); }
+        static inline void enableTx() { sbi(ucsrb::value(), TXENbit); }
+        static inline void disableTx() { cbi(ucsrb::value(), TXENbit); }
         
-        static void enableRxIrq() { sbi(ucsrb::value(), RXCIEbit); }
-        static void disableRxIrq() { cbi(ucsrb::value(), RXCIEbit); }
+        static inline void enableRxIrq() { sbi(ucsrb::value(), RXCIEbit); }
+        static inline void disableRxIrq() { cbi(ucsrb::value(), RXCIEbit); }
         
-        static bool enabledTxReadyIrq() { return bit_is_set(ucsrb::value(), UDRIEbit); }
-        static void enableTxReadyIrq(){ sbi(ucsrb::value(), UDRIEbit); }
-        static void disableTxReadyIrq(){ sbi(ucsrb::value(), UDRIEbit); }
+        static inline bool enabledTxReadyIrq() { return bit_is_set(ucsrb::value(), UDRIEbit); }
+        static inline void enableTxReadyIrq(){ sbi(ucsrb::value(), UDRIEbit); }
+        static inline void disableTxReadyIrq(){ cbi(ucsrb::value(), UDRIEbit); }
+        static inline bool shouldRunTxReadyIrq(){
+            return NoInterrupts::enabled() && txReady();
+        }
 
-        static bool txReady() { return bit_is_set(ucsra::value(), UDREbit); }
-        static bool txDone() { return bit_is_clear(ucsra::value(), TXC0); }
-        static void tx(uint8_t c) { udr::value() = c; clearTxReady(); }
-        static void clearTxReady(){ sbi(ucsra::value(), TXCbit); }
+        static inline bool txReady() { return bit_is_set(ucsra::value(), UDREbit); }
+        static inline bool txDone() { return bit_is_clear(ucsra::value(), TXC0); }
+        static inline void tx(uint8_t c) { udr::value() = c; clearTxReady(); }
+        static inline void clearTxReady(){ sbi(ucsra::value(), TXCbit); }
+
+        static inline uint8_t rx(){ return udr::value(); }
+        static inline bool rxOk(){return bit_is_clear(ucsra::value(), UPEbit); }
     };
 
     template<
-        unsigned int TxBufferSize, 
+        class Uart,
         unsigned int RxBufferSize,
-        class Uart
-        >
+        unsigned int TxBufferSize>
     class AvrSerial{
     private:
         typedef typename common::NumberType<RxBufferSize>::Result RxBufferIndex;
@@ -228,7 +230,7 @@ namespace fasthal{
         TxBufferIndex availableForWrite()
         {
             TxBufferIndex head;
-            RxBufferIndex tail;
+            TxBufferIndex tail;
             if (TxBufferSize > 256){
                 NoInterrupts noInterrupts;
                 
@@ -252,11 +254,9 @@ namespace fasthal{
             // write data buffer empty interrupt enabled (we have data in HW write buffer)
             // or transmission not complete (no data in write buffer, but it's not actually transmitted)
             while (Uart::enabledTxReadyIrq() || !Uart::txDone()){
-                // interrupts are disabled
-                if (NoInterrupts::enabled()){
-                    // check if tx ready manually
-                    if (Uart::txReady())
-                        _tx_udr_empty_irq();
+                // check if tx ready manually
+                if (Uart::shouldRunTxReadyIrq()){
+                    _tx_ready_irq();
                 }
             }
 
@@ -281,13 +281,9 @@ namespace fasthal{
             // If the output buffer is full, there's nothing for it other than to 
             // wait for the interrupt handler to empty it a bit
             while (i == _tx_tail) {
-                if (NoInterrupts::enabled()) {
-                    // Interrupts are disabled, so we'll have to poll the data
-                    // register empty flag ourselves. If it is set, pretend an
-                    // interrupt has happened and call the handler to free up
-                    // space for us.
-                    if(Uart::txReady())
-                        _tx_udr_empty_irq();
+                if (Uart::shouldRunTxReadyIrq()) {
+                    // check if tx ready manually
+                    _tx_ready_irq();
                 } 
             }
 
@@ -299,7 +295,7 @@ namespace fasthal{
             return true;
         } 
 
-        void _tx_udr_empty_irq()
+        void _tx_ready_irq()
         {
           // If interrupts are enabled, there must be more data in the output
           // buffer. Send the next byte
@@ -313,9 +309,135 @@ namespace fasthal{
             Uart::disableTxReadyIrq();
           }
         }
+
+        inline void _rx_ready_irq(void)
+        {
+          if (Uart::rxOk()) {
+            // No Parity error, read byte and store it in the buffer if there is
+            // room
+            unsigned char c = Uart::rx();
+            rx_buffer_index_t i = (unsigned int)(_rx_head + 1) % RxBufferSize;
+        
+            // if we should be storing the received character into the location
+            // just before the tail (meaning that the head would advance to the
+            // current location of the tail), we're about to overflow the buffer
+            // and so we don't write the character or advance the head.
+            if (i != _rx_tail) {
+              _rx_buffer[_rx_head] = c;
+              _rx_head = i;
+            }
+          } else {
+            // Parity error, read byte but discard it
+            Uart::rx();
+          };
+        }
     };
 
+    #define FASTHAL_SERIAL(Number, RX_Vect, UDRE_Vect, RxSize, TxSize, Name) \
+        typedef ::fasthal::AvrSerial<::fasthal::Uart ## Number, RxSize, TxSize> Name ## _Type;\
+        Name ## _Type Name;\
+        ISR(RX_Vect) { Name._rx_ready_irq(); } \
+        ISR(UDRE_Vect) { Name._tx_ready_irq(); }
 
+    #if defined(UBRRH) || defined(UBRR0H)
+        #if defined(USART_RX_vect)
+            #define FASTHAL_RX0_vect USART_RX_vect
+        #elif defined(USART_RXC_vect)
+            // ATmega8
+            #define FASTHAL_RX0_vect USART_RXC_vect
+        #elif defined(USART0_RX_vect)
+            #define FASTHAL_RX0_vect USART0_RX_vect
+        #elif defined(UART0_RX_vect)
+            #define FASTHAL_RX0_vect UART0_RX_vect
+        #else
+            #error "Don't know what the Data Received vector is called for UART0"
+        #endif 
+
+        #if defined(UART_UDRE_vect)
+            #define FASTHAL_UDRE0_vect UART_UDRE_vect
+        #elif defined(USART_UDRE_vect)
+            #define FASTHAL_UDRE0_vect USART_UDRE_vect
+        #elif defined(UART0_UDRE_vect)
+            #define FASTHAL_UDRE0_vect UART0_UDRE_vect
+        #elif defined(USART0_UDRE_vect)
+            #define FASTHAL_UDRE0_vect USART0_UDRE_vect
+        #else
+          #error "Don't know what the Data Register Empty vector is called for UART0"
+        #endif 
+    
+        #if defined(UBRRH)
+            FASTHAL_DECLAREUART(0, )
+        #else
+            FASTHAL_DECLAREUART(0, 0)
+        #endif
+
+        #define FASTHAL_SERIAL0(RxSize, TxSize, Name) FASTHAL_SERIAL(0, FASTHAL_RX0_vect, FASTHAL_UDRE0_vect, RxSize, TxSize, Name)
+    #endif
+
+    #if defined(UBRR1H)
+        #if defined(USART1_RX_vect)
+            #define FASTHAL_RX1_vect USART1_RX_vect
+        #elif defined(UART1_RX_vect)
+            #define FASTHAL_RX1_vect UART1_RX_vect
+        #else
+            #error "Don't know what the Data Received vector is called for UART1"
+        #endif 
+
+        #if defined(UART1_UDRE_vect)
+            #define FASTHAL_UDRE1_vect UART1_UDRE_vect
+        #elif defined(USART1_UDRE_vect)
+            #define FASTHAL_UDRE1_vect USART1_UDRE_vect
+        #else
+          #error "Don't know what the Data Register Empty vector is called for UART1"
+        #endif 
+
+        FASTHAL_DECLAREUART(1, 1)
+        #define FASTHAL_SERIAL1(RxSize, TxSize, Name) FASTHAL_SERIAL(1, FASTHAL_RX1_vect, FASTHAL_UDRE1_vect, RxSize, TxSize, Name)
+  #endif
+
+  #if defined(UBRR2H)
+        #if defined(USART2_RX_vect)
+            #define FASTHAL_RX2_vect USART2_RX_vect
+        #elif defined(UART2_RX_vect)
+            #define FASTHAL_RX2_vect UART2_RX_vect
+        #else
+            #error "Don't know what the Data Received vector is called for UART2"
+        #endif 
+
+        #if defined(UART2_UDRE_vect)
+            #define FASTHAL_UDRE2_vect UART2_UDRE_vect
+        #elif defined(USART2_UDRE_vect)
+            #define FASTHAL_UDRE2_vect USART2_UDRE_vect
+        #else
+          #error "Don't know what the Data Register Empty vector is called for UART2"
+        #endif 
+
+        FASTHAL_DECLAREUART(2, 2)
+        #define FASTHAL_SERIAL2(RxSize, TxSize, Name) FASTHAL_SERIAL(2, FASTHAL_RX2_vect, FASTHAL_UDRE2_vect, RxSize, TxSize, Name)
+  #endif
+
+  #if defined(UBRR3H)
+        #if defined(USART3_RX_vect)
+            #define FASTHAL_RX3_vect USART3_RX_vect
+        #elif defined(UART3_RX_vect)
+            #define FASTHAL_RX3_vect UART3_RX_vect
+        #else
+            #error "Don't know what the Data Received vector is called for UART3"
+        #endif 
+
+        #if defined(UART3_UDRE_vect)
+            #define FASTHAL_UDRE3_vect UART3_UDRE_vect
+        #elif defined(USART3_UDRE_vect)
+            #define FASTHAL_UDRE3_vect USART3_UDRE_vect
+        #else
+          #error "Don't know what the Data Register Empty vector is called for UART3"
+        #endif 
+
+        FASTHAL_DECLAREUART(3, 3)
+        #define FASTHAL_SERIAL3(RxSize, TxSize, Name) FASTHAL_SERIAL(3, FASTHAL_RX3_vect, FASTHAL_UDRE3_vect, RxSize, TxSize, Name
+    #endif    
+
+  
 }
 
 #endif

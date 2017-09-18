@@ -5,12 +5,7 @@
 
 #include "avr_interrupts.h"
 #include <avr/io.h>
-
-#define FASTHAL_WRAPVARIABLE(CLASSNAME, VARNAME)\
-struct CLASSNAME\
-{\
-static decltype(VARNAME)& value(){return VARNAME;}\
-};
+#include "functions.h"
 
 #define FASTHAL_DECLAREPORT(CODE)\
 namespace priv\
@@ -111,6 +106,5 @@ namespace fasthal{
 }    
 
 #undef FASTHAL_DECLAREPORT
-#undef FASTHAL_WRAPVARIABLE
 
 #endif
