@@ -15,6 +15,30 @@ namespace fasthal{
             return 1000000 / freq;
         }
     };
+
+    template<uint32_t (*GetTime)()>
+    class Elapsed{
+    private:
+        uint32_t _lastTime;
+    public:
+        Elapsed(): _lastTime(0){            
+        }
+
+        void reset(){
+            _lastTime = GetTime();
+        }
+
+        bool elapsed(uint32_t time){
+            return (GetTime() - _lastTime) >= time;
+        }
+
+        bool elapsed(uint16_t time){
+            return (GetTime() - _lastTime) >= time;
+        }
+    };
+
+    class ElapsedMs: public Elapsed<fasthal::Time::millis>{
+    };
 }
 
 #endif
