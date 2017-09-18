@@ -3,7 +3,8 @@
 #ifndef AVR_PORTS_H_
 #define AVR_PORTS_H_
 
-#include "avr_internals.h"
+#include "avr_interrupts.h"
+#include <avr/io.h>
 
 #define FASTHAL_WRAPVARIABLE(CLASSNAME, VARNAME)\
 struct CLASSNAME\

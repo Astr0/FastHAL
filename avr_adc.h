@@ -3,6 +3,9 @@
 #ifndef AVR_ADC_H_
 #define AVR_ADC_H_
 
+#include <inttypes.h>
+#include <avr/io.h>
+
 namespace fasthal{
     class AdcRef{        
         static uint8_t _ref;

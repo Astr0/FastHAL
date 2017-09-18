@@ -3,6 +3,8 @@
 #ifndef DEV_ADC_H_
 #define DEV_ADC_H_
 
+#include <math.h>
+
 namespace fasthal{
     template<class Adc, int (*Zero)()>
     class AdcZero{

@@ -3,6 +3,8 @@
 #ifndef TIME_H_
 #define TIME_H_
 
+#include <inttypes.h>
+
 namespace fasthal{
     class Time{
     public:
