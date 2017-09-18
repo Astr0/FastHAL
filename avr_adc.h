@@ -32,8 +32,6 @@ namespace fasthal{
 
         static uint8_t get();
     };
-
-  
     
     template<unsigned Channel>
     class AvrAdc{

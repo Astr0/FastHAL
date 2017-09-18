@@ -28,12 +28,16 @@ namespace fasthal{
             _lastTime = GetTime();
         }
 
+        uint32_t elapsed(){
+            return GetTime() - _lastTime;
+        }
+
         bool elapsed(uint32_t time){
-            return (GetTime() - _lastTime) >= time;
+            return elapsed() >= time;
         }
 
         bool elapsed(uint16_t time){
-            return (GetTime() - _lastTime) >= time;
+            return elapsed() >= time;
         }
     };
 
