@@ -7,6 +7,7 @@
 #include <inttypes.h>
 #include <avr/interrupt.h>
 #include "functions.h"
+#include "utils_stream.h"
 
 #define FASTHAL_DECLAREUART(NAME, CODE)\
 namespace priv\

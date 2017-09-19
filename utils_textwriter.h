@@ -3,6 +3,8 @@
 #ifndef UTILS_TEXTWRITER_H_
 #define UTILS_TEXTWRITER_H_
 
+#include <stdlib.h>
+
 namespace fasthal{
     namespace priv{
         template<uint8_t TSize>
@@ -148,12 +150,13 @@ namespace fasthal{
         }
 
         bool print(const char* text) const{
-            char c;
-            while ((c = *text++) != '\0'){
-                if (!write(c))
-                    return false;
-            }
-            return true;
+            return write((const uint8_t*)text, strlen(text));
+            // char c;
+            // while ((c = *text++) != '\0'){
+            //     if (!write(c))
+            //         return false;
+            // }
+            // return true;
         }
 
         bool println(const char* text) const{
@@ -265,6 +268,9 @@ namespace fasthal{
     };
 }
 
-#define FASTHAL_TEXTWRITER(Stream, Name) constexpr ::fasthal::TextWriter<decltype(Stream)> Name(Stream);
+// 3296/105
+//#define FASTHAL_TEXTWRITER_T(Stream, Name) constexpr ::fasthal::TextWriter<::fasthal::OutStreamRef<decltype(Stream)> > Name(Stream);
+#define FASTHAL_TEXTWRITER_T(Stream, Name) constexpr ::fasthal::TextWriter<decltype(Stream)> Name(Stream);
+#define FASTHAL_TEXTWRITER(Stream, Name) constexpr ::fasthal::TextWriter<::fasthal::OutStream> Name(Stream);
 
 #endif
