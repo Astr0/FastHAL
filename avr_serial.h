@@ -84,6 +84,10 @@ namespace fasthal{
         >
     class AvrUart{        
     public:
+        static void begin(uint32_t baud){
+            begin(baud, SerialConfig::D8N1);
+        }
+
         static void begin(uint32_t baud, uint8_t config)
         {
             // Try u2x mode first
@@ -112,20 +116,6 @@ namespace fasthal{
             #endif
 
             ucsrc::value() = config;
-
-            // enable RX, TX and RX interrupt
-            enableRx();
-            enableTx();
-            enableRxIrq();
-            disableTxReadyIrq();
-        }
-
-        static void end(){
-            // disable UART
-            disableRx();
-            disableTx();
-            disableRxIrq();
-            disableTxReadyIrq();
         }
 
         static inline void enableRx() { sbi(ucsrb::value(), RXENbit); }
@@ -153,47 +143,30 @@ namespace fasthal{
         static inline bool rxOk(){return bit_is_clear(ucsra::value(), UPEbit); }
     };
 
-    template<
-        class Uart,
-        unsigned int RxBufferSize,
-        unsigned int TxBufferSize>
-    class AvrSerial{
+    template<class Uart, unsigned int RxBufferSize>
+    class AvrUartRx{
     private:
         typedef typename common::NumberType<RxBufferSize>::Result RxBufferIndex;
         typedef typename common::NumberType<RxBufferSize * 2>::Result RxBufferIndex2;
-        typedef typename common::NumberType<TxBufferSize>::Result TxBufferIndex;
-    
+
         volatile RxBufferIndex _rx_head;
         volatile RxBufferIndex _rx_tail;
-        volatile TxBufferIndex _tx_head;
-        volatile TxBufferIndex _tx_tail;
-        bool _written;
 
         unsigned char _rx_buffer[RxBufferSize];
-        unsigned char _tx_buffer[TxBufferSize];
     public:
-        AvrSerial():
-            _rx_head(0), _rx_tail(0),
-            _tx_head(0), _tx_tail(0),
-            _written(false)
-        {
+        AvrUartRx():  _rx_head(0), _rx_tail(0)
+        {            
         }
 
-        void begin(uint32_t baud){
-            begin(baud, SerialConfig::D8N1);
+        inline void begin(){
+            Uart::enableRx();
+            Uart::enableRxIrq();
         }
 
-        void begin(uint32_t baud, uint8_t config){
-            _written = false;
-            Uart::begin(baud, config);
-        }
-
-        void end(){
-            // wait for transmission of outgoing data
-            flush();
-
-            Uart::end();
-
+        inline void end(){
+            Uart::disableRx();
+            Uart::disableRxIrq();
+            
             // clear any received data
             _rx_head = _rx_tail;
         }
@@ -203,11 +176,11 @@ namespace fasthal{
           return ((RxBufferIndex2)(RxBufferSize + _rx_head - _rx_tail)) % RxBufferSize;
         }
 
-        bool availableAny(){
+        inline bool availableAny(){
             return _rx_head != _rx_tail;
         }
 
-        uint8_t peek(){
+        inline uint8_t peek(){
             return _rx_buffer[_rx_tail];
         }
 
@@ -227,6 +200,62 @@ namespace fasthal{
             } 
         }
 
+        inline void _rx_ready_irq(void)
+        {
+          if (Uart::rxOk()) {
+            // No Parity error, read byte and store it in the buffer if there is
+            // room
+            unsigned char c = Uart::rx();
+            rx_buffer_index_t i = (unsigned int)(_rx_head + 1) % RxBufferSize;
+        
+            // if we should be storing the received character into the location
+            // just before the tail (meaning that the head would advance to the
+            // current location of the tail), we're about to overflow the buffer
+            // and so we don't write the character or advance the head.
+            if (i != _rx_tail) {
+              _rx_buffer[_rx_head] = c;
+              _rx_head = i;
+            }
+          } else {
+            // Parity error, read byte but discard it
+            Uart::rx();
+          };
+        }
+    };
+
+    template<
+        class Uart,        
+        unsigned int TxBufferSize>
+    class AvrUartTx{
+    private:
+        typedef typename common::NumberType<TxBufferSize>::Result TxBufferIndex;
+    
+        volatile TxBufferIndex _tx_head;
+        volatile TxBufferIndex _tx_tail;
+        bool _written;
+
+        unsigned char _tx_buffer[TxBufferSize];
+    public:
+        AvrUartTx():           
+            _tx_head(0), _tx_tail(0)
+        {
+        }
+
+        inline void begin(){
+            _written = false;
+            Uart::enableTx();
+            Uart::disableTxReadyIrq();
+        }
+
+        inline void end(){
+            // wait for transmission of outgoing data
+            flush();
+
+            Uart::disableTx();
+            Uart::disableTxReadyIrq();
+        }
+
+        
         TxBufferIndex availableForWrite()
         {
             TxBufferIndex head;
@@ -309,36 +338,20 @@ namespace fasthal{
             Uart::disableTxReadyIrq();
           }
         }
-
-        inline void _rx_ready_irq(void)
-        {
-          if (Uart::rxOk()) {
-            // No Parity error, read byte and store it in the buffer if there is
-            // room
-            unsigned char c = Uart::rx();
-            rx_buffer_index_t i = (unsigned int)(_rx_head + 1) % RxBufferSize;
-        
-            // if we should be storing the received character into the location
-            // just before the tail (meaning that the head would advance to the
-            // current location of the tail), we're about to overflow the buffer
-            // and so we don't write the character or advance the head.
-            if (i != _rx_tail) {
-              _rx_buffer[_rx_head] = c;
-              _rx_head = i;
-            }
-          } else {
-            // Parity error, read byte but discard it
-            Uart::rx();
-          };
-        }
     };
 
-    #define FASTHAL_SERIAL(Number, RX_Vect, UDRE_Vect, RxSize, TxSize, Name) \
-        typedef ::fasthal::AvrSerial<::fasthal::Uart ## Number, RxSize, TxSize> Name ## _Type;\
-        Name ## _Type Name;\
-        ISR(RX_Vect) { Name._rx_ready_irq(); } \
-        ISR(UDRE_Vect) { Name._tx_ready_irq(); }
+    #define FASTHAL_UARTRX(Number, RX_Vect, RxSize) \
+        namespace fasthal{\
+            ::fasthal::AvrUartRx<::fasthal::Uart ## Number, RxSize> Uart ## Number ## Rx;\
+            ISR(RX_Vect) { Uart ## Number ## Rx._rx_ready_irq(); }\
+        }
 
+    #define FASTHAL_UARTTX(Number, UDRE_Vect, TxSize) \
+        namespace fasthal{\
+            ::fasthal::AvrUartTx<::fasthal::Uart ## Number, TxSize> Uart ## Number ## Tx;\
+            ISR(UDRE_Vect) { Uart ## Number ## Tx._tx_ready_irq(); }\
+        }
+        
     #if defined(UBRRH) || defined(UBRR0H)
         #if defined(USART_RX_vect)
             #define FASTHAL_RX0_vect USART_RX_vect
@@ -371,7 +384,11 @@ namespace fasthal{
             FASTHAL_DECLAREUART(0, 0)
         #endif
 
-        #define FASTHAL_SERIAL0(RxSize, TxSize, Name) FASTHAL_SERIAL(0, FASTHAL_RX0_vect, FASTHAL_UDRE0_vect, RxSize, TxSize, Name)
+        #define FASTHAL_UART0RX(RxSize) FASTHAL_UARTRX(0, FASTHAL_RX0_vect, RxSize)
+        #define FASTHAL_UART0TX(TxSize) FASTHAL_UARTTX(0, FASTHAL_UDRE0_vect, TxSize)
+        #define FASTHAL_UART0(RxSize, TxSize) \
+            FASTHAL_UART0RX(RxSize)\
+            FASTHAL_UART0TX(TxSize)
     #endif
 
     #if defined(UBRR1H)
@@ -392,7 +409,12 @@ namespace fasthal{
         #endif 
 
         FASTHAL_DECLAREUART(1, 1)
-        #define FASTHAL_SERIAL1(RxSize, TxSize, Name) FASTHAL_SERIAL(1, FASTHAL_RX1_vect, FASTHAL_UDRE1_vect, RxSize, TxSize, Name)
+
+        #define FASTHAL_UART1RX(RxSize) FASTHAL_UARTRX(1, FASTHAL_RX1_vect, RxSize)
+        #define FASTHAL_UART1TX(TxSize) FASTHAL_UARTTX(1, FASTHAL_UDRE1_vect, TxSize)
+        #define FASTHAL_UART1(RxSize, TxSize) \
+            FASTHAL_UART1RX(RxSize)\
+            FASTHAL_UART1TX(TxSize)
   #endif
 
   #if defined(UBRR2H)
@@ -413,7 +435,12 @@ namespace fasthal{
         #endif 
 
         FASTHAL_DECLAREUART(2, 2)
-        #define FASTHAL_SERIAL2(RxSize, TxSize, Name) FASTHAL_SERIAL(2, FASTHAL_RX2_vect, FASTHAL_UDRE2_vect, RxSize, TxSize, Name)
+
+        #define FASTHAL_UART2RX(RxSize) FASTHAL_UARTRX(2, FASTHAL_RX2_vect, RxSize)
+        #define FASTHAL_UART2TX(TxSize) FASTHAL_UARTTX(2, FASTHAL_UDRE2_vect, TxSize)
+        #define FASTHAL_UART2(RxSize, TxSize) \
+            FASTHAL_UART2RX(RxSize)\
+            FASTHAL_UART2TX(TxSize)
   #endif
 
   #if defined(UBRR3H)
@@ -434,7 +461,12 @@ namespace fasthal{
         #endif 
 
         FASTHAL_DECLAREUART(3, 3)
-        #define FASTHAL_SERIAL3(RxSize, TxSize, Name) FASTHAL_SERIAL(3, FASTHAL_RX3_vect, FASTHAL_UDRE3_vect, RxSize, TxSize, Name
+
+        #define FASTHAL_UART3RX(RxSize) FASTHAL_UARTRX(3, FASTHAL_RX3_vect, RxSize)
+        #define FASTHAL_UART3TX(TxSize) FASTHAL_UARTTX(3, FASTHAL_UDRE3_vect, TxSize)
+        #define FASTHAL_UART3(RxSize, TxSize) \
+            FASTHAL_UART3RX(RxSize)\
+            FASTHAL_UART3TX(TxSize)
     #endif    
 
   

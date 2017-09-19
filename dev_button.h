@@ -74,7 +74,7 @@ namespace fasthal{
         }
     };
 
-    enum ButtonEvent{
+    enum ButtonEvent: uint8_t{
         None = 0,
         Click = 1,
         LongClick = 2,
