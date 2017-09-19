@@ -150,13 +150,13 @@ namespace fasthal{
         }
 
         bool print(const char* text) const{
-            return write((const uint8_t*)text, strlen(text));
-            // char c;
-            // while ((c = *text++) != '\0'){
-            //     if (!write(c))
-            //         return false;
-            // }
-            // return true;
+            //return write((const uint8_t*)text, strlen(text));
+            char c;
+            while ((c = *text++) != '\0'){
+                if (!write(c))
+                    return false;
+            }
+            return true;
         }
 
         bool println(const char* text) const{
