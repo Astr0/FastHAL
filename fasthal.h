@@ -16,5 +16,6 @@
 
 #include "functions.h"
 #include "devices.h"
+#include "utils.h"
 
 #endif
