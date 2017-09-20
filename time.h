@@ -11,6 +11,7 @@ namespace fasthal{
         static uint32_t micros();
         static uint32_t millis();
         static void delay(uint32_t millis);
+        static void delayMicros(uint32_t micros);
         
         static inline constexpr uint32_t freqToMicros(uint8_t freq)
         {
