@@ -7,11 +7,10 @@ const auto TxSize = 64;
 using namespace fasthal;
 
 FASTHAL_TIME_ARDUINO();
-FASTHAL_INITADC(AdcRef::Default);
 
-//#define FH
+#define FH
 //#define OS
-//#define S1
+#define S1
 
 #ifdef FH
 FASTHAL_UART0(RxSize, TxSize);
@@ -21,6 +20,7 @@ FASTHAL_UART1(RxSize, TxSize);
 #endif
 
 void setup(){
+    Adc::begin();
     #ifdef FH
     Uart0::begin(9600);
     Uart0tx::begin();

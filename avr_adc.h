@@ -5,35 +5,71 @@
 
 #include <inttypes.h>
 #include <avr/io.h>
+#include "functions.h"
 
 namespace fasthal{
-    class AdcRef{        
-        static uint8_t _ref;
-    public:
+
+    enum AdcRef:uint8_t{
     #if defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)
-        static const uint8_t Default = 0;
-        static const uint8_t External = 1;
-        static const uint8_t Internal1v1 = 2;
-        static const uint8_t Internal = 2;
+        Default = 0,
+        External = 1,
+        Internal1v1 = 2,
+        Internal = 2
     #elif defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__)
-        static const uint8_t Default = 0;
-        static const uint8_t External = 4;
-        static const uint8_t Internal1v1 = 8;
-        static const uint8_t Internal = Internal1v1;
-        static const uint8_t Internal2v56 = 9;
-        static const uint8_t Internal2v56_ExtCap = 13;
+        Default = 0,
+        External = 4,
+        Internal1v1 = 8,
+        Internal = Internal1v1,
+        Internal2v56 = 9,
+        Internal2v56_ExtCap = 13
     #else  
     #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__)
-        static const uint8_t Internal1v1 = 2;
-        static const uint8_t Internal2v56 = 3;
+        Internal1v1 = 2,
+        Internal2v56 = 3,
     #else
-        static const uint8_t Internal = 3;
+        Internal = 3,
     #endif
-        static const uint8_t Default = 1;
-        static const uint8_t External = 0;
+        Default = 1,
+        External = 0
     #endif 
+    };
 
-        static uint8_t get();
+
+    class Adc{        
+    public:
+        static void begin(AdcRef ref = AdcRef::Default){
+            setReference(ref);
+            enable();
+        }
+        // ATTINY25/45/85: REFS1 REFS0 ADLAR REFS2 MUX3 MUX2 MUX1 MUX0
+        // Others: REFS1 REFS0 ADLAR MUX3 MUX2 MUX1 MUX0
+        static void setReference(AdcRef ref){
+            #if defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__)
+                // ref is 3 bytes with ADLAR in between
+                ADMUX = (ref << 4) | (ADMUX & 0x2F);
+            #else
+                // ref is 2 bytes
+                ADMUX = (ref << 6) | (ADMUX & 0x3F);
+            #endif
+        }
+
+        static AdcRef getReference(){
+            #if defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__)
+                // ref is 3 bytes with ADLAR in between
+                return (AdcRef)((ADMUX >> 4) & 0x0D);
+            #else
+                // ref is 2 bytes
+                return (AdcRef)(ADMUX >> 6);
+            #endif
+        }
+
+        static void enable(){
+            sbi(ADCSRA, ADEN); 
+        }
+
+        static void disable(){
+            cbi(ADCSRA, ADEN);
+        }
     };
     
     template<unsigned Channel>
@@ -46,15 +82,8 @@ namespace fasthal{
             ADCSRB = (ADCSRB & ~(1 << MUX5)) | (((Channel >> 3) & 0x01) << MUX5);
         #endif
         
-            // set the analog reference (high two bits of ADMUX) and select the
-            // channel (low 4 bits).  this also sets ADLAR (left-adjust result)
-            // to 0 (the default).
         #if defined(ADMUX)
-        #if defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__)
-            ADMUX = (AdcRef::get() << 4) | (Channel & 0x07);
-        #else
-            ADMUX = (AdcRef::get() << 6) | (Channel & 0x07);
-        #endif
+            ADMUX = (ADMUX & 0xF0) | (Channel & 0x07);
         #endif
         
             // without a delay, we seem to read from the wrong channel
@@ -87,9 +116,14 @@ namespace fasthal{
     typedef AvrAdc<5> AdcA5;
     typedef AvrAdc<6> AdcA6;
     typedef AvrAdc<7> AdcA7;
+    typedef AvrAdc<8> AdcA8;
+    typedef AvrAdc<9> AdcA9;
+    typedef AvrAdc<10> AdcA10;
+    typedef AvrAdc<11> AdcA11;
+    typedef AvrAdc<12> AdcA12;
+    typedef AvrAdc<13> AdcA13;
+    typedef AvrAdc<14> AdcA14;
+    typedef AvrAdc<15> AdcA15;
 }
-
-#define FASTHAL_INITADC(x) uint8_t fasthal::AdcRef::get(){return x;}
-
 
 #endif

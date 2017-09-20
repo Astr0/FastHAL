@@ -102,6 +102,15 @@ namespace fasthal{
 	#endif
 	#ifdef PORTH
 	FASTHAL_DECLAREPORT(H)
+	#endif
+	#ifdef PORTJ
+	FASTHAL_DECLAREPORT(J)
+    #endif
+	#ifdef PORTK
+	FASTHAL_DECLAREPORT(K)
+    #endif
+	#ifdef PORTL
+	FASTHAL_DECLAREPORT(L)
     #endif
 }    
 
