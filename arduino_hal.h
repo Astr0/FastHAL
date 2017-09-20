@@ -46,6 +46,14 @@ namespace fasthal{
         typedef fasthal::AdcA5 AdcA5;
         typedef fasthal::AdcA6 AdcA6;
         typedef fasthal::AdcA7 AdcA7;
+
+        #ifdef LED_BUILTIN 
+        #define MAKE_LED_BUILTIN(Pin) typedef PinD ## Pin LedBuiltinPin;
+        #define MAKE_LED_BUILTIN2(Pin) MAKE_LED_BUILTIN(Pin)
+        MAKE_LED_BUILTIN2(LED_BUILTIN)
+        #undef MAKE_LED_BUILTIN
+        #undef MAKE_LED_BUILTIN2
+        #endif
     }
 }
 
