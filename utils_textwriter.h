@@ -4,6 +4,7 @@
 #define UTILS_TEXTWRITER_H_
 
 #include <stdlib.h>
+#include "utils_stream.h"
 
 namespace fasthal{
     namespace priv{
@@ -37,7 +38,7 @@ namespace fasthal{
     template<class TStream>
     class TextWriter{
     private:
-        TStream& _stream;
+        TStream _stream;
 
         // template <uint8_t size>
         // constexpr uint8_t printBufferSize(uint8_t size){
@@ -128,7 +129,7 @@ namespace fasthal{
             return true;
         }
     public:
-        constexpr TextWriter(TStream& stream): _stream(stream){
+        constexpr TextWriter(TStream stream): _stream(stream){
 
         }
 
@@ -266,11 +267,12 @@ namespace fasthal{
             return print(n, digits) && println();
         }
     };
-}
 
-// 3296/105
-//#define FASTHAL_TEXTWRITER_T(Stream, Name) constexpr ::fasthal::TextWriter<::fasthal::OutStreamRef<decltype(Stream)> > Name(Stream);
-#define FASTHAL_TEXTWRITER_T(Stream, Name) constexpr ::fasthal::TextWriter<decltype(Stream)> Name(Stream);
-#define FASTHAL_TEXTWRITER(Stream, Name) constexpr ::fasthal::TextWriter<::fasthal::OutStream> Name(Stream);
+    template<class TStream>
+    constexpr TextWriter<StaticStream<TStream> > MakeTextWriterS(){
+        return TextWriter<StaticStream<TStream> >(StaticStream<TStream>());
+    }
+
+}
 
 #endif

@@ -7,7 +7,6 @@
 #include <inttypes.h>
 #include <avr/interrupt.h>
 #include "functions.h"
-#include "utils_stream.h"
 
 #define FASTHAL_DECLAREUART(NAME, CODE)\
 namespace priv\
@@ -146,25 +145,22 @@ namespace fasthal{
 
     template<class Uart, unsigned int RxBufferSize>
     class AvrUartRx{
-    private:
+    public:
         typedef typename common::NumberType<RxBufferSize>::Result RxBufferIndex;
+    private:
         typedef typename common::NumberType<RxBufferSize * 2>::Result RxBufferIndex2;
 
-        volatile RxBufferIndex _rx_head;
-        volatile RxBufferIndex _rx_tail;
+        static volatile RxBufferIndex _rx_head;
+        static volatile RxBufferIndex _rx_tail;
 
-        unsigned char _rx_buffer[RxBufferSize];
+        static unsigned char _rx_buffer[RxBufferSize];
     public:
-        AvrUartRx():  _rx_head(0), _rx_tail(0)
-        {            
-        }
-
-        inline void begin(){
+        static inline void begin(){
             Uart::enableRx();
             Uart::enableRxIrq();
         }
 
-        inline void end(){
+        static inline void end(){
             Uart::disableRx();
             Uart::disableRxIrq();
             
@@ -172,26 +168,26 @@ namespace fasthal{
             _rx_head = _rx_tail;
         }
 
-        RxBufferIndex available()
+        static RxBufferIndex available()
         {
           return ((RxBufferIndex2)(RxBufferSize + _rx_head - _rx_tail)) % RxBufferSize;
         }
 
-        inline bool availableAny(){
+        static inline bool availableAny(){
             return _rx_head != _rx_tail;
         }
 
-        inline uint8_t peek(){
+        static inline uint8_t peek(){
             return _rx_buffer[_rx_tail];
         }
 
-        uint8_t dirtyRead(){
+        static uint8_t dirtyRead(){
             unsigned char c = _rx_buffer[_rx_tail];
             _rx_tail = (RxBufferIndex)(_rx_tail + 1) % RxBufferSize;
             return c;
         }
 
-        uint8_t read(){
+        static uint8_t read(){
             if (_rx_head == _rx_tail) {
                 return 0;
             } else {
@@ -201,7 +197,7 @@ namespace fasthal{
             } 
         }
 
-        inline void _rx_ready_irq(void)
+        static inline void _rx_ready_irq(void)
         {
           if (Uart::rxOk()) {
             // No Parity error, read byte and store it in the buffer if there is
@@ -228,27 +224,22 @@ namespace fasthal{
         class Uart,        
         unsigned int TxBufferSize>
     class AvrUartTx{
-    private:
-        typedef typename common::NumberType<TxBufferSize>::Result TxBufferIndex;
-    
-        volatile TxBufferIndex _tx_head;
-        volatile TxBufferIndex _tx_tail;
-        bool _written;
-
-        unsigned char _tx_buffer[TxBufferSize];
     public:
-        AvrUartTx():           
-            _tx_head(0), _tx_tail(0)
-        {
-        }
+        typedef typename common::NumberType<TxBufferSize>::Result TxBufferIndex;
+    private:
+        static volatile TxBufferIndex _tx_head;
+        static volatile TxBufferIndex _tx_tail;
+        static bool _written;
 
-        inline void begin(){
+        static unsigned char _tx_buffer[TxBufferSize];
+    public:
+        static inline void begin(){
             _written = false;
             Uart::enableTx();
             Uart::disableTxReadyIrq();
         }
 
-        inline void end(){
+        static inline void end(){
             // wait for transmission of outgoing data
             flush();
 
@@ -257,7 +248,7 @@ namespace fasthal{
         }
 
         
-        TxBufferIndex availableForWrite()
+        static TxBufferIndex availableForWrite()
         {
             TxBufferIndex head;
             TxBufferIndex tail;
@@ -274,7 +265,7 @@ namespace fasthal{
             return (head >= tail) ? (TxBufferSize - 1 - head + tail) : (tail - head - 1);
         }
 
-        void flush(){
+        static void flush(){
             // If we have never written a byte, no need to flush. This special
             // case is needed since there is no way to force the TXC (transmit
             // complete) bit to 1 during initialization
@@ -294,7 +285,7 @@ namespace fasthal{
             // the hardware finished tranmission (TXC is set).
         }
 
-        bool write(uint8_t c)
+        static bool write(uint8_t c)
         {
             _written = true;
             // If the buffer and the data register is empty, just write the byte
@@ -325,7 +316,7 @@ namespace fasthal{
             return true;
         } 
 
-        void _tx_ready_irq()
+        static void _tx_ready_irq()
         {
           // If interrupts are enabled, there must be more data in the output
           // buffer. Send the next byte
@@ -343,14 +334,21 @@ namespace fasthal{
 
     #define FASTHAL_UARTRX(Number, RX_Vect, RxSize) \
         namespace fasthal{\
-            ::fasthal::AvrUartRx<::fasthal::Uart ## Number, RxSize> Uart ## Number ## Rx;\
-            ISR(RX_Vect) { Uart ## Number ## Rx._rx_ready_irq(); }\
+            typedef ::fasthal::AvrUartRx<::fasthal::Uart ## Number, RxSize> Uart ## Number ## rx;\
+            template<> volatile Uart ## Number ## rx::RxBufferIndex Uart ## Number ## rx::_rx_head = 0;\
+            template<> volatile Uart ## Number ## rx::RxBufferIndex Uart ## Number ## rx::_rx_tail = 0;\
+            template<> unsigned char Uart ## Number ## rx::_rx_buffer[RxSize] = {};\
+            ISR(RX_Vect) { Uart ## Number ## rx::_rx_ready_irq(); }\
         }
 
     #define FASTHAL_UARTTX(Number, UDRE_Vect, TxSize) \
         namespace fasthal{\
-            ::fasthal::AvrUartTx<::fasthal::Uart ## Number, TxSize> Uart ## Number ## Tx;\
-            ISR(UDRE_Vect) { Uart ## Number ## Tx._tx_ready_irq(); }\
+            typedef ::fasthal::AvrUartTx<::fasthal::Uart ## Number, TxSize> Uart ## Number ## tx;\
+            template<> volatile Uart ## Number ## tx::TxBufferIndex Uart ## Number ## tx::_tx_head = 0;\
+            template<> volatile Uart ## Number ## tx::TxBufferIndex Uart ## Number ## tx::_tx_tail = 0;\
+            template<> bool Uart ## Number ## tx::_written = false;\
+            template<> unsigned char Uart ## Number ## tx::_tx_buffer[TxSize] = {};\
+            ISR(UDRE_Vect) { Uart ## Number ## tx::_tx_ready_irq(); }\
         }
         
     #if defined(UBRRH) || defined(UBRR0H)

@@ -9,7 +9,7 @@
  #ifndef ARDUINO_HAL_H_
  #define ARDUINO_HAL_H_
 
-#define FASTHAL_ARDUINO_TIME()\
+#define FASTHAL_TIME_ARDUINO()\
 uint32_t fasthal::Time::millis(){return ::millis();}\
 uint32_t fasthal::Time::micros(){return ::micros();}\
 void fasthal::Time::delay(uint32_t millis){::delay(millis);}
