@@ -17,6 +17,18 @@ namespace fasthal{
         constexpr StaticStream(){}
         inline bool write(uint8_t c) const{ return TStream::write(c);}
     };
+
+    template<class TStream>
+    class StaticOutStream: public OutStream{
+    public:
+        constexpr StaticOutStream(){}
+        inline bool write(uint8_t c) { return TStream::write(c);}
+    };
+
+    template<class TStream>
+    constexpr StaticOutStream<TStream> MakeStaticOutStream(){
+        return StaticOutStream<TStream>();
+    }
 }
 
 #endif

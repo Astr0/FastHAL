@@ -35,7 +35,7 @@ namespace fasthal{
     }
 
 
-    template<class TStream>
+    template<typename TStream>
     class TextWriter{
     private:
         TStream _stream;
@@ -129,10 +129,8 @@ namespace fasthal{
             return true;
         }
     public:
-        constexpr TextWriter(TStream stream): _stream(stream){
-
-        }
-
+        constexpr TextWriter(const TStream stream): _stream(stream) { }
+        
         bool write(const uint8_t byte) const{
             return _stream.write(byte);
         }
@@ -269,8 +267,12 @@ namespace fasthal{
     };
 
     template<class TStream>
-    constexpr TextWriter<StaticStream<TStream> > MakeTextWriterS(){
+    constexpr TextWriter<StaticStream<TStream> > MakeTextWriter(){
         return TextWriter<StaticStream<TStream> >(StaticStream<TStream>());
+    }
+
+    TextWriter<OutStream&> MakeTextWriter(OutStream& stream){
+        return TextWriter<OutStream&>(stream);
     }
 
 }
