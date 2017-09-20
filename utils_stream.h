@@ -26,7 +26,7 @@ namespace fasthal{
     };
 
     template<class TStream>
-    constexpr StaticOutStream<TStream> MakeStaticOutStream(){
+    constexpr StaticOutStream<TStream> MakeOutStream(){
         return StaticOutStream<TStream>();
     }
 }
