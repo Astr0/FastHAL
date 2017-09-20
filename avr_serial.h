@@ -292,7 +292,7 @@ namespace fasthal{
             // to the data register and be done. This shortcut helps
             // significantly improve the effective datarate at high (>
             // 500kbit/s) bitrates, where interrupt overhead becomes a slowdown.
-            if (_tx_head == _tx_tail && Uart::txReady()) {
+            if (Uart::txReady() && _tx_head == _tx_tail) {
                 Uart::tx(c);
 
                 return true;

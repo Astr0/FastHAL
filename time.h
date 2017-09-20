@@ -23,7 +23,7 @@ namespace fasthal{
     private:
         uint32_t _lastTime;
     public:
-        Elapsed(): _lastTime(0){            
+        Elapsed(): _lastTime(GetTime()){            
         }
 
         void reset(){
