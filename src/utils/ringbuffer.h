@@ -43,7 +43,7 @@ namespace fasthal{
 
         uint8_t readDirty(){
             uint8_t c = peek();
-            _tail = (BufferIndex1)(_tail + 1) % BufferSize;
+            _tail = ((BufferIndex1)(_tail + 1)) % BufferSize;
             return c;
         }
 
@@ -52,7 +52,7 @@ namespace fasthal{
         }
 
         BufferIndex nextIndex(){
-            return (BufferIndex1)(_head + 1) % BufferSize;
+            return ((BufferIndex1)(_head + 1)) % BufferSize;
         }
 
         bool canWriteNext(BufferIndex i){
