@@ -271,6 +271,10 @@ namespace fasthal{
         return TextWriter<StaticStream<TStream> >(StaticStream<TStream>());
     }
 
+    // TextWriter<StaticStream<TStream> > MakeTextWriterS(){
+    //     return TextWriter<StaticStream<TStream> >(StaticStream<TStream>());
+    // }
+
     TextWriter<OutStream&> MakeTextWriter(OutStream& stream){
         return TextWriter<OutStream&>(stream);
     }

@@ -49,9 +49,9 @@ auto Uart1tw = MakeTextWriter(Uart1os);
 
 #else
 
-constexpr auto Uart0tw = MakeTextWriter<Uart0tx>();
+auto Uart0tw = MakeTextWriter<Uart0tx>();
 #ifdef S1
-constexpr auto Uart1tw = MakeTextWriter<Uart1tx>();
+auto Uart1tw = MakeTextWriter<Uart1tx>();
 #endif
 
 #endif

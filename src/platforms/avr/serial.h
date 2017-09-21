@@ -3,7 +3,7 @@
 #ifndef AVR_SERIAL_H_
 #define AVR_SERIAL_H_
 
-#include "../../sys/maskutils.h"
+#include "../../utils/ringbuffer.h"
 #include <inttypes.h>
 #include <avr/interrupt.h>
 #include "../../utils/functions.h"
@@ -145,16 +145,11 @@ namespace fasthal{
 
     template<class Uart, unsigned int RxBufferSize>
     class AvrUartRx{
-    public:
-        typedef typename common::NumberType<RxBufferSize>::Result RxBufferIndex;
     private:
-        typedef typename common::NumberType<RxBufferSize * 2>::Result RxBufferIndex2;
-        typedef typename common::NumberType<RxBufferSize + 1>::Result RxBufferIndex1;
-        
-        static volatile RxBufferIndex _rx_head;
-        static volatile RxBufferIndex _rx_tail;
+        typedef RingBuffer<RxBufferSize> BufferType;
+        typedef typename BufferType::BufferIndex BufferIndex;
+        static BufferType _buffer;
 
-        static unsigned char _rx_buffer[RxBufferSize];
     public:
         static inline void begin(){
             Uart::enableRx();
@@ -166,36 +161,28 @@ namespace fasthal{
             Uart::disableRxIrq();
             
             // clear any received data
-            _rx_head = _rx_tail;
+            _buffer.clear();
         }
 
-        static RxBufferIndex available()
+        static BufferIndex available()
         {
-          return ((RxBufferIndex2)(RxBufferSize + _rx_head - _rx_tail)) % RxBufferSize;
+          return _buffer.available();
         }
 
-        static inline bool availableAny(){
-            return _rx_head != _rx_tail;
+        static bool availableAny(){
+            return !_buffer.empty();
         }
 
-        static inline uint8_t peek(){
-            return _rx_buffer[_rx_tail];
+        static uint8_t peek(){
+            return _buffer.peek();
         }
 
-        static uint8_t dirtyRead(){
-            unsigned char c = _rx_buffer[_rx_tail];
-            _rx_tail = (RxBufferIndex)(_rx_tail + 1) % RxBufferSize;
-            return c;
+        static uint8_t readDirty(){
+            return _buffer.readDirty();
         }
 
         static uint8_t read(){
-            if (_rx_head == _rx_tail) {
-                return 0;
-            } else {
-                unsigned char c = _rx_buffer[_rx_tail];
-                _rx_tail = (RxBufferIndex)(_rx_tail + 1) % RxBufferSize;
-                return c;
-            } 
+            return _buffer.read();
         }
 
         static inline void _rx_ready_irq(void)
@@ -204,16 +191,7 @@ namespace fasthal{
             // No Parity error, read byte and store it in the buffer if there is
             // room
             unsigned char c = Uart::rx();
-            RxBufferIndex i = (RxBufferIndex1)(_rx_head + 1) % RxBufferSize;
-        
-            // if we should be storing the received character into the location
-            // just before the tail (meaning that the head would advance to the
-            // current location of the tail), we're about to overflow the buffer
-            // and so we don't write the character or advance the head.
-            if (i != _rx_tail) {
-              _rx_buffer[_rx_head] = c;
-              _rx_head = i;
-            }
+            _buffer.tryWrite(c);
           } else {
             // Parity error, read byte but discard it
             Uart::rx();
@@ -224,15 +202,13 @@ namespace fasthal{
     template<
         class Uart,        
         unsigned int TxBufferSize>
-    class AvrUartTx{
-    public:
-        typedef typename common::NumberType<TxBufferSize>::Result TxBufferIndex;
+    class AvrUartTx {
     private:
-        static volatile TxBufferIndex _tx_head;
-        static volatile TxBufferIndex _tx_tail;
         static bool _written;
 
-        static unsigned char _tx_buffer[TxBufferSize];
+        typedef RingBuffer<TxBufferSize> BufferType;
+        typedef typename BufferType::BufferIndex BufferIndex;
+        static BufferType _buffer;
     public:
         static inline void begin(){
             _written = false;
@@ -249,21 +225,9 @@ namespace fasthal{
         }
 
         
-        static TxBufferIndex availableForWrite()
+        static BufferIndex availableForWrite()
         {
-            TxBufferIndex head;
-            TxBufferIndex tail;
-            if (TxBufferSize > 256){
-                NoInterrupts noInterrupts;
-                
-                head = _tx_head;
-                tail = _tx_tail;
-            } else{
-                head = _tx_head;
-                tail = _tx_tail;
-            }
-
-            return (head >= tail) ? (TxBufferSize - 1 - head + tail) : (tail - head - 1);
+            return _buffer.available();
         }
 
         static void flush(){
@@ -293,24 +257,23 @@ namespace fasthal{
             // to the data register and be done. This shortcut helps
             // significantly improve the effective datarate at high (>
             // 500kbit/s) bitrates, where interrupt overhead becomes a slowdown.
-            if (Uart::txReady() && _tx_head == _tx_tail) {
+            if (Uart::txReady() && _buffer.empty()) {
                 Uart::tx(c);
 
                 return true;
             }
-            TxBufferIndex i = (_tx_head + 1) % TxBufferSize;
+            BufferIndex i = _buffer.nextIndex();
 
             // If the output buffer is full, there's nothing for it other than to 
             // wait for the interrupt handler to empty it a bit
-            while (i == _tx_tail) {
+            while (!_buffer.canWriteNext(i)) {
                 if (Uart::shouldRunTxReadyIrq()) {
                     // check if tx ready manually
                     _tx_ready_irq();
                 } 
             }
 
-            _tx_buffer[_tx_head] = c;
-            _tx_head = i;
+            _buffer.writeNext(i, c);
 
             Uart::enableTxReadyIrq();
 
@@ -321,12 +284,11 @@ namespace fasthal{
         {
           // If interrupts are enabled, there must be more data in the output
           // buffer. Send the next byte
-          unsigned char c = _tx_buffer[_tx_tail];
-          _tx_tail = (_tx_tail + 1) % TxBufferSize;
+          unsigned char c = _buffer.readDirty();
         
           Uart::tx(c);
         
-          if (_tx_head == _tx_tail) {
+          if (_buffer.empty()) {
             // Buffer empty, so disable interrupts
             Uart::disableTxReadyIrq();
           }
@@ -336,19 +298,15 @@ namespace fasthal{
     #define FASTHAL_UARTRX(Number, RX_Vect, RxSize) \
         namespace fasthal{\
             typedef ::fasthal::AvrUartRx<::fasthal::Uart ## Number, RxSize> Uart ## Number ## rx;\
-            template<> volatile Uart ## Number ## rx::RxBufferIndex Uart ## Number ## rx::_rx_head = 0;\
-            template<> volatile Uart ## Number ## rx::RxBufferIndex Uart ## Number ## rx::_rx_tail = 0;\
-            template<> unsigned char Uart ## Number ## rx::_rx_buffer[RxSize] = {};\
+            template<> ::fasthal::RingBuffer<RxSize> Uart ## Number ## rx::_buffer = ::fasthal::RingBuffer<RxSize>();\
             ISR(RX_Vect) { Uart ## Number ## rx::_rx_ready_irq(); }\
         }
 
     #define FASTHAL_UARTTX(Number, UDRE_Vect, TxSize) \
         namespace fasthal{\
             typedef ::fasthal::AvrUartTx<::fasthal::Uart ## Number, TxSize> Uart ## Number ## tx;\
-            template<> volatile Uart ## Number ## tx::TxBufferIndex Uart ## Number ## tx::_tx_head = 0;\
-            template<> volatile Uart ## Number ## tx::TxBufferIndex Uart ## Number ## tx::_tx_tail = 0;\
+            template<> ::fasthal::RingBuffer<TxSize> Uart ## Number ## tx::_buffer = ::fasthal::RingBuffer<TxSize>();\
             template<> bool Uart ## Number ## tx::_written = false;\
-            template<> unsigned char Uart ## Number ## tx::_tx_buffer[TxSize] = {};\
             ISR(UDRE_Vect) { Uart ## Number ## tx::_tx_ready_irq(); }\
         }
         

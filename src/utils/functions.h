@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef FUNCTIONS_H_
-#define FUNCTIONS_H_
+#ifndef UTILS_FUNCTIONS_H_
+#define UTILS_FUNCTIONS_H_
 
 #ifndef cbi
 #define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
