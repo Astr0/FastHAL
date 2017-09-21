@@ -9,12 +9,6 @@
  #ifndef ARDUINO_HAL_H_
  #define ARDUINO_HAL_H_
 
-#define FASTHAL_TIME_ARDUINO()\
-uint32_t fasthal::Time::millis(){return ::millis();}\
-uint32_t fasthal::Time::micros(){return ::micros();}\
-void fasthal::Time::delay(uint32_t millis){::delay(millis);}\
-void fasthal::Time::delayMicros(uint32_t micros){::delayMicroseconds(micros);}
-
 namespace fasthal{
     namespace arduino{
         // TODO: this pinout is for Atmega8/168/328. Other have other pinouts!

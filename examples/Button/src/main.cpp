@@ -9,7 +9,6 @@
 
 using namespace fasthal;
 
-FASTHAL_TIME_ARDUINO();
 FASTHAL_UART0(16, 16);
 
 constexpr auto Uart0tw = MakeTextWriter<Uart0tx>();

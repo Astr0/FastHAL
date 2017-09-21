@@ -6,8 +6,6 @@ const auto TxSize = 64;
 
 using namespace fasthal;
 
-FASTHAL_TIME_ARDUINO();
-
 #define FH
 //#define OS
 #define S1
@@ -98,5 +96,5 @@ void loop(){
     Serial.println(ms);
     #endif
 
-    Time::delay(1000);
+    Time::delayMs(1000);
 }

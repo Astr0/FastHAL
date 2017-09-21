@@ -26,7 +26,7 @@ namespace fasthal{
             int adc = 0;
             for (unsigned i = 0; i < Samples; i++) {
                 adc += Adc::read();
-                fasthal::Time::delay(Delay);
+                fasthal::Time::delayMs(Delay);
             }
             adc /= Samples;
             _zero = adc;

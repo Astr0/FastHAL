@@ -4,25 +4,21 @@
 #define TIME_H_
 
 #include <inttypes.h>
+#include "../platforms/time.h"
 
 namespace fasthal{
-    class Time{
+    class TimeUtils{
     public:
-        static uint32_t micros();
-        static uint32_t millis();
-        static void delay(uint32_t millis);
-        static void delayMicros(uint32_t micros);
-        
-        static inline constexpr uint32_t freqToMicros(uint8_t freq)
+        static inline constexpr Time::micros_t freqToMicros(uint8_t freq)
         {
             return 1000000 / freq;
         }
     };
 
-    template<uint32_t (*GetTime)()>
+    template<typename T, T (*GetTime)()>
     class Elapsed{
     private:
-        uint32_t _lastTime;
+        T _lastTime;
     public:
         Elapsed(): _lastTime(GetTime()){            
         }
@@ -31,21 +27,16 @@ namespace fasthal{
             _lastTime = GetTime();
         }
 
-        uint32_t elapsed(){
+        T elapsed(){
             return GetTime() - _lastTime;
         }
 
-        bool elapsed(uint32_t time){
-            return elapsed() >= time;
-        }
-
-        bool elapsed(uint16_t time){
+        bool elapsed(T time){
             return elapsed() >= time;
         }
     };
 
-    class ElapsedMs: public Elapsed<fasthal::Time::millis>{
-    };
+    typedef Elapsed<Time::millis_t, Time::millis> ElapsedMs;
 }
 
 #endif
