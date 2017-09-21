@@ -5,7 +5,7 @@
 
 #include <inttypes.h>
 #include <avr/io.h>
-#include "functions.h"
+#include "../../utils/functions.h"
 
 namespace fasthal{
 

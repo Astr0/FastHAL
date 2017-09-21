@@ -3,10 +3,10 @@
 #ifndef AVR_SERIAL_H_
 #define AVR_SERIAL_H_
 
-#include "maskutils.h"
+#include "../../sys/maskutils.h"
 #include <inttypes.h>
 #include <avr/interrupt.h>
-#include "functions.h"
+#include "../../utils/functions.h"
 
 #define FASTHAL_DECLAREUART(NAME, CODE)\
 namespace priv\
@@ -149,7 +149,8 @@ namespace fasthal{
         typedef typename common::NumberType<RxBufferSize>::Result RxBufferIndex;
     private:
         typedef typename common::NumberType<RxBufferSize * 2>::Result RxBufferIndex2;
-
+        typedef typename common::NumberType<RxBufferSize + 1>::Result RxBufferIndex1;
+        
         static volatile RxBufferIndex _rx_head;
         static volatile RxBufferIndex _rx_tail;
 
@@ -203,7 +204,7 @@ namespace fasthal{
             // No Parity error, read byte and store it in the buffer if there is
             // room
             unsigned char c = Uart::rx();
-            rx_buffer_index_t i = (unsigned int)(_rx_head + 1) % RxBufferSize;
+            RxBufferIndex i = (RxBufferIndex1)(_rx_head + 1) % RxBufferSize;
         
             // if we should be storing the received character into the location
             // just before the tail (meaning that the head would advance to the

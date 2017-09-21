@@ -3,7 +3,7 @@
 #ifndef PLATFORM_H_
 #define PLATFORM_H_
 
-#include "avr_hal.h"
-#include "arduino_hal.h"
+#include "avr/hal.h"
+#include "arduino/hal.h"
 
 #endif

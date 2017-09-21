@@ -8,7 +8,7 @@
  #ifndef PININFO_H_
  #define PININFO_H_
  
- #include "typeutils.h"
+ #include "../sys/typeutils.h"
  
  namespace fasthal
  {

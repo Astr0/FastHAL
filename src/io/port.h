@@ -13,8 +13,8 @@
 
 #include "pin.h"
 #include "pinlist.h"
-#include "typelistutils.h"
-#include "bitholder.h"
+#include "../sys/typelistutils.h"
+#include "../sys/bitholder.h"
 
 namespace fasthal{
 	

@@ -10,8 +10,8 @@
 #ifndef PINLIST_H_
 #define PINLIST_H_
 
-#include "typelistutils.h"
-#include "maskutils.h"
+#include "../sys/typelistutils.h"
+#include "../sys/maskutils.h"
 #include "pininfo.h"
 #include "portinfo.h"
 

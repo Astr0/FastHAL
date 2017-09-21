@@ -3,9 +3,10 @@
 #ifndef AVR_PORTS_H_
 #define AVR_PORTS_H_
 
-#include "avr_interrupts.h"
+#include "interrupts.h"
 #include <avr/io.h>
-#include "functions.h"
+#include "../../utils/functions.h"
+#include "../../io/pin.h"
 
 #define FASTHAL_DECLAREPORT(CODE)\
 namespace priv\

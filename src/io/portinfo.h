@@ -9,8 +9,8 @@
 #ifndef PORTINFO_H_
 #define PORTINFO_H_
 
-#include "maskutils.h"
-#include "typeutils.h"
+#include "../sys/maskutils.h"
+#include "../sys/typeutils.h"
 
 namespace fasthal
 {

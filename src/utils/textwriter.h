@@ -4,7 +4,7 @@
 #define UTILS_TEXTWRITER_H_
 
 #include <stdlib.h>
-#include "utils_stream.h"
+#include "stream.h"
 
 namespace fasthal{
     namespace priv{
