@@ -11,7 +11,8 @@
 
 namespace fasthal{
     namespace arduino{
-        // TODO: this pinout is for Atmega8/168/328. Other have other pinouts!
+        // TODO: this pinout is for Atmega8/168/328 (Uno, nano). Other have other pinouts!
+        // Do we really need arduino stuff?
         
         typedef fasthal::PinD0 PinD0;
         typedef fasthal::PinD1 PinD1;

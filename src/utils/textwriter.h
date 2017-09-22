@@ -40,21 +40,6 @@ namespace fasthal{
     private:
         TStream _stream;
 
-        // template <uint8_t size>
-        // constexpr uint8_t printBufferSize(uint8_t size){
-        //     switch(size)
-        //     {
-        //         case 4:
-        //             return 11;
-        //         case 2:
-        //             return 6;
-        //         case 1: 
-        //             return 4;
-        //         default:
-        //             return size * 2 + 3;
-        //     }
-        // }
-        
         template<typename T>
         bool printNumber(T n) const{
             char buf[priv::PrintBufferSize<sizeof(T)>::decSize]; // Assumes 8-bit chars plus zero byte.
@@ -242,7 +227,7 @@ namespace fasthal{
                     return false;
                 n = -n;
             }
-            return print((uint16_t)n);
+            return print((uint32_t)n);
         }
 
         bool println(int32_t n) const {
@@ -258,6 +243,7 @@ namespace fasthal{
         }
         
         bool print(double n, uint8_t digits = 2) const {
+            // TODO: Use float print if sizeof(double) == sizeof(float) should reduce code size
             return printFloat(n, digits);
         }
 
@@ -270,10 +256,6 @@ namespace fasthal{
     constexpr TextWriter<StaticStream<TStream> > MakeTextWriter(){
         return TextWriter<StaticStream<TStream> >(StaticStream<TStream>());
     }
-
-    // TextWriter<StaticStream<TStream> > MakeTextWriterS(){
-    //     return TextWriter<StaticStream<TStream> >(StaticStream<TStream>());
-    // }
 
     TextWriter<OutStream&> MakeTextWriter(OutStream& stream){
         return TextWriter<OutStream&>(stream);

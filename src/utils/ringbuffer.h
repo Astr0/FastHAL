@@ -79,6 +79,12 @@ namespace fasthal{
         }
     };
 
+    // not valid template arguments
+    template<>
+    class RingBuffer<0>{};
+
+    template<>
+    class RingBuffer<1>{};
 }
 
 #endif

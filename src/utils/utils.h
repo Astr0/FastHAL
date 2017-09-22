@@ -7,5 +7,6 @@
 #include "functions.h"
 #include "stream.h"
 #include "textwriter.h"
+#include "binarywriter.h"
 
 #endif
