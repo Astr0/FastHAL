@@ -1,10 +1,6 @@
-/**
-* Blink
-*
-* Turns on an LED on for one second,
-* then off for one second, repeatedly.
-*/
-#include "Arduino.h"
+#define F_CPU 16000000UL
+
+//#include "Arduino.h"
 #include "fasthal.h"
 
 using namespace fasthal;
@@ -13,7 +9,7 @@ FASTHAL_UART0(16, 16);
 
 constexpr auto Uart0tw = MakeTextWriter<Uart0tx>();
 
-typedef InvertedPin<arduino::PinD2> ButtonPin;
+typedef InvertedPin<PinD2> ButtonPin;
 
 const auto DebouncTime = 10;
 const auto LongPressTime = 500;
@@ -21,7 +17,7 @@ const auto SequenceTime = 250;
 
 Button<Bounce<ButtonPin, DebouncTime>, LongPressTime, SequenceTime> button;
 
-typedef arduino::LedBuiltinPin LedPin;
+typedef PinB5 LedPin;
 auto ledToggle = PinToggle<LedPin>(100, 100);
 
 void setup()

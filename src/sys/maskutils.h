@@ -10,6 +10,7 @@
 #define MASKUTILS_H_
 
 #include "TypeManip.h"
+#include <inttypes.h>
 
 namespace fasthal
 {
@@ -29,7 +30,7 @@ namespace fasthal
 		template<unsigned int N>
 		struct NumberType
 		{
-			typedef typename Loki::Select<(N <= 256), uint_fast8_t, typename Loki::Select<(N <= 65536), uint_fast16_t, uint_fast32_t>::Result>::Result Result;			
+			typedef typename Loki::Select<(N <= 256), uint8_t, typename Loki::Select<(N <= 65536), uint16_t, uint32_t>::Result>::Result Result;			
 		};
 		
 		template<unsigned bytes>

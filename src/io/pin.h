@@ -10,6 +10,7 @@
 
 #include "pininfo.h"
 #include "portinfo.h"
+#include <inttypes.h>
 
 namespace fasthal
 {

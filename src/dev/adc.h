@@ -14,43 +14,43 @@ namespace fasthal{
         }
     };
 
-    template<class Adc, unsigned Samples, unsigned Delay>
-    class AdcCalibrate{
-    static int _zero;
-    public:
-        static inline int read(){
-            return Adc::read() - _zero;
-        }
-
-        static int calibrate(){
-            int adc = 0;
-            for (unsigned i = 0; i < Samples; i++) {
-                adc += Adc::read();
-                fasthal::Time::delayMs(Delay);
-            }
-            adc /= Samples;
-            _zero = adc;
-            return adc;
-        }
-    };
-
-    template<class Adc, unsigned Timeout>
-    class AdcRms
-    {
-    public:
-        static float read(){
-            uint32_t sum = 0, count = 0;
-        
-            uint32_t t_start = fasthal::Time::micros();
-            while (fasthal::Time::micros() - t_start < Timeout) {
-                int value = Adc::read();
-                sum += value*value;
-                count++;
-            }
-        
-            return sqrt((float)sum / (float)count);
-        }
-    };
+    //template<class Adc, unsigned Samples, unsigned Delay>
+    //class AdcCalibrate{
+    //static int _zero;
+    //public:
+        //static inline int read(){
+            //return Adc::read() - _zero;
+        //}
+//
+        //static int calibrate(){
+            //int adc = 0;
+            //for (unsigned i = 0; i < Samples; i++) {
+                //adc += Adc::read();
+                //fasthal::Time::delayMs(Delay);
+            //}
+            //adc /= Samples;
+            //_zero = adc;
+            //return adc;
+        //}
+    //};
+//
+    //template<class Adc, unsigned Timeout>
+    //class AdcRms
+    //{
+    //public:
+        //static float read(){
+            //uint32_t sum = 0, count = 0;
+        //
+            //uint32_t t_start = fasthal::Time::micros();
+            //while (fasthal::Time::micros() - t_start < Timeout) {
+                //int value = Adc::read();
+                //sum += value*value;
+                //count++;
+            //}
+        //
+            //return sqrt((float)sum / (float)count);
+        //}
+    //};
 
     template <class Adc, unsigned VRef, unsigned AdcScale, unsigned Sensitivity>
     class Acs712{
