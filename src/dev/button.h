@@ -7,7 +7,7 @@
 #include "../sys/maskutils.h"
 
 namespace fasthal{
-    template<class TPin, class TStableCheck>
+    template<class TPin, class TStableElapsed>
     class Bounce{
     private:   
         enum BounceState{
@@ -16,7 +16,7 @@ namespace fasthal{
             Changed = 4
         };
         
-		TStableCheck _stable;
+		TStableElapsed _stable;
         uint8_t _state;
         
     public:

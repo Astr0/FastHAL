@@ -9,12 +9,12 @@
 
 namespace fasthal{
 	template <unsigned Checks>
-	class ChecksCountdown{
+	class ElapsedChecks{
 		typedef typename common::NumberType<Checks + 1>::Result checks_t;
 		
 		checks_t _checks;
 	public:
-		ChecksCountdown(){ reset(); }
+		ElapsedChecks(){ reset(); }
 		void reset(){ _checks = 0; }
 		bool elapsed(){
 			if (_checks == Checks)
