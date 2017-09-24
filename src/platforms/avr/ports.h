@@ -1,3 +1,5 @@
+// nice ports abstraction
+
 #pragma once
 
 #ifndef AVR_PORTS_H_
@@ -34,7 +36,7 @@ typedef InvertedPin<Pin ## CODE ## 6> Pin ## CODE ## 6Inv;\
 typedef InvertedPin<Pin ## CODE ## 7> Pin ## CODE ## 7Inv;\
 
 namespace fasthal{
-    struct PinMode{
+    struct PinMode {
         static const uint8_t Input = 0;
         static const uint8_t Output = 1;
         static const uint8_t InputPullup = 2;
@@ -58,7 +60,7 @@ namespace fasthal{
 
 		static void setMode(uint8_t mask, uint8_t mode)
 		{
-			NoInterrupts noInterrupts;
+			// NoInterrupts noInterrupts;
 			switch (mode)
 			{
 				case PinMode::Input:
@@ -70,6 +72,7 @@ namespace fasthal{
 					PORTREG::value() |= mask;
 					break;
 				default:
+					// output
 					DDRREG::value() |= mask;
 			}
 		}

@@ -5,7 +5,7 @@
 using namespace fasthal;
 
 typedef PinB5 LedPin;
-Bounce<InvertedPin<PinD2>, ElapsedChecks<5000>> button;
+Bounce<InvertedPin<PinD2>, ElapsedChecks<50000>> button;
 
 int main(){	
 	LedPin::setMode(PinMode::Output);

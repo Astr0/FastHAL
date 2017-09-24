@@ -8,6 +8,8 @@
 #include "../sys/maskutils.h"
 
 namespace fasthal{
+	
+	// elapsed checker suitable for Bounce. elapsed() when called Checks count.
 	template <unsigned Checks>
 	class ElapsedChecks{
 		typedef typename common::NumberType<Checks + 1>::Result checks_t;
@@ -20,8 +22,8 @@ namespace fasthal{
 			if (_checks == Checks)
 				return true;
 			_checks++;
-		}
-		
+			return false;
+		}		
 	};
 	
     //class TimeUtils{

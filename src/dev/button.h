@@ -7,6 +7,8 @@
 #include "../sys/maskutils.h"
 
 namespace fasthal{
+	
+	//  nice debouncer for TPin. Uses TStableElapsed instance to poll stability interval (elapsed() and reset()).
     template<class TPin, class TStableElapsed>
     class Bounce{
     private:   
