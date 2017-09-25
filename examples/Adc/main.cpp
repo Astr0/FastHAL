@@ -19,7 +19,7 @@ int main(void)
     while (1) 
     {
 		auto val = TestAdc::read();
-		LedPin::set(val < 200);
+		LedPin::set(val < 100);
     }
 }
 
