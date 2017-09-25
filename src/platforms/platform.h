@@ -5,8 +5,4 @@
 
 #include "avr/hal.h"
 
-#ifdef Arduino_h
-#include "arduino/hal.h"
-#endif
-
 #endif

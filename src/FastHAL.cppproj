@@ -156,7 +156,6 @@
     <Folder Include="dev\" />
     <Folder Include="io\" />
     <Folder Include="platforms\" />
-    <Folder Include="platforms\arduino\" />
     <Folder Include="platforms\avr\" />
     <Folder Include="sys\" />
     <Folder Include="utils\" />
@@ -192,12 +191,6 @@
     <Compile Include="io\portinfo.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="platforms\arduino\hal.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="platforms\arduino\time.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="platforms\avr\adc.h">
       <SubType>compile</SubType>
     </Compile>
@@ -220,9 +213,6 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="platforms\platform.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="platforms\time.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="sys\bitholder.h">

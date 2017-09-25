@@ -4,7 +4,6 @@
 #define TIME_H_
 
 #include <inttypes.h>
-#include "../platforms/time.h"
 #include "../sys/maskutils.h"
 
 namespace fasthal{

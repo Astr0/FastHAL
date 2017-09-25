@@ -123,7 +123,7 @@ namespace fasthal{
 			// and ADCH until ADCH is read.  reading ADCL second would
 			// cause the results of each conversion to be discarded,
 			// as ADCL and ADCH would be locked when it completed.
-			return ADCL | (ADCH << 8);
+			return ADC;
 		}
 
 		static uint8_t read8bit(){
