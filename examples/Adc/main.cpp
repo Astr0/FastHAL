@@ -7,7 +7,10 @@
 
 using namespace fasthal;
 
-typedef AdcChannel<AdcRef::Default, true, 0> TestAdc;
+const uint8_t channel = 0;
+const bool is8bit = true;
+
+typedef AdcChannel<AdcRef::Default, is8bit, channel> TestAdc;
 typedef PinB5 LedPin;
 
 int main(void)
