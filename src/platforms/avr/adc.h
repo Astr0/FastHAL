@@ -12,71 +12,101 @@
 
 namespace fasthal{
 
-    enum AdcRef:uint8_t{
+	// ATTINY24/44/84: ADMUX: REFS1 REFS0 MUX5  MUX4  MUX3 MUX2 MUX1 MUX0.   ADCSRA: ADEN ADSC ADATE ADIF ADIE ADPS2 ADPS1 ADPS0.   ADCSRB: BIN ACME X   ADLAR X    ADTS2 ADTS1 ADTS0
+    // ATTINY25/45/85: ADMUX: REFS1 REFS0 ADLAR REFS2 MUX3 MUX2 MUX1 MUX0.   ADCSRA: ADEN ADSC ADATE ADIF ADIE ADPS2 ADPS1 ADPS0.   ADCSRB: BIN ACME IPR X     X    ADTS2 ADTS1 ADTS0 
+	// Mega:           ADMUX: REFS1 REFS0 ADLAR MUX4  MUX3 MUX2 MUX1 MUX0.   ADCSRA: ADEN ADSC ADATE ADIF ADIE ADPS2 ADPS1 ADPS0    ADCSRB: X   ACME X   X     MUX5 ADTS2 ADTS1 ADTS0
+    // Others:         ADMUX: REFS1 REFS0 ADLAR X     MUX3 MUX2 MUX1 MUX0.   ADCSRA: ADEN ADSC ADATE ADIF ADIE ADPS2 ADPS1 ADPS0.   ADCSRB: X   ACME X   X     X    ADTS2 ADTS1 ADTS0
+    enum class AdcRef:uint8_t{
     #if defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)
-        Default = 0,
-        External = 1,
-        Internal1v1 = 2,
-        Internal = 2
+        Default             = (0 << REFS1) | (0 << REFS0),
+        External            = (0 << REFS1) | (1 << REFS0),
+        Internal1v1         = (1 << REFS1) | (0 << REFS0)
+        //Internal            = (1 << REFS1) | (1 << REFS0)
     #elif defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__)
-        Default = 0,
-        External = 4,
-        Internal1v1 = 8,
-        Internal = Internal1v1,
-        Internal2v56 = 9,
-        Internal2v56_ExtCap = 13
+        Default             = (0 << REFS2) | (0 << REFS1) | (0 << REFS0),
+        External            = (0 << REFS2) | (1 << REFS1) | (1 << REFS0),
+        Internal1v1         = (0 << REFS2) | (1 << REFS1) | (0 << REFS0),
+        Internal2v56        = (1 << REFS2) | (1 << REFS1) | (0 << REFS0),
+        Internal2v56_ExtCap = (1 << REFS2) | (1 << REFS1) | (1 << REFS0)
     #else  
+        Default      = (0 << REFS1) | (1 << REFS0),
+        External     = (0 << REFS1) | (0 << REFS0),
     #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__)
-        Internal1v1 = 2,
-        Internal2v56 = 3,
+        Internal1v1  = (1 << REFS1) | (0 << REFS0),
+        Internal2v56 = (1 << REFS1) | (1 << REFS0)
     #else
-        Internal = 3,
+        Internal     = (1 << REFS1) | (1 << REFS0)
     #endif
-        Default = 1,
-        External = 0
     #endif 
     };
+	
+	enum class AdcPrescaler: uint8_t{
+		P2   = (0 << ADPS2) | (0 << ADPS1) | (1 << ADPS0),
+		P4   = (0 << ADPS2) | (1 << ADPS1) | (0 << ADPS0),
+		P8   = (0 << ADPS2) | (1 << ADPS1) | (1 << ADPS0),
+		P16  = (1 << ADPS2) | (0 << ADPS1) | (0 << ADPS0),
+		P32  = (1 << ADPS2) | (0 << ADPS1) | (1 << ADPS0),
+		P64  = (1 << ADPS2) | (1 << ADPS1) | (0 << ADPS0),
+		P128 = (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0),
+		// default a2d prescaler should be inside the desired 50-200 KHz range.
+		#if F_CPU >= 16000000 // 16 MHz / 128 = 125 KHz
+		Default = P128
+		#elif F_CPU >= 8000000 // 8 MHz / 64 = 125 KHz
+		Default = P64
+		#elif F_CPU >= 4000000 // 4 MHz / 32 = 125 KHz
+		Default = P32
+		#elif F_CPU >= 2000000 // 2 MHz / 16 = 125 KHz
+		Default = P16		
+		#elif F_CPU >= 1000000 // 1 MHz / 8 = 125 KHz
+		Default = P8
+		#elif F_CPU >= 500000 // 0.5 MHz / 4 = 125 KHz
+		Default = P4
+		#else // 128 kHz / 2 = 64 KHz 
+		Default = P2
+		#endif			
+	};
 
 
     class Adc{        
     public:
-        static void begin(AdcRef ref = AdcRef::Default){
-            setReference(ref);
-            enable();
-        }
-        // ATTINY25/45/85: REFS1 REFS0 ADLAR REFS2 MUX3 MUX2 MUX1 MUX0
-        // Others: REFS1 REFS0 ADLAR MUX3 MUX2 MUX1 MUX0
-        static void setReference(AdcRef ref){
-            #if defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__)
-                // ref is 3 bytes with ADLAR in between
-                ADMUX = (ref << 4) | (ADMUX & 0x2F);
-            #else
-                // ref is 2 bytes
-                ADMUX = (ref << 6) | (ADMUX & 0x3F);
+		static void begin(AdcPrescaler prescaler = AdcPrescaler::Default){
+			ADCSRA |= (1 << ADEN) | ((uint8_t)prescaler);
+		}
+		
+		static void end() {
+			disable();
+		}
+	
+		static void select(AdcRef ref, bool is8bit, uint8_t mux){
+			#if defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)
+			// 5 MUX bits and ADLAR IN ADCSRB
+			ADMUX = ((uint8_t)ref) | (mux & 0x1F);
+			
+			fh_vbi(ADCSRB, ADLAR, is8bit);
+			#else
+						
+			#if defined(ADCSRB) && defined(MUX5)
+			// the MUX5 bit of ADCSRB selects whether we're reading from channels
+			// 0 to 7 (MUX5 low) or 8 to 15 (MUX5 high).
+			fh_vbi(ADCSRB, MUX5, mux & 0x10)
 			#endif
-        }
+			
+			ADMUX = ((uint8_t)ref) | (is8bit ? (1 << ADLAR) : 0) | (mux & 0x0F);
 
-        static AdcRef getReference(){
-            #if defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__)
-                // ref is 3 bytes with ADLAR in between
-                return (AdcRef)((ADMUX >> 4) & 0x0D);
-            #else
-                // ref is 2 bytes
-                return (AdcRef)(ADMUX >> 6);
-            #endif
-        }
-
-        static void enable(){
-            sbi(ADCSRA, ADEN); 
+			#endif
+		}	
+	
+	    static void enable(){
+            fh_sbi(ADCSRA, ADEN); 
         }
 
         static void disable(){
-            cbi(ADCSRA, ADEN);
+            fh_cbi(ADCSRA, ADEN);
         }
 		
 		static void start(){
 			// start the conversion
-			sbi(ADCSRA, ADSC); 
+			fh_sbi(ADCSRA, ADSC);
 		}
 		
 		static bool running(){
@@ -86,19 +116,6 @@ namespace fasthal{
 		
 		static void wait(){
 			while (running());
-		}
-		
-	
-		static void select(uint8_t channel, bool is8bit){
-			#if defined(ADCSRB) && defined(MUX5)
-			// the MUX5 bit of ADCSRB selects whether we're reading from channels
-			// 0 to 7 (MUX5 low) or 8 to 15 (MUX5 high).
-			ADCSRB = (ADCSRB & ~(1 << MUX5)) | (((channel >> 3) & 0x01) << MUX5);
-			ADMUX = (ADMUX & 0xD0) | (channel & 0x07) | (is8bit ? (1 << ADLAR) : 0);
-			#else
-			// channel is 4 bits for temperature sensors and other stuff
-			ADMUX = (ADMUX & 0xD0) | (channel & 0x0F) | (is8bit ? (1 << ADLAR) : 0);
-			#endif
 		}
 		
 		static uint16_t read(){
@@ -115,13 +132,13 @@ namespace fasthal{
     };
     
 		
-    template<uint8_t Channel, bool is8bit>
+    template<AdcRef ref, bool is8bit, uint8_t mux>
     class AdcChannel{
     public:	
 		typedef typename Loki::Select<is8bit, uint8_t, uint16_t>::Result result_t;
 	
 		static result_t read(){			
-			Adc::select(Channel, is8bit);
+			Adc::select(ref, is8bit, mux);
 			Adc::start();
             Adc::wait();
 			return is8bit ? Adc::read8bit() : Adc::read();

@@ -7,7 +7,7 @@
 
 using namespace fasthal;
 
-typedef AdcChannel<0, true> TestAdc;
+typedef AdcChannel<AdcRef::Default, true, 0> TestAdc;
 typedef PinB5 LedPin;
 
 int main(void)
@@ -15,8 +15,6 @@ int main(void)
 	Adc::begin();
 	
 	LedPin::setMode(PinMode::Output);
-	//Adc::begin();
-	ADCSRA |= (1 << ADEN) | (1 << ADSC) | ()
 	
     while (1) 
     {

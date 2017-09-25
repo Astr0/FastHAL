@@ -3,12 +3,10 @@
 #ifndef UTILS_FUNCTIONS_H_
 #define UTILS_FUNCTIONS_H_
 
-#ifndef cbi
-#define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
-#endif
-#ifndef sbi
-#define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
-#endif
+#define fh_cbi(reg, bit) (reg &= ~(1 << bit))
+#define fh_sbi(reg, bit) (reg |= (1 << bit))
+#define fh_vbi(reg, bit, v) if (v) fh_sbi(reg, bit) else fh_cbi(reg, bit);
+
 
 #define FASTHAL_WRAPVARIABLE(CLASSNAME, VARNAME)\
 struct CLASSNAME\

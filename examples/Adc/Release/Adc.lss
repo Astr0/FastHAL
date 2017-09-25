@@ -3,21 +3,21 @@ Adc.elf:     file format elf32-avr
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .data         00000000  00800100  00800100  00000134  2**0
+  0 .data         00000000  00800100  00800100  0000010c  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  1 .text         000000e0  00000000  00000000  00000054  2**1
+  1 .text         000000b8  00000000  00000000  00000054  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .comment      00000030  00000000  00000000  00000134  2**0
+  2 .comment      00000030  00000000  00000000  0000010c  2**0
                   CONTENTS, READONLY
-  3 .note.gnu.avr.deviceinfo 00000040  00000000  00000000  00000164  2**2
+  3 .note.gnu.avr.deviceinfo 00000040  00000000  00000000  0000013c  2**2
                   CONTENTS, READONLY
-  4 .debug_info   000005f4  00000000  00000000  000001a4  2**0
+  4 .debug_info   000005f4  00000000  00000000  0000017c  2**0
                   CONTENTS, READONLY, DEBUGGING
-  5 .debug_abbrev 000005a2  00000000  00000000  00000798  2**0
+  5 .debug_abbrev 000005a2  00000000  00000000  00000770  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_line   00000133  00000000  00000000  00000d3a  2**0
+  6 .debug_line   00000133  00000000  00000000  00000d12  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_str    00000208  00000000  00000000  00000e6d  2**0
+  7 .debug_str    00000208  00000000  00000000  00000e45  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -58,47 +58,34 @@ Disassembly of section .text:
   70:	de bf       	out	0x3e, r29	; 62
   72:	cd bf       	out	0x3d, r28	; 61
   74:	0e 94 40 00 	call	0x80	; 0x80 <main>
-  78:	0c 94 6e 00 	jmp	0xdc	; 0xdc <_exit>
+  78:	0c 94 5a 00 	jmp	0xb4	; 0xb4 <_exit>
 
 0000007c <__bad_interrupt>:
   7c:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
 
 00000080 <main>:
-  80:	80 91 7c 00 	lds	r24, 0x007C	; 0x80007c <__TEXT_REGION_LENGTH__+0x7e007c>
-  84:	8f 73       	andi	r24, 0x3F	; 63
-  86:	80 64       	ori	r24, 0x40	; 64
-  88:	80 93 7c 00 	sts	0x007C, r24	; 0x80007c <__TEXT_REGION_LENGTH__+0x7e007c>
-  8c:	80 91 7a 00 	lds	r24, 0x007A	; 0x80007a <__TEXT_REGION_LENGTH__+0x7e007a>
-  90:	80 68       	ori	r24, 0x80	; 128
-  92:	80 93 7a 00 	sts	0x007A, r24	; 0x80007a <__TEXT_REGION_LENGTH__+0x7e007a>
-  96:	25 9a       	sbi	0x04, 5	; 4
-  98:	80 91 7c 00 	lds	r24, 0x007C	; 0x80007c <__TEXT_REGION_LENGTH__+0x7e007c>
-  9c:	8f 73       	andi	r24, 0x3F	; 63
-  9e:	80 64       	ori	r24, 0x40	; 64
-  a0:	80 93 7c 00 	sts	0x007C, r24	; 0x80007c <__TEXT_REGION_LENGTH__+0x7e007c>
-  a4:	80 91 7a 00 	lds	r24, 0x007A	; 0x80007a <__TEXT_REGION_LENGTH__+0x7e007a>
-  a8:	80 68       	ori	r24, 0x80	; 128
-  aa:	80 93 7a 00 	sts	0x007A, r24	; 0x80007a <__TEXT_REGION_LENGTH__+0x7e007a>
-  ae:	80 91 7c 00 	lds	r24, 0x007C	; 0x80007c <__TEXT_REGION_LENGTH__+0x7e007c>
-  b2:	80 7d       	andi	r24, 0xD0	; 208
-  b4:	80 62       	ori	r24, 0x20	; 32
-  b6:	80 93 7c 00 	sts	0x007C, r24	; 0x80007c <__TEXT_REGION_LENGTH__+0x7e007c>
-  ba:	80 91 7a 00 	lds	r24, 0x007A	; 0x80007a <__TEXT_REGION_LENGTH__+0x7e007a>
-  be:	80 64       	ori	r24, 0x40	; 64
-  c0:	80 93 7a 00 	sts	0x007A, r24	; 0x80007a <__TEXT_REGION_LENGTH__+0x7e007a>
-  c4:	80 91 7a 00 	lds	r24, 0x007A	; 0x80007a <__TEXT_REGION_LENGTH__+0x7e007a>
-  c8:	86 fd       	sbrc	r24, 6
-  ca:	fc cf       	rjmp	.-8      	; 0xc4 <main+0x44>
-  cc:	80 91 79 00 	lds	r24, 0x0079	; 0x800079 <__TEXT_REGION_LENGTH__+0x7e0079>
-  d0:	88 3c       	cpi	r24, 0xC8	; 200
-  d2:	10 f4       	brcc	.+4      	; 0xd8 <main+0x58>
-  d4:	2d 9a       	sbi	0x05, 5	; 5
-  d6:	eb cf       	rjmp	.-42     	; 0xae <main+0x2e>
-  d8:	2d 98       	cbi	0x05, 5	; 5
-  da:	e9 cf       	rjmp	.-46     	; 0xae <main+0x2e>
+  80:	80 91 7a 00 	lds	r24, 0x007A	; 0x80007a <__TEXT_REGION_LENGTH__+0x7e007a>
+  84:	87 68       	ori	r24, 0x87	; 135
+  86:	80 93 7a 00 	sts	0x007A, r24	; 0x80007a <__TEXT_REGION_LENGTH__+0x7e007a>
+  8a:	25 9a       	sbi	0x04, 5	; 4
+  8c:	90 e6       	ldi	r25, 0x60	; 96
+  8e:	90 93 7c 00 	sts	0x007C, r25	; 0x80007c <__TEXT_REGION_LENGTH__+0x7e007c>
+  92:	80 91 7a 00 	lds	r24, 0x007A	; 0x80007a <__TEXT_REGION_LENGTH__+0x7e007a>
+  96:	80 64       	ori	r24, 0x40	; 64
+  98:	80 93 7a 00 	sts	0x007A, r24	; 0x80007a <__TEXT_REGION_LENGTH__+0x7e007a>
+  9c:	80 91 7a 00 	lds	r24, 0x007A	; 0x80007a <__TEXT_REGION_LENGTH__+0x7e007a>
+  a0:	86 fd       	sbrc	r24, 6
+  a2:	fc cf       	rjmp	.-8      	; 0x9c <main+0x1c>
+  a4:	80 91 79 00 	lds	r24, 0x0079	; 0x800079 <__TEXT_REGION_LENGTH__+0x7e0079>
+  a8:	88 3c       	cpi	r24, 0xC8	; 200
+  aa:	10 f4       	brcc	.+4      	; 0xb0 <main+0x30>
+  ac:	2d 9a       	sbi	0x05, 5	; 5
+  ae:	ef cf       	rjmp	.-34     	; 0x8e <main+0xe>
+  b0:	2d 98       	cbi	0x05, 5	; 5
+  b2:	ed cf       	rjmp	.-38     	; 0x8e <main+0xe>
 
-000000dc <_exit>:
-  dc:	f8 94       	cli
+000000b4 <_exit>:
+  b4:	f8 94       	cli
 
-000000de <__stop_program>:
-  de:	ff cf       	rjmp	.-2      	; 0xde <__stop_program>
+000000b6 <__stop_program>:
+  b6:	ff cf       	rjmp	.-2      	; 0xb6 <__stop_program>

@@ -2,6 +2,7 @@
 
 //#define OS
 //#define S1
+#include "Arduino.h"
 
 #include "fasthal.h"
 
