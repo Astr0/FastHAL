@@ -12,6 +12,9 @@
 	};\
 	const uint8_t Name ## Mask = (1 << M1) | (1 << M0);
 
+// #define FH_TIMER_DECLAR_CS_ENUM_3_EXT(Name, M0, M1, M2)\
+
+
 namespace fasthal{
 	// Simple timer: No outputs (As Timer0 in ATMega8)
 	template<

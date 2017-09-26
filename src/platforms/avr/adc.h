@@ -119,10 +119,6 @@ namespace fasthal{
 		}
 		
 		static uint16_t read(){
-			// we have to read ADCL first; doing so locks both ADCL
-			// and ADCH until ADCH is read.  reading ADCL second would
-			// cause the results of each conversion to be discarded,
-			// as ADCL and ADCH would be locked when it completed.
 			return ADC;
 		}
 

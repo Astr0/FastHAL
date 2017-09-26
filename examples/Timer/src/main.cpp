@@ -12,8 +12,7 @@ int main(){
 	Timer0::setWgm(Timer0WGM::CtcA);
 	Timer0::setOcA(200);
 	Timer0::enable(Timer0CS::P1024);
-	
-	
+		
 	uint8_t count = 0;
     while(1){
 		if (Timer0::interruptsReady(Timer0IF::OuputCompareA)){
