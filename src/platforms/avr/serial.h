@@ -11,12 +11,12 @@
 #define FASTHAL_DECLAREUART(NAME, CODE)\
 namespace priv\
 {\
-	FASTHAL_WRAPVARIABLE(UBRRHReg ## CODE, UBRR ## CODE ## H)\
-	FASTHAL_WRAPVARIABLE(UBRRLReg ## CODE, UBRR ## CODE ## L)\
-	FASTHAL_WRAPVARIABLE(UCSRAReg ## CODE, UCSR ## CODE ## A)\
-	FASTHAL_WRAPVARIABLE(UCSRBReg ## CODE, UCSR ## CODE ## B)\
-	FASTHAL_WRAPVARIABLE(UCSRCReg ## CODE, UCSR ## CODE ## C)\
-	FASTHAL_WRAPVARIABLE(UDRReg ## CODE, UDR ## CODE)\
+	FH_WRAPVARIABLE(UBRRHReg ## CODE, UBRR ## CODE ## H)\
+	FH_WRAPVARIABLE(UBRRLReg ## CODE, UBRR ## CODE ## L)\
+	FH_WRAPVARIABLE(UCSRAReg ## CODE, UCSR ## CODE ## A)\
+	FH_WRAPVARIABLE(UCSRBReg ## CODE, UCSR ## CODE ## B)\
+	FH_WRAPVARIABLE(UCSRCReg ## CODE, UCSR ## CODE ## C)\
+	FH_WRAPVARIABLE(UDRReg ## CODE, UDR ## CODE)\
 }\
 typedef AvrUart<\
     priv::UBRRHReg ## CODE, \
@@ -118,18 +118,18 @@ namespace fasthal{
             ucsrc::value() = config;
         }
 
-        static inline void enableRx() { sbi(ucsrb::value(), RXENbit); }
-        static inline void disableRx() { cbi(ucsrb::value(), RXENbit); }
+        static inline void enableRx() { fh_sbi(ucsrb::value(), RXENbit); }
+        static inline void disableRx() { fh_cbi(ucsrb::value(), RXENbit); }
 
-        static inline void enableTx() { sbi(ucsrb::value(), TXENbit); }
-        static inline void disableTx() { cbi(ucsrb::value(), TXENbit); }
+        static inline void enableTx() { fh_sbi(ucsrb::value(), TXENbit); }
+        static inline void disableTx() { fh_cbi(ucsrb::value(), TXENbit); }
         
-        static inline void enableRxIrq() { sbi(ucsrb::value(), RXCIEbit); }
-        static inline void disableRxIrq() { cbi(ucsrb::value(), RXCIEbit); }
+        static inline void enableRxIrq() { fh_sbi(ucsrb::value(), RXCIEbit); }
+        static inline void disableRxIrq() { fh_cbi(ucsrb::value(), RXCIEbit); }
         
         static inline bool enabledTxReadyIrq() { return bit_is_set(ucsrb::value(), UDRIEbit); }
-        static inline void enableTxReadyIrq(){ sbi(ucsrb::value(), UDRIEbit); }
-        static inline void disableTxReadyIrq(){ cbi(ucsrb::value(), UDRIEbit); }
+        static inline void enableTxReadyIrq(){ fh_sbi(ucsrb::value(), UDRIEbit); }
+        static inline void disableTxReadyIrq(){ fh_cbi(ucsrb::value(), UDRIEbit); }
         static inline bool shouldRunTxReadyIrq(){
             return NoInterrupts::enabled() && txReady();
         }
@@ -137,7 +137,7 @@ namespace fasthal{
         static inline bool txReady() { return bit_is_set(ucsra::value(), UDREbit); }
         static inline bool txDone() { return bit_is_clear(ucsra::value(), TXC0); }
         static inline void tx(uint8_t c) { udr::value() = c; clearTxReady(); }
-        static inline void clearTxReady(){ sbi(ucsra::value(), TXCbit); }
+        static inline void clearTxReady(){ fh_sbi(ucsra::value(), TXCbit); }
 
         static inline uint8_t rx(){ return udr::value(); }
         static inline bool rxOk(){return bit_is_clear(ucsra::value(), UPEbit); }

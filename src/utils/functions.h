@@ -5,14 +5,15 @@
 
 #define fh_cbi(reg, bit) (reg &= ~(1 << bit))
 #define fh_sbi(reg, bit) (reg |= (1 << bit))
-#define fh_vbi(reg, bit, v) if (v) fh_sbi(reg, bit) else fh_cbi(reg, bit);
+#define fh_wbi(reg, bit, v) (v ? fh_sbi(reg, bit) : fh_cbi(reg, bit)) 
 
 
-#define FASTHAL_WRAPVARIABLE(CLASSNAME, VARNAME)\
+#define FH_WRAPVARIABLE(CLASSNAME, VARNAME)\
 struct CLASSNAME\
 {\
 static decltype(VARNAME)& value(){return VARNAME;}\
 };
+
 
 namespace fasthal{
     template<int val>

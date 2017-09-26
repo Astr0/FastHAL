@@ -1,4 +1,6 @@
+#ifndef F_CPU
 #define F_CPU 16000000UL
+#endif
 
 //#define OS
 //#define S1
@@ -58,6 +60,8 @@ void test(T& writer, uint8_t read){
     writer.write((double)read);
 }
 
+typedef AdcChannel<AdcRef::Default, false, 0> AdcA0;
+
 void loop(){
     auto read = AdcA0::read();
     
@@ -66,7 +70,7 @@ void loop(){
     test(Uart1tw, read);
     #endif
     
-    Time::delayMs(1000);
+    // Time::delayMs(1000);
 }
 
 

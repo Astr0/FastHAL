@@ -13,9 +13,9 @@
 #define FASTHAL_DECLAREPORT(CODE)\
 namespace priv\
 {\
-	FASTHAL_WRAPVARIABLE(PortReg ## CODE, PORT ## CODE)\
-	FASTHAL_WRAPVARIABLE(PinReg ## CODE, PIN ## CODE)\
-	FASTHAL_WRAPVARIABLE(DdrReg ## CODE, DDR ## CODE)\
+	FH_WRAPVARIABLE(PortReg ## CODE, PORT ## CODE)\
+	FH_WRAPVARIABLE(PinReg ## CODE, PIN ## CODE)\
+	FH_WRAPVARIABLE(DdrReg ## CODE, DDR ## CODE)\
 }\
 typedef AvrPort<priv::DdrReg ## CODE, priv::PortReg ## CODE, priv::PinReg ## CODE> Port ## CODE;\
 typedef Pin<Port ## CODE, 0> Pin ## CODE ## 0;\

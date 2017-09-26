@@ -3,9 +3,6 @@
 #ifndef AVR_TIMERS_H_
 #define AVR_TIMERS_H_
 
-namespace fasthal{
-    
-
-}
+#include "timer0.h"
 
 #endif
