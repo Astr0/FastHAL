@@ -7,5 +7,6 @@
 #include "ports.h"
 #include "adc.h"
 #include "serial.h"
+#include "timers.h"
 
 #endif /* AVR_HAL_H_ */

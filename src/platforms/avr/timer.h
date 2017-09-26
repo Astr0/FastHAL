@@ -6,6 +6,12 @@
 #include "../../utils/functions.h"
 #include "../../sys/TypeManip.h"
 
+#define FH_TIMER_DECLARE_COM_ENUM(Name, M0, M1) \
+	enum class Name: uint8_t{\
+		None   = (0 << M1) | (0 << M0),\		Toggle = (0 << M1) | (1 << M0),\		Clear  = (1 << M1) | (0 << M0),\		Set    = (1 << M1) | (1 << M0)\
+	};\
+	const uint8_t Name ## Mask = (1 << M1) | (1 << M0);
+
 namespace fasthal{
 	// Simple timer: No outputs (As Timer0 in ATMega8)
 	template<
@@ -18,7 +24,7 @@ namespace fasthal{
 		typedef typename Loki::Select<sizeof(decltype(tcnt::value())) == 1, uint8_t, uint16_t>::Result count_t;
 		
 		static void enable(clocksource_t source){
-			tccr::value() = (tccr::value & ~clocksource_mask) | source;
+			tccr::value() = (tccr::value() & ~clocksource_mask) | (uint8_t)source;
 		}		
 		
 		count_t getCount(){
@@ -35,8 +41,12 @@ namespace fasthal{
 		typename wgm_t,
 		uint8_t wgm_mask>
 	struct AvrTimerWGM{
-		static void setWGM(wgm_t wgm){
+		static void setWgm(wgm_t wgm){
 			tccr_wgm::value() = (tccr_wgm::value() & ~wgm_mask) | (uint8_t)wgm;
+		}
+		
+		static wgm_t getWgm(){
+			return (wgm_t)(tccr_wgm::value() & wgm_mask);
 		}
 	};
 	
@@ -50,7 +60,7 @@ namespace fasthal{
 		
 		static void setComA(coma_t com)
 		{
-			tccr_coma::value() = (tccr_coma::value & ~coma_mask) | (uint8_t) com;
+			tccr_coma::value() = (tccr_coma::value() & ~coma_mask) | (uint8_t) com;
 		}
 		
 		static oca_t getOcA(){
@@ -81,7 +91,7 @@ namespace fasthal{
 		
 		static void setComB(comb_t com)
 		{
-			tccr_comb::value() = (tccr_comb::value & ~comb_mask) | (uint8_t) com;
+			tccr_comb::value() = (tccr_comb::value() & ~comb_mask) | (uint8_t) com;
 		}		
 				
 		static ocb_t getOcB(){

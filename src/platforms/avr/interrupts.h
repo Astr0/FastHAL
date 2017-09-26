@@ -26,22 +26,22 @@ namespace fasthal{
 	
 	template<class ieReg, typename interruptenable_t>
 	struct InterruptControl{
-		void interruptsEnable(interruptenable_t interrupts){			
+		static void interruptsEnable(interruptenable_t interrupts){			
 			ieReg::value() |= (uint8_t)interrupts;
 		}
 		
-		void interruptsDisable(interruptenable_t interrupts){
+		static void interruptsDisable(interruptenable_t interrupts){
 			ieReg::value() &= ~((uint8_t)interrupts);
 		}
 	};
 	
 	template<class ifReg, typename interruptflag_t>
 	struct InterruptFlags{
-		bool interruptsReady(interruptflag_t interrupts){
+		static bool interruptsReady(interruptflag_t interrupts){
 			return ifReg::value() & (uint8_t)interrupts;
 		}
 		
-		void clearInterruptsReady(interruptflag_t interrupts){
+		static void clearInterruptsReady(interruptflag_t interrupts){
 			// to clear we actually have to set them to 1 =/
 			ifReg::value() |= (uint8_t)interrupts;
 		}

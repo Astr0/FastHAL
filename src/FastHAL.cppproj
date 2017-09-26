@@ -215,6 +215,9 @@
     <Compile Include="platforms\avr\timer0.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="platforms\avr\timer1.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="platforms\avr\timers.h">
       <SubType>compile</SubType>
     </Compile>
