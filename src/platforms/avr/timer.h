@@ -28,12 +28,17 @@ const uint8_t Name ## Mask = (1 << M1) | (1 << M0);
 
 #define FH_TIMER_DECLARE_WGM_ENUM_3(Name, M0, M1, M2)\
 enum class Name: uint8_t{\	Normal     = (0 << M2) | (0 << M1) | (0 << M0),\	PwmPcMax   = (0 << M2) | (0 << M1) | (1 << M0),\	CtcA       = (0 << M2) | (1 << M1) | (0 << M0),\	PwmFastMax = (0 << M2) | (1 << M1) | (1 << M0),\
-	PwmPcA     = (1 << M2) | (0 << M1) | (1 << M0),\	PwmFastA   = (1 << M2) | (1 << M1) | (1 << M0)\
+	/*Reserved = (1 << M2) | (0 << M1) | (0 << M0),*/\
+	PwmPcA     = (1 << M2) | (0 << M1) | (1 << M0),\	/*Reserved = (1 << M2) | (1 << M1) | (0 << M0),*/\
+	PwmFastA   = (1 << M2) | (1 << M1) | (1 << M0)\
 };\
 const uint8_t Name ## Mask0 = (1 << M1) | (1 << M0);\
 const uint8_t Name ## Mask1 = (1 << M2); 
 
-
+#define FH_TIMER_DECLARE_WGM_ENUM_4(Name, M0, M1, M2, M3)\
+enum class Name: uint8_t{\	Normal     = (0 << M2) | (0 << M2) | (0 << M1) | (0 << M0),\	PwmPc8     = (0 << M2) | (0 << M2) | (0 << M1) | (0 << M0),\	PwmPc9     = (0 << M2) | (0 << M2) | (0 << M1) | (0 << M0),\	PwmPc10    = (0 << M2) | (0 << M2) | (0 << M1) | (0 << M0),\	CtcA       = (0 << M2) | (0 << M2) | (0 << M1) | (0 << M0),\	PwmFast8   = (0 << M2) | (0 << M2) | (0 << M1) | (0 << M0),\	PwmFast9   = (0 << M2) | (0 << M2) | (0 << M1) | (0 << M0),\	PwmFast10  = (0 << M2) | (0 << M2) | (0 << M1) | (0 << M0),\	PwmPcFcI   = (0 << M2) | (0 << M2) | (0 << M1) | (0 << M0),\	PwmPcFcA   = (0 << M2) | (0 << M2) | (0 << M1) | (0 << M0),\	PwmPcI     = (0 << M2) | (0 << M2) | (0 << M1) | (0 << M0),\	PwmPcA     = (0 << M2) | (0 << M2) | (0 << M1) | (0 << M0),\	CtcI       = (0 << M2) | (0 << M2) | (0 << M1) | (0 << M0),\	/*Reserved = (0 << M2) | (0 << M2) | (0 << M1) | (0 << M0),*/\	PwmFastI   = (0 << M2) | (0 << M2) | (0 << M1) | (0 << M0),\	PwmFastA   = (0 << M2) | (0 << M2) | (0 << M1) | (0 << M0),\};\
+const uint8_t Name ## Mask0 = (1 << M1) | (1 << M0);\
+const uint8_t Name ## Mask1 = (1 << M3) | (1 << M2);
 
 // COM
 #define FH_TIMER_DECLARE_COM_ENUM(Name, M0, M1) \
