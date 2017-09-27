@@ -6,39 +6,12 @@
 #include "../../utils/functions.h"
 #include "../../sys/TypeManip.h"
 
-// CS
-#define FH_TIMER_DECLARE_CS_ENUM_3(Name, M0, M1, M2)\
-	enum class Name: uint8_t{\
-		None    = (0 << M2) | (0 << M1) | (0 << M0),\		P0      = (0 << M2) | (0 << M1) | (1 << M0),\		P8      = (0 << M2) | (1 << M1) | (0 << M0),\		P32     = (0 << M2) | (1 << M1) | (1 << M0),\		P64     = (1 << M2) | (0 << M1) | (0 << M0),\		P128    = (1 << M2) | (0 << M1) | (1 << M0),\		P256    = (1 << M2) | (1 << M1) | (0 << M0),\		P1024   = (1 << M2) | (1 << M1) | (1 << M0)\
-	};\
-	const uint8_t Name ## Mask = (1 << M2) | (1 << M1) | (1 << M0);
-
-
-#define FH_TIMER_DECLARE_CS_ENUM_3_EXT(Name, M0, M1, M2)\
-	enum class Name: uint8_t{\
-		None    = (0 << M2) | (0 << M1) | (0 << M0),\		P0      = (0 << M2) | (0 << M1) | (1 << M0),\		P8      = (0 << M2) | (1 << M1) | (0 << M0),\		P64     = (0 << M2) | (1 << M1) | (1 << M0),\		P256    = (1 << M2) | (0 << M1) | (0 << M0),\		P1024   = (1 << M2) | (0 << M1) | (1 << M0),\		ExtFall = (1 << M2) | (1 << M1) | (0 << M0),\		ExtRise = (1 << M2) | (1 << M1) | (1 << M0)\
-	};\
-	const uint8_t Name ## Mask = (1 << M2) | (1 << M1) | (1 << M0);
-
 // WGM
 #define FH_TIMER_DECLARE_WGM_ENUM_2(Name, M0, M1)\
-enum class Name: uint8_t{\	Normal     = (0 << M1) | (0 << M0),\	PwmPcMax   = (0 << M1) | (1 << M0),\	CtcA       = (1 << M1) | (0 << M0),\	PwmFastMax = (1 << M1) | (1 << M0)\
-};\
-const uint8_t Name ## Mask = (1 << M1) | (1 << M0);
+
 
 #define FH_TIMER_DECLARE_WGM_ENUM_3(Name, M0, M1, M2)\
-enum class Name: uint8_t{\	Normal     = (0 << M2) | (0 << M1) | (0 << M0),\	PwmPcMax   = (0 << M2) | (0 << M1) | (1 << M0),\	CtcA       = (0 << M2) | (1 << M1) | (0 << M0),\	PwmFastMax = (0 << M2) | (1 << M1) | (1 << M0),\
-	/*Reserved = (1 << M2) | (0 << M1) | (0 << M0),*/\
-	PwmPcA     = (1 << M2) | (0 << M1) | (1 << M0),\	/*Reserved = (1 << M2) | (1 << M1) | (0 << M0),*/\
-	PwmFastA   = (1 << M2) | (1 << M1) | (1 << M0)\
-};\
-const uint8_t Name ## Mask0 = (1 << M1) | (1 << M0);\
-const uint8_t Name ## Mask1 = (1 << M2); 
 
-#define FH_TIMER_DECLARE_WGM_ENUM_4(Name, M0, M1, M2, M3)\
-enum class Name: uint8_t{\	Normal     = (0 << M3) | (0 << M2) | (0 << M1) | (0 << M0),\	PwmPc8     = (0 << M3) | (0 << M2) | (0 << M1) | (1 << M0),\	PwmPc9     = (0 << M3) | (0 << M2) | (1 << M1) | (0 << M0),\	PwmPc10    = (0 << M3) | (0 << M2) | (1 << M1) | (1 << M0),\	CtcA       = (0 << M3) | (1 << M2) | (0 << M1) | (0 << M0),\	PwmFast8   = (0 << M3) | (1 << M2) | (0 << M1) | (1 << M0),\	PwmFast9   = (0 << M3) | (1 << M2) | (1 << M1) | (0 << M0),\	PwmFast10  = (0 << M3) | (1 << M2) | (1 << M1) | (1 << M0),\	PwmPcFcI   = (1 << M3) | (0 << M2) | (0 << M1) | (0 << M0),\	PwmPcFcA   = (1 << M3) | (0 << M2) | (0 << M1) | (1 << M0),\	PwmPcI     = (1 << M3) | (0 << M2) | (1 << M1) | (0 << M0),\	PwmPcA     = (1 << M3) | (0 << M2) | (1 << M1) | (1 << M0),\	CtcI       = (1 << M3) | (1 << M2) | (0 << M1) | (0 << M0),\	/*Reserved = (0 << M3) | (1 << M2) | (0 << M1) | (1 << M0),*/\	PwmFastI   = (1 << M3) | (1 << M2) | (1 << M1) | (0 << M0),\	PwmFastA   = (1 << M3) | (1 << M2) | (1 << M1) | (1 << M0),\};\
-const uint8_t Name ## Mask0 = (1 << M1) | (1 << M0);\
-const uint8_t Name ## Mask1 = (1 << M3) | (1 << M2);
 
 // COM
 #define FH_TIMER_DECLARE_COM_ENUM(Name, M0, M1) \
@@ -105,55 +78,37 @@ namespace fasthal{
 		}
 	};
 	
-#define FH_TIMER_DECLARE_COM_TEMPLATE(x, X)\
+	template<class tccr, uint8_t nc_bit, uint8_t es_bit, class icr>
+	struct AvrTimerIc{
+		typedef typename Loki::Select<sizeof(decltype(icr::value())) == 1, uint8_t, uint16_t>::Result ic_t;
+		static void enableIcNoiseCanceller(bool enable){ fh_wbi(tccr::value(), nc_bit, enable); }
+		static void setIcEdge(bool rise){ fh_wbi(tccr::value(), es_bit, rise); }
+		static ic_t getIc() { return icr::value(); }
+		static void setIc(ic_t v){ icr::value() = v; }
+	};
+	
+#define FH_TIMER_DECLARE_OC_TEMPLATE(x, X)\
 	template<class tccr, typename com_t, uint8_t com_mask, class ocr>\
-	struct AvrTimerCom ## X{\
+	struct AvrTimerOc ## X{\
 		typedef typename Loki::Select<sizeof(decltype(ocr::value())) == 1, uint8_t, uint16_t>::Result oc ## x ## _t;\
 		static void setCom ## x(com_t com) { tccr::value() = (tccr::value() & ~com_mask) | (uint8_t) com; }\
 		static oc ## x ## _t getOc ## X() { return ocr::value(); }\
 		static void setOc ## X(oc ## x ## _t v){ ocr::value() = v; }\
 	};
-FH_TIMER_DECLARE_COM_TEMPLATE(a, A);
-FH_TIMER_DECLARE_COM_TEMPLATE(b, B);
+FH_TIMER_DECLARE_OC_TEMPLATE(a, A);
+FH_TIMER_DECLARE_OC_TEMPLATE(b, B);
+FH_TIMER_DECLARE_OC_TEMPLATE(c, C);
 	
-#define FH_TIMER_DECLARE_FORCE_TEMPLATE(X)\
+#define FH_TIMER_DECLARE_FORCEOC_TEMPLATE(X)\
 	template<class tccr, uint8_t force_bit>\
-	struct AvrTimerForce ## X{\
+	struct AvrTimerForceOc ## X{\
 		static void forceOc ## X(){ fh_sbi(tccr::value(), force_bit); }\
 	};		
 	
-FH_TIMER_DECLARE_FORCE_TEMPLATE(A);	
-FH_TIMER_DECLARE_FORCE_TEMPLATE(B);
-	//template<
-	//class tccr_comb,
-	//typename comb_t,
-	//uint8_t comb_mask,
-	//class ocrb>
-	//struct AvrTimerComB{
-		//typedef typename Loki::Select<sizeof(decltype(ocrb::value())) == 1, uint8_t, uint16_t>::Result ocb_t;				
-		//
-		//static void setComB(comb_t com)
-		//{
-			//tccr_comb::value() = (tccr_comb::value() & ~comb_mask) | (uint8_t) com;
-		//}		
-				//
-		//static ocb_t getOcB(){
-			//return ocrb::value();
-		//}
-		//
-		//static void setOcB(ocb_t v){
-			//ocrb::value() = v;
-		//}
-	//};
-	
-	//template<
-	//class tccr_forceb,
-	//uint8_t forceb_bit>
-	//struct AvrTimerForceB{
-		//static void forceOcB(){
-			//fh_sbi(tccr_forceb::value(), forceb_bit);
-		//}
-	//};
+FH_TIMER_DECLARE_FORCEOC_TEMPLATE(A);	
+FH_TIMER_DECLARE_FORCEOC_TEMPLATE(B);
+FH_TIMER_DECLARE_FORCEOC_TEMPLATE(C);
+
 }
 
 

@@ -38,10 +38,29 @@ void TestTimer1(){
 	}
 }
 
+void TestTimer2(){
+	Timer2::setWgm(Timer2Wgm::Normal);
+	Timer2::setOcA(200);
+	Timer2::enable(Timer2Cs::P1024);
+	
+	uint16_t count = 0;
+	while(1){
+		if (Timer2::interruptsReady(Timer2F::OuputCompareA)){
+			Timer2::clearInterruptsReady(Timer2F::OuputCompareA);
+			count++;
+			if (count == 10){
+				count = 0;
+				LedPin::toggle();
+			}
+		}
+	}
+}
+
 int main(){
 	LedPin::setMode(PinMode::Output);
 	TestTimer0();
 	TestTimer1();
+	TestTimer2();
 	
 	while(1);
 	
