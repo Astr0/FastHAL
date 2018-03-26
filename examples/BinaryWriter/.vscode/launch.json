@@ -8,7 +8,9 @@
             "name": "PlatformIO Debugger",
             "target": "d:/Astr0/Documents/Arduino/libs/FastHAL/examples/BinaryWriter/.pioenvs/nanoatmega328/firmware.elf",
             "gdbpath": "C:/Users/astr0/.platformio/penv/Scripts/piodebuggdb",
-            "autorun": [ "source .pioinit" ]
+            "autorun": [ "source .pioinit" ],
+            "preLaunchTask": "PlatformIO: Pre-Debug",
+            "internalConsoleOptions": "openOnSessionStart"
         }
     ]
 }
