@@ -8,7 +8,7 @@ using namespace fasthal;
 
 #define FH
 //#define OS
-#define S1
+//#define S1
 
 #ifdef FH
 FASTHAL_UART0(RxSize, TxSize);

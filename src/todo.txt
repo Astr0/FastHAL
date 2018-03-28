@@ -1,0 +1,8 @@
+* replace Loki with variadic templates
+* apply support similar to kvasir.io
+- write(field, x)
+- x read(field)
+- set(field)
+- clear(field)
+- toggle(field)
+* constexpr interface
