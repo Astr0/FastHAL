@@ -11,27 +11,10 @@ namespace fasthal
 // Null port to get do-nothing bits for skipping something
 struct NullField
 {
-    using DataType = uint8_t;
+    // static constexpr size_t width() { return 8 * sizeof(DataType); }
 
-    static constexpr size_t width() { return 8 * sizeof(DataType); }
-
-    static DataType read() { return 0; }
-    static void write(DataType v) {}
-};
-
-namespace details
-{
-// is_field to check if T is field
-template <class T>
-struct is_field : mp::false_type
-{
-};
-
-// null field is
-template <>
-struct is_field<NullField> : mp::true_type
-{
-};
+    static uint8_t read() { return 0; }
+    static void write(uint8_t v) {}
 };
 
 // Represents one bit in field, possibly inverted
@@ -43,8 +26,28 @@ struct FieldBit
     static constexpr bool Inverted = VInverted;
 };
 
+// Bit field - field with custom collection of bits
+template <typename... TFieldBits>
+struct BitField
+{
+    using FieldBits = mp::list<TFieldBits...>;
+};
+
+
 namespace details
 {
+// // is_field to check if T is field
+// template <class T>
+// struct is_field : mp::false_type
+// {
+// };
+
+// // null field is
+// template <>
+// struct is_field<NullField> : mp::true_type
+// {
+// };
+
 // is_field_bit to check if T is FieldBit
 template <class T>
 struct is_field_bit : mp::false_type
@@ -56,23 +59,21 @@ template <typename TField, unsigned VNumber, bool VInverted>
 struct is_field_bit<FieldBit<TField, VNumber, VInverted>> : mp::true_type
 {
 };
+
+template <class T>
+struct is_bit_field: mp::false_type{};
+
+template <typename... T>
+struct is_bit_field<BitField<T...>>:mp::true_type{};
+
 };
 
-// Bit field - field with custom collection of bits
-template <typename... TFieldBits>
-struct BitField
-{
-    using BitFields = mp::list<TFieldBits...>;
-};
-
-// nullfield instance
-static constexpr auto nullField = NullField{};
 
 // get field bit for number and field
 template <unsigned VNumber, typename TField>
 constexpr decltype(auto) fieldBit(TField field)
 {
-    static_assert(details::is_field<TField>::value, "not a field");
+    //static_assert(details::is_field<TField>::value, "not a field");
     return FieldBit<TField, VNumber, false>{};
 }
 
@@ -102,8 +103,14 @@ constexpr decltype(auto) bitField(TFieldBits... bits)
 template <unsigned VNumber, typename... TFieldBits>
 constexpr decltype(auto) fieldBit(BitField<TFieldBits...> field)
 {
-    return (typename mp::type_at<VNumber, TFieldBits...>::type){};
+    return mp::type_at_t<VNumber, TFieldBits...>{};
 }
+
+// nullfield instance
+static constexpr auto nullField = NullField{};
+// nullfield bit, used for alignment
+static constexpr auto nullBit = fieldBit<0>(nullField);
+
 };
 
 #endif

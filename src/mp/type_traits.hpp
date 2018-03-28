@@ -16,6 +16,15 @@ namespace mp{
 
     using true_type = bool_constant<true>;
     using false_type = bool_constant<false>;
+
+    template<bool B, class T = void>
+    struct enable_if {};
+    
+    template<class T>
+    struct enable_if<true, T> { typedef T type; };
+
+    template <bool B, class T>
+    using enable_if_t = typename enable_if<B, T>::type;
 };
 };
 #endif

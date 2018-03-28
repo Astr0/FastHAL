@@ -1,4 +1,5 @@
-* replace Loki with variadic templates
+* replace Loki with boost:mpl
+* replace Port with BitField for everything
 * apply support similar to kvasir.io
 - write(field, x)
 - x read(field)

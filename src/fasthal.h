@@ -11,6 +11,8 @@
 #include "io/pin.h"
 #include "io/port.h"
 #include "fields/fields.hpp"
+#include "fields/actions.hpp"
+#include "fields/apply.hpp"
 
 #include "platforms/platform.h"
 
