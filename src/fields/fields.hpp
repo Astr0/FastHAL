@@ -65,6 +65,11 @@ struct is_bit_field: std::false_type{};
 template <typename... T>
 struct is_bit_field<BitField<T...>>:std::true_type{};
 
+template <typename TField>
+struct get_field_datatype{
+    using type = decltype(TField::read());
+};
+
 };
 
 

@@ -37,7 +37,7 @@ namespace fasthal{
     };
 
     template<typename ...TActions>
-    void apply(TActions... actions){
+    void apply(const TActions... actions){
         // generic algorithm:
         // get distinct Fields with Actions that touch that field
         // for each field calculate what we need to clear, set and toggle and read
@@ -48,7 +48,9 @@ namespace fasthal{
         using ActionsList = brigand::list<TActions...>;
         // select list<fieldbit> for each action
         using ActionFieldBits = brigand::transform<
-                brigand::transform<ActionsList, details::select_action_bit_field<brigand::_1>>, 
+                brigand::transform<
+                    ActionsList, 
+                    details::select_action_bit_field<brigand::_1>>, 
                 details::select_bit_field_field_bits<brigand::_1>>;
         // list<list<fieldbit>> to list<fieldbit>
         using FieldBits = brigand::flatten<ActionFieldBits>;

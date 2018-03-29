@@ -2,21 +2,31 @@
 #define FH_FIELDS_EXECUTE_H_
 
 #include "../mp/brigand.hpp"
+#include "fields.hpp"
+#include "actions.hpp"
 
 namespace fasthal{
 namespace details{
-template <class TField, class TActions>
-        struct get_action_masks{
-            
-        };
-
-        template <class TField, class TActions>
-        // execute actions on specified field
+        template <class TField>
         struct execute_field_actions{
-            static void execute(){
+            using DataType = typename get_field_datatype<TField>::type;
+
+            template <class TAction>
+            struct get_action_masks{
+            };
+
+            template <class... TActions>
+            // lots of actions
+            static constexpr decltype(auto) getToggleMask(){
+                return 1;
+            }
+
+            // execute actions on this field
+            template <class... TActions>
+            static void execute(TActions... actions){
                 auto value = TField::read();
                 
-                auto toggleMask = 1;
+                constexpr auto toggleMask = getToggleMask<TActions...>();
                 value ^= toggleMask;
 
                 TField::write(value);
@@ -31,6 +41,7 @@ template <class TField, class TActions>
             }
          };
 
+        // for each fields execute all actions on this field
         template<class TField, class... TFields, class... TActions>
         struct execute_fields_actions<brigand::list<TField, TFields...>, brigand::list<TActions...>>
         {
@@ -38,7 +49,7 @@ template <class TField, class TActions>
                 using ActionsList = brigand::list<TActions...>;
 
                 // execute for field
-                execute_field_actions<TField, ActionsList>::execute();
+                execute_field_actions<TField>::execute(actions...);
 
                 // execute rest
                 execute_fields_actions<brigand::list<TFields...>, ActionsList>::execute(actions...);

@@ -1,9 +1,4 @@
-* replace Loki with boost:mpl
-* replace Port with BitField for everything
-* apply support similar to kvasir.io
-- write(field, x)
-- x read(field)
-- set(field)
-- clear(field)
-- toggle(field)
-* constexpr interface
+* replace Loki with brigand
+* constexpr interface with apply support
+* rename port to Field and simplify port interface
+* simplify port interface
