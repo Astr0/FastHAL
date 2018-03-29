@@ -10,8 +10,6 @@
 namespace fasthal{
     struct NullField
 	{
-		static constexpr uint8_t width(){return sizeof(uint8_t);}
-		
 		static void write(uint8_t value) {}
 		static void clearAndSet(uint8_t clearMask, uint8_t setMask) {}
 		static void set(uint8_t mask) {}

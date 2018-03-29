@@ -11,6 +11,7 @@
 
 #include "../sys/maskutils.h"
 #include "../sys/typeutils.h"
+#include "../mp/type_traits.hpp"
 
 namespace fasthal
 {
@@ -19,8 +20,9 @@ namespace fasthal
 
 	template<class TField>
 	using field_mask_types = fasthal::common::BitMaskTypes<field_data_type<TField>>;
+
+	template <class TField>
+	static constexpr auto field_width(){ return sizeof(field_data_type<TField>) * 8; }
 }
-
-
 
 #endif /* PORTINFO_H_ */

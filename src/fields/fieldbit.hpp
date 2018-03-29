@@ -11,7 +11,7 @@ namespace fasthal
 	class FieldBit
 	{
 		using mask_types = field_mask_types<TField>;
-		static_assert(VNumber < TField::width(), "FieldBit number out of range");
+		static_assert(VNumber < field_width<TField>(), "FieldBit number out of range");
 		
 		public:
 		using Field = TField;

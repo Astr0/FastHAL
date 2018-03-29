@@ -420,7 +420,7 @@ namespace fasthal
 				// Apply inversion mask on value
 				DataType result = PinWrite::appendWriteValue(value, DataType(0));
 
-				if(FieldBitsLength == (int)Field::width())// whole Field
+				if(FieldBitsLength == (int)field_width<Field>())// whole Field
 					Field::write(result);
 				else
 				{
