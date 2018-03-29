@@ -10,14 +10,14 @@ namespace fasthal
 	template<class TField, unsigned VNumber, bool VInverted = false>
 	class FieldBit
 	{
-		using TFieldInfo = FieldInfo<TField>;
+		using mask_types = field_mask_types<TField>;
 		static_assert(VNumber < TField::width(), "FieldBit number out of range");
 		
 		public:
 		using Field = TField;
 
-		static constexpr auto Number = typename TFieldInfo::BitNumberType { VNumber };
-		static constexpr auto Mask = TFieldInfo::getPinMask(VNumber);
+		static constexpr auto Number = typename mask_types::BitNumberType { VNumber };
+		static constexpr auto Mask = mask_types::bitToMask(Number);
 		static constexpr auto Inverted = VInverted;
 	};
 

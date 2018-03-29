@@ -39,7 +39,7 @@ namespace fasthal
 		};
 
 
-		// Predicate<BitPositionHolder> - pins that match 1 to 1 with port pins
+		// Predicate<BitPositionHolder> - pins that match 1 to 1 with Field pins
 		template<class TFieldBitHolder>
 		struct PinPositionMatchPredicate
 		{
@@ -53,9 +53,9 @@ namespace fasthal
 			static constexpr bool value = TFieldBitHolder::FieldBit::Inverted;
 		};
 
-		// Result - Predicate<BitPositionHolder> - pins that belongs to TField Port
+		// Result - Predicate<BitPositionHolder> - pins that belongs to TField Field
 		template<class TField>
-		struct PortFieldBitsPredicate
+		struct FieldFieldBitsPredicate
 		{
 			template<class TFieldBitHolder>
 			struct Result
@@ -87,9 +87,9 @@ namespace fasthal
 		};
 
 
-		//	Mask for port pins
+		//	Mask for Field pins
 		template <class TList, class MaskType>
-		struct GetPortMask
+		struct GetFieldMask
 		{
 			template <class TFieldBitHolder, MaskType VTail>
 			struct Predicate
@@ -142,7 +142,7 @@ namespace fasthal
 				I::value + 1 : 1);
 		};
 
-		// Iterates through pin list to compute value to write to their port
+		// Iterates through pin list to compute value to write to their Field
 		// TODO: Refactor mask stuff to generate normal type, use |= rather than return result |
 		template <class TList, class TDataType> struct PinWriteIterator;
 
@@ -170,7 +170,7 @@ namespace fasthal
 				return result;
 			}
 
-			static inline TDataType appendReadValue(TDataType portValue, TDataType result)
+			static inline TDataType appendReadValue(TDataType FieldValue, TDataType result)
 			{
 				return result;
 			}
@@ -217,7 +217,7 @@ namespace fasthal
 				if(TransparentCount > 1)
 				{
 					result |= (value &
-							GetPortMask<TransparentFieldBits, DataType>::value) ^
+							GetFieldMask<TransparentFieldBits, DataType>::value) ^
 							InversionMask<TransparentFieldBits, DataType>::value;
 
 					return PinWriteIterator<NotTransparentFieldBits, TDataType>::template appendValue<DataType, InversionMask>(value, result);
@@ -230,7 +230,7 @@ namespace fasthal
 					typedef typename fasthal::common::TL::TakeFirst<CurrentList, SerialLength>::Result SerialList;
 					typedef typename fasthal::common::TL::SkipFirst<CurrentList, SerialLength>::Result RestList;
 
-					result |= (fasthal::common::Shifter<FieldBit::Number - Head::Position>::shift(value) & GetPortMask<SerialList, DataType>::value) ^ InversionMask<SerialList, DataType>::value;
+					result |= (fasthal::common::Shifter<FieldBit::Number - Head::Position>::shift(value) & GetFieldMask<SerialList, DataType>::value) ^ InversionMask<SerialList, DataType>::value;
 
 					return PinWriteIterator<RestList, TDataType>::template appendValue<DataType, InversionMask>(value, result);
 				}
@@ -259,7 +259,7 @@ namespace fasthal
 				return appendValue<MaskType, FalseInversionMask>(value, result);
 			}
 
-			static inline TDataType appendReadValue(TDataType portValue, TDataType result)
+			static inline TDataType appendReadValue(TDataType FieldValue, TDataType result)
 			{
 				typedef Loki::Typelist<Head, Tail> CurrentList;
 				typedef typename fasthal::common::TL::Where<CurrentList, PinPositionMatchPredicate>::Result TransparentFieldBits;
@@ -268,11 +268,11 @@ namespace fasthal
 
 				if(TransparentCount > 1)
 				{
-					result |= (portValue &
+					result |= (FieldValue &
 							GetValueMask<TransparentFieldBits, MaskType>::value) ^
 							GetInversionMask<TransparentFieldBits, TDataType>::value;
 
-					return PinWriteIterator<NotTransparentFieldBits, TDataType>::appendReadValue(portValue, result);
+					return PinWriteIterator<NotTransparentFieldBits, TDataType>::appendReadValue(FieldValue, result);
 				}
 				constexpr int SerialLength = GetSerialCount<CurrentList>::value;
 
@@ -282,23 +282,23 @@ namespace fasthal
 					typedef typename fasthal::common::TL::SkipFirst<CurrentList, SerialLength>::Result RestList;
 
 
-					result |= fasthal::common::Shifter<Head::Position - Head::FieldBit::Number>::shift(portValue ^ GetInversionMask<SerialList, MaskType>::value) & GetValueMask<SerialList, MaskType>::value;
-					return PinWriteIterator<RestList, TDataType>::appendReadValue(portValue, result);
+					result |= fasthal::common::Shifter<Head::Position - Head::FieldBit::Number>::shift(FieldValue ^ GetInversionMask<SerialList, MaskType>::value) & GetValueMask<SerialList, MaskType>::value;
+					return PinWriteIterator<RestList, TDataType>::appendReadValue(FieldValue, result);
 				}
 
 				if(GetInversionMask<Loki::Typelist<Head, Loki::NullType>, MaskType>::value)
 				{
-					if(!(portValue & Head::FieldBit::Mask))
+					if(!(FieldValue & Head::FieldBit::Mask))
 						result |= ListMask;
 
 				}else
 				{
-					if(portValue & Head::FieldBit::Mask)
+					if(FieldValue & Head::FieldBit::Mask)
 						result |= ListMask;
 				}
 
 
-				return PinWriteIterator<Tail, TDataType>::appendReadValue(portValue, result);
+				return PinWriteIterator<Tail, TDataType>::appendReadValue(FieldValue, result);
 			}
 			
 			static void write(TDataType value)
@@ -354,7 +354,7 @@ namespace fasthal
 			}
 		};
 		
-		// Iterates through port list and write value to them
+		// Iterates through Field list and write value to them
 		// TODO: Fix DataType, MaskType and BitMaskType!!!
 		//		 Add Read(BitMaskType) - performance!		
 		
@@ -400,8 +400,8 @@ namespace fasthal
 		template <class THead, class TTail, class TFieldBitList, class TValueType>
 		class FieldListIteratorImpl< Loki::Typelist<THead, TTail>, TFieldBitList, TValueType, true>
 		{
-			//pins on current port
-			typedef typename fasthal::common::TL::Where<TFieldBitList, PortFieldBitsPredicate<THead>::template Result>::Result FieldBits;
+			//bits on current field
+			typedef typename fasthal::common::TL::Where<TFieldBitList, FieldFieldBitsPredicate<THead>::template Result>::Result FieldBits;
 			static constexpr int FieldBitsLength = Loki::TL::Length<FieldBits>::value;
 	
 			typedef typename fasthal::common::TL::Where<FieldBits, InvertedFieldBitsPredicate>::Result InvertedFieldBits;
@@ -410,10 +410,10 @@ namespace fasthal
 			typedef typename fasthal::common::TL::Where<FieldBits, fasthal::common::TL::Not<InvertedFieldBitsPredicate>::Result>::Result NotInvertedFieldBits;
 			static constexpr int NotInvertedFieldBitsLength = Loki::TL::Length<NotInvertedFieldBits>::value;
 
-			typedef THead Port; //Head points to current port in the list.
-			typedef typename FieldInfo<Port>::DataType FieldType;
-			typedef typename FieldInfo<Port>::MaskType PortMaskType;
-			static constexpr PortMaskType Mask = GetPortMask<FieldBits, PortMaskType>::value;
+			typedef THead Field; //Head points to current Field in the list.
+			typedef field_data_type<Field> FieldType;
+			typedef typename field_mask_types<Field>::MaskType FieldMaskType;
+			static constexpr FieldMaskType Mask = GetFieldMask<FieldBits, FieldMaskType>::value;
 
 			typedef typename Loki::Select<sizeof(FieldType) >= sizeof(TValueType), FieldType, TValueType>::Result DataType;
 			
@@ -432,11 +432,11 @@ namespace fasthal
 				// Apply inversion mask on value
 				DataType result = PinWrite::appendWriteValue(value, DataType(0));
 
-				if(FieldBitsLength == (int)Port::width())// whole port
-					Port::write(result);
+				if(FieldBitsLength == (int)Field::width())// whole Field
+					Field::write(result);
 				else
 				{
-					Port::clearAndSet(Mask, result);
+					Field::clearAndSet(Mask, result);
 				}
 
 				Next::write(value);
@@ -449,11 +449,11 @@ namespace fasthal
 				if (NotInvertedFieldBitsLength == FieldBitsLength)
 				{
 					// All not inverted
-					Port::clearAndSet(resultC, resultS);
+					Field::clearAndSet(resultC, resultS);
 				} else if (InvertedFieldBitsLength == FieldBitsLength)
 				{
 					// All inverted
-					Port::clearAndSet(resultS, resultC);				
+					Field::clearAndSet(resultS, resultC);				
 				} else
 				{
 					// Mix... calculate set and clear masks...
@@ -462,7 +462,7 @@ namespace fasthal
 					DataType clearMask = (resultC & ~inversionMask) | (resultS & inversionMask);
 					// set - not inverted set + inverted clear
 					DataType setMask = (resultS & ~inversionMask) | (resultC & inversionMask);
-					Port::clearAndSet(clearMask, setMask);					
+					Field::clearAndSet(clearMask, setMask);					
 				}
 
 				Next::clearAndSet(clearMask, setMask);
@@ -475,16 +475,16 @@ namespace fasthal
 				if (NotInvertedFieldBitsLength == FieldBitsLength)
 				{
 					MaskType result = PinWrite::appendMaskValue(value, MaskType());
-					Port::set(result);					
+					Field::set(result);					
 				} else if (InvertedFieldBitsLength == FieldBitsLength)
 				{
 					MaskType result = PinWrite::appendMaskValue(value, MaskType());
-					Port::clear(result);					
+					Field::clear(result);					
 				} else
 				{
 					MaskType clearMask = PinWriteIterator<InvertedFieldBits, DataType>::appendMaskValue(value, MaskType());
 					MaskType setMask = PinWriteIterator<NotInvertedFieldBits, DataType>::appendMaskValue(value, MaskType());
-					Port::clearAndSet(clearMask, setMask);
+					Field::clearAndSet(clearMask, setMask);
 				}
 
 				Next::set(value);
@@ -496,16 +496,16 @@ namespace fasthal
 				if (NotInvertedFieldBitsLength == FieldBitsLength)
 				{
 					MaskType result = PinWrite::appendMaskValue(value, MaskType());
-					Port::clear(result);
+					Field::clear(result);
 				} else if (InvertedFieldBitsLength == FieldBitsLength)
 				{
 					MaskType result = PinWrite::appendMaskValue(value, MaskType());
-					Port::set(result);
+					Field::set(result);
 				} else
 				{
 					MaskType clearMask = PinWriteIterator<NotInvertedFieldBits, DataType>::appendMaskValue(value, MaskType());
 					MaskType setMask = PinWriteIterator<InvertedFieldBits, DataType>::appendMaskValue(value, MaskType());
-					Port::clearAndSet(clearMask, setMask);
+					Field::clearAndSet(clearMask, setMask);
 				}
 
 				Next::clear(value);
@@ -515,7 +515,7 @@ namespace fasthal
 			{
 				// Ignore inverted - toggle does not care
 				MaskType result = PinWrite::appendMaskValue(value, MaskType());
-				Port::toggle(result);
+				Field::toggle(result);
 
 				Next::toggle(value);
 			}
@@ -523,14 +523,14 @@ namespace fasthal
 			static DataType read()
 			{
 				// Apply inversion mask on value
-				DataType portValue = Port::read();
-				return PinWrite::appendReadValue(portValue, Next::read());
+				DataType FieldValue = Field::read();
+				return PinWrite::appendReadValue(FieldValue, Next::read());
 			}
 
 			static void setMode(MaskType mask, uint8_t mode)
 			{
 				MaskType result = PinWrite::appendMaskValue(mask, MaskType());
-				Port::setMode(result, mode);
+				Field::setMode(result, mode);
 
 				Next::setMode(mask, mode);
 			}
@@ -540,10 +540,10 @@ namespace fasthal
 		template <class THead, class TTail, class TFieldBitList, class TValueType>
 		class FieldListIteratorImpl< Loki::Typelist<THead, TTail>, TFieldBitList, TValueType, false>
 		{
-			//pins on current port
-			typedef typename fasthal::common::TL::Where<TFieldBitList, PortFieldBitsPredicate<THead>::template Result>::Result FieldBits;
+			//pins on current Field
+			typedef typename fasthal::common::TL::Where<TFieldBitList, FieldFieldBitsPredicate<THead>::template Result>::Result FieldBits;
 
-			typedef THead Port; //Head points to current port in the list.
+			typedef THead Field; //Head points to current Field in the list.
 
 			typedef TValueType DataType;
 			
@@ -610,7 +610,7 @@ namespace fasthal
 		struct IsComplexFieldListImpl
 		{
 			typedef typename FieldList::Head FieldType;
-			static constexpr bool value = !FieldInfo<FieldType>::OnlyPinInterface && !fasthal::common::BitMaskTypes<ValueType>::OnlyBitInterface;
+			static constexpr bool value = !field_mask_types<FieldType>::OnlyBitInterface && !fasthal::common::BitMaskTypes<ValueType>::OnlyBitInterface;
 		};
 
 		template<class ValueType>

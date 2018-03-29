@@ -15,32 +15,10 @@
 namespace fasthal
 {
 	template<class TField>
-	struct FieldInfo
-	{
-		typedef TField FieldType;
-		typedef decltype(fasthal::common::declval<TField>().read()) DataType;
-		private:
-		typedef fasthal::common::BitMaskTypes<DataType> MT;
-		public:
-		typedef typename MT::OneBitMask BitMaskType;
-		typedef typename MT::BitNumberType BitNumberType;
-		typedef typename MT::MaskType MaskType;	
-		static constexpr bool OnlyPinInterface = MT::OnlyBitInterface;
-		static constexpr BitMaskType getPinMask(BitNumberType number){return MT::bitToMask(number);}						
-		static constexpr BitNumberType getPinNumber(BitMaskType pinMask){return MT::maskToBit(pinMask);}
-	};
+	using field_data_type = decltype(fasthal::common::declval<TField>().read());
 
-	//  template<class TFieldBit>
-    //  struct FieldBitInfo{ };
-
-	//  template<class TField, unsigned VNumber, bool VInverted>
-	//  struct FieldBitInfo<FieldBit<TField, VNumber, VInterted>
-    //  {
-    //      typedef TFieldBit PinType;
-    //      typedef decltype(fasthal::common::declval<TFieldBit>().port()) FieldType;
-    //      typedef decltype(fasthal::common::declval<TFieldBit>().mask()) BitMaskType;
-    //      typedef decltype(fasthal::common::declval<TFieldBit>().number()) BitNumberType;
-    //  };
+	template<class TField>
+	using field_mask_types = fasthal::common::BitMaskTypes<field_data_type<TField>>;
 }
 
 

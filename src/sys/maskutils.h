@@ -65,7 +65,7 @@ namespace fasthal
 			typedef DataType MaskType;
 			typedef typename NumberType<sizeof(DataType) * 8>::Result BitNumberType;
 			static constexpr bool OnlyBitInterface = false;
-			static constexpr OneBitMask bitToMask(BitNumberType num){return OneBitMask(1) << num; }
+			static constexpr OneBitMask bitToMask(BitNumberType num){return OneBitMask { 1 } << num; }
 			static constexpr BitNumberType maskToBit(OneBitMask value)
 			{
 				return (value & 1) ? 0 : (1 + maskToBit(value >> 1));
@@ -78,8 +78,9 @@ namespace fasthal
 			template<class T>
 			static constexpr T shift(T value)
 			{
-				return VBytesToLeft == 0 ? value :
-				VBytesToLeft > 0 ? value << VBytesToLeft : value >> -VBytesToLeft;
+				return VBytesToLeft == 0 
+					? value 
+					: (VBytesToLeft > 0 ? value << VBytesToLeft : value >> -VBytesToLeft);
 			}
 		};
 
