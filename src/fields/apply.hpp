@@ -1,7 +1,7 @@
 #ifndef FH_APPLY_H_
 #define FH_APPLY_H_
 
-#include "../mp/brigand.hpp"
+#include "../mp/brigand_ex.hpp"
 #include "actions.hpp"
 #include "execute.hpp"
 
@@ -20,20 +20,7 @@ namespace fasthal{
         template<class TFieldBit>
         struct select_field_bit_field{
             using type = typename TFieldBit::Field;
-        };
-
-        template <class TList>
-        struct no_duplicates_impl{
-            using type = TList;
-        };
-
-        template <template<class...> class TList, class T, class... R>
-        struct no_duplicates_impl<TList<T, R...>>{
-            using type = brigand::push_front<brigand::remove_if<TList<R...>, std::is_same<T, brigand::_1>>, T>;
-        };
-
-        template <class TList>
-        using no_duplicates = typename no_duplicates_impl<TList>::type;
+        };        
     };
 
     template<typename ...TActions>
@@ -55,7 +42,7 @@ namespace fasthal{
         // list<list<fieldbit>> to list<fieldbit>
         using FieldBits = brigand::flatten<ActionFieldBits>;
         // make distinct list<fields>
-        using Fields = details::no_duplicates<brigand::transform<FieldBits, details::select_field_bit_field<brigand::_1>>>;
+        using Fields = brigand::no_duplicates<brigand::transform<FieldBits, details::select_field_bit_field<brigand::_1>>>;
         // concat actions to fields
         //using FieldActions = brigand::transform<Fields, typename details::make_field_actions<ActionsList>::template impl<brigand::_1>>;
 
