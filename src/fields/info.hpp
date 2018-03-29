@@ -21,8 +21,11 @@ namespace fasthal
 	template<class TField>
 	using field_mask_types = fasthal::common::BitMaskTypes<field_data_type<TField>>;
 
+	template<class TField>
+	using field_mask_type = typename field_mask_types<TField>::MaskType;
+
 	template <class TField>
-	static constexpr auto field_width(){ return sizeof(field_data_type<TField>) * 8; }
+	struct field_width: std::integral_constant<unsigned, sizeof(field_data_type<TField>) * 8>{};
 }
 
 #endif /* PORTINFO_H_ */

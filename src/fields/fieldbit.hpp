@@ -21,24 +21,36 @@ namespace fasthal
 		static constexpr auto Inverted = VInverted;
 	};
 
+	// create field bit
+	template<unsigned VNumber, class TField>
+	constexpr decltype(auto) fieldBit(TField field){
+		return FieldBit<TField, VNumber, false>{};
+	}
+
+	// invert field bit
+	template<class TField, unsigned VNumber, bool VInverted>
+	constexpr decltype(auto) invert(FieldBit<TField, VNumber, VInverted> fieldBit){
+		return FieldBit<TField, VNumber, !VInverted>{};
+	}
+
 	template<class TField, unsigned VNumber>
 	void set(FieldBit<TField, VNumber, false> fieldBit){
-		TField::set(FieldBit<TField, VNumber, false>::Mask);
+		set(TField{}, FieldBit<TField, VNumber, false>::Mask);
 	}
 
 	template<class TField, unsigned VNumber>
 	void set(FieldBit<TField, VNumber, true> fieldBit){
-		TField::clear(FieldBit<TField, VNumber, false>::Mask);
+		clear(TField{}, FieldBit<TField, VNumber, false>::Mask);
 	}
 
 	template<class TField, unsigned VNumber>
 	void clear(FieldBit<TField, VNumber, false> fieldBit){
-		TField::clear(FieldBit<TField, VNumber, false>::Mask);
+		clear(TField{}, FieldBit<TField, VNumber, false>::Mask);
 	}
 
 	template<class TField, unsigned VNumber>
 	void clear(FieldBit<TField, VNumber, true> fieldBit){
-		TField::set(FieldBit<TField, VNumber, false>::Mask);
+		set(TField{}, FieldBit<TField, VNumber, false>::Mask);
 	}
 
 	template<class TField, unsigned VNumber, bool VInverted>
@@ -51,17 +63,17 @@ namespace fasthal
 
 	template<class TField, unsigned VNumber, bool VInverted>
 	void toggle(FieldBit<TField, VNumber, VInverted> fieldBit){
-		TField::toggle(FieldBit<TField, VNumber, VInverted>::Mask);
+		toggle(TField{}, FieldBit<TField, VNumber, VInverted>::Mask);
 	}
 
 	template<class TField, unsigned VNumber>
 	bool read(FieldBit<TField, VNumber, false> fieldBit){
-		return TField::read(FieldBit<TField, VNumber, false>::Mask);
+		return read(TField{}, FieldBit<TField, VNumber, false>::Mask);
 	}
 
 	template<class TField, unsigned VNumber>
 	bool read(FieldBit<TField, VNumber, true> fieldBit){
-		return !TField::read(FieldBit<TField, VNumber, true>::Mask);
+		return !read(TField{}, FieldBit<TField, VNumber, true>::Mask);
 	}
 }
 

@@ -4,7 +4,7 @@
 #define AVR_HAL_H_
 
 #include "interrupts.h"
-#include "ports.h"
+#include "registers.h"
 #include "adc.h"
 #include "serial.h"
 #include "timers.h"

@@ -13,6 +13,7 @@
 #include "../sys/typelistutils.h"
 #include "../sys/maskutils.h"
 #include "info.hpp"
+#include "actions.hpp"
 
 namespace fasthal
 {
@@ -200,6 +201,7 @@ namespace fasthal
 			typedef PinWriteIterator<Tail, TDataType> NextIterator;
 			static constexpr typename MT::OneBitMask ListMask = MT::bitToMask(Head::Position);
 			typedef typename Head::FieldBit FieldBit;
+			static constexpr auto fieldBit = FieldBit{};
 			//typedef typename FieldBitInfo<FieldBit>::FieldType FieldType;
 			typedef PinWriteIterator<Tail, TDataType> Next;
 			
@@ -301,7 +303,7 @@ namespace fasthal
 			
 			static void write(TDataType value)
 			{
-				FieldBit::set(value & ListMask);
+				fasthal::set(fieldBit, value & ListMask);
 				Next::write(value);
 			}
 			
@@ -310,36 +312,36 @@ namespace fasthal
 				if (clearMask & ListMask)
 				{
 					if (!(setMask & ListMask))
-						FieldBit::clear();
+						fasthal::clear(fieldBit);
 				} else if (setMask & ListMask)
-					FieldBit::set();
+					fasthal::set(fieldBit);
 				Next::clearAndSet(clearMask, setMask);								
 			}
 
 			static void set(MaskType mask)					
 			{
 				if (mask & ListMask)
-					FieldBit::set();
+					fasthal::set(fieldBit);
 				Next::set(mask);			
 			}
 
 			static void clear(MaskType mask)					
 			{
 				if (mask & ListMask)
-					FieldBit::clear();
+					fasthal::clear(fieldBit);
 				Next::clear(mask);
 			}
 
 			static void toggle(MaskType mask)					
 			{
 				if (mask & ListMask)
-					FieldBit::toggle(mask);
+					fasthal::toggle(fieldBit, mask);
 				Next::toggle(mask);						
 			}		
 			
 			static void read(TDataType& result)
 			{
-				if (FieldBit::read())
+				if (fasthal::read(fieldBit))
 					result |= ListMask;
 				Next::read(result);
 			}
@@ -381,7 +383,7 @@ namespace fasthal
 
 			static DataType read()
 			{
-				return DataType();
+				return DataType{};
 			}
 		};
 		
@@ -399,6 +401,7 @@ namespace fasthal
 			static constexpr int NotInvertedFieldBitsLength = Loki::TL::Length<NotInvertedFieldBits>::value;
 
 			typedef THead Field; //Head points to current Field in the list.
+			static constexpr auto field = Field{};
 			typedef field_data_type<Field> FieldType;
 			typedef typename field_mask_types<Field>::MaskType FieldMaskType;
 			static constexpr FieldMaskType Mask = GetFieldMask<FieldBits, FieldMaskType>::value;
@@ -418,13 +421,13 @@ namespace fasthal
 			static void write(DataType value)
 			{
 				// Apply inversion mask on value
-				DataType result = PinWrite::appendWriteValue(value, DataType(0));
+				auto result = PinWrite::appendWriteValue(value, DataType{0});
 
 				if(FieldBitsLength == (int)field_width<Field>())// whole Field
-					Field::write(result);
+					fasthal::write(field, result);
 				else
 				{
-					Field::clearAndSet(Mask, result);
+					fasthal::clearAndSet(field, Mask, result);
 				}
 
 				Next::write(value);
@@ -437,11 +440,11 @@ namespace fasthal
 				if (NotInvertedFieldBitsLength == FieldBitsLength)
 				{
 					// All not inverted
-					Field::clearAndSet(resultC, resultS);
+					fasthal::clearAndSet(field, resultC, resultS);
 				} else if (InvertedFieldBitsLength == FieldBitsLength)
 				{
 					// All inverted
-					Field::clearAndSet(resultS, resultC);				
+					fasthal::clearAndSet(field, resultS, resultC);				
 				} else
 				{
 					// Mix... calculate set and clear masks...
@@ -450,7 +453,7 @@ namespace fasthal
 					DataType clearMask = (resultC & ~inversionMask) | (resultS & inversionMask);
 					// set - not inverted set + inverted clear
 					DataType setMask = (resultS & ~inversionMask) | (resultC & inversionMask);
-					Field::clearAndSet(clearMask, setMask);					
+					fasthal::clearAndSet(field, clearMask, setMask);					
 				}
 
 				Next::clearAndSet(clearMask, setMask);
@@ -463,16 +466,16 @@ namespace fasthal
 				if (NotInvertedFieldBitsLength == FieldBitsLength)
 				{
 					MaskType result = PinWrite::appendMaskValue(value, MaskType());
-					Field::set(result);					
+					fasthal::set(field, result);					
 				} else if (InvertedFieldBitsLength == FieldBitsLength)
 				{
 					MaskType result = PinWrite::appendMaskValue(value, MaskType());
-					Field::clear(result);					
+					fasthal::clear(field, result);					
 				} else
 				{
 					MaskType clearMask = PinWriteIterator<InvertedFieldBits, DataType>::appendMaskValue(value, MaskType());
 					MaskType setMask = PinWriteIterator<NotInvertedFieldBits, DataType>::appendMaskValue(value, MaskType());
-					Field::clearAndSet(clearMask, setMask);
+					fasthal::clearAndSet(field, clearMask, setMask);
 				}
 
 				Next::set(value);
@@ -484,16 +487,16 @@ namespace fasthal
 				if (NotInvertedFieldBitsLength == FieldBitsLength)
 				{
 					MaskType result = PinWrite::appendMaskValue(value, MaskType());
-					Field::clear(result);
+					fasthal::clear(field, result);
 				} else if (InvertedFieldBitsLength == FieldBitsLength)
 				{
 					MaskType result = PinWrite::appendMaskValue(value, MaskType());
-					Field::set(result);
+					fasthal::set(field, result);
 				} else
 				{
 					MaskType clearMask = PinWriteIterator<NotInvertedFieldBits, DataType>::appendMaskValue(value, MaskType());
 					MaskType setMask = PinWriteIterator<InvertedFieldBits, DataType>::appendMaskValue(value, MaskType());
-					Field::clearAndSet(clearMask, setMask);
+					fasthal::clearAndSet(field, clearMask, setMask);
 				}
 
 				Next::clear(value);
@@ -503,7 +506,7 @@ namespace fasthal
 			{
 				// Ignore inverted - toggle does not care
 				MaskType result = PinWrite::appendMaskValue(value, MaskType());
-				Field::toggle(result);
+				fasthal::toggle(field, result);
 
 				Next::toggle(value);
 			}
@@ -511,8 +514,8 @@ namespace fasthal
 			static DataType read()
 			{
 				// Apply inversion mask on value
-				DataType FieldValue = Field::read();
-				return PinWrite::appendReadValue(FieldValue, Next::read());
+				auto fieldValue = fasthal::read(field);
+				return PinWrite::appendReadValue(fieldValue, Next::read());
 			}
 		};				
 
