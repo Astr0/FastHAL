@@ -18,10 +18,10 @@ namespace fasthal
 {
 	namespace priv{
 		// Holds pin and position in PinList
-		template<int VPosition, class TPin>
+		template<int VPosition, class TFieldBit>
 		struct PinPositionHolder
 		{
-			typedef TPin FieldBit;
+			typedef TFieldBit FieldBit;
 			static constexpr int Position = VPosition;
 		};
 
@@ -29,7 +29,7 @@ namespace fasthal
 		template<class TPinHolder>
 		struct SelectPinPort
 		{
-			typedef typename PinInfo<typename TPinHolder::FieldBit>::PortType Result;
+			typedef typename FieldBitInfo<typename TPinHolder::FieldBit>::PortType Result;
 		};
 
 		template<class TPinList>
@@ -60,7 +60,7 @@ namespace fasthal
 			template<class TPinHolder>
 			struct Result
 			{
-				static constexpr bool value = Loki::IsSameType<TField, typename PinInfo<typename TPinHolder::FieldBit>::PortType>::value;
+				static constexpr bool value = Loki::IsSameType<TField, typename FieldBitInfo<typename TPinHolder::FieldBit>::PortType>::value;
 			};
 		};
 
@@ -202,7 +202,7 @@ namespace fasthal
 			typedef PinWriteIterator<Tail, TDataType> NextIterator;
 			static constexpr typename MT::OneBitMask ListMask = MT::bitToMask(Head::Position);
 			typedef typename Head::FieldBit FieldBit;
-			typedef typename PinInfo<FieldBit>::PortType PortType;
+			typedef typename FieldBitInfo<FieldBit>::PortType PortType;
 			typedef PinWriteIterator<Tail, TDataType> Next;
 			
 			public:
@@ -411,8 +411,8 @@ namespace fasthal
 			static constexpr int NotInvertedPinsLength = Loki::TL::Length<NotInvertedPins>::value;
 
 			typedef THead Port; //Head points to current port in the list.
-			typedef typename PortInfo<Port>::DataType PortType;
-			typedef typename PortInfo<Port>::MaskType PortMaskType;
+			typedef typename FieldInfo<Port>::DataType PortType;
+			typedef typename FieldInfo<Port>::MaskType PortMaskType;
 			static constexpr PortMaskType Mask = GetPortMask<Pins, PortMaskType>::value;
 
 			typedef typename Loki::Select<sizeof(PortType) >= sizeof(TValueType), PortType, TValueType>::Result DataType;
@@ -610,7 +610,7 @@ namespace fasthal
 		struct IsComplexPortListImpl
 		{
 			typedef typename PortList::Head PortType;
-			static constexpr bool value = !PortInfo<PortType>::OnlyPinInterface && !fasthal::common::BitMaskTypes<ValueType>::OnlyBitInterface;
+			static constexpr bool value = !FieldInfo<PortType>::OnlyPinInterface && !fasthal::common::BitMaskTypes<ValueType>::OnlyBitInterface;
 		};
 
 		template<class ValueType>

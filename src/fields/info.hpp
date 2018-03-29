@@ -14,17 +14,17 @@
 
 namespace fasthal
 {
-	 template<class TPin>
-     struct PinInfo
+	 template<class TFieldBit>
+     struct FieldBitInfo
      {
-         typedef TPin PinType;
-         typedef decltype(fasthal::common::declval<TPin>().port()) PortType;
-         typedef decltype(fasthal::common::declval<TPin>().mask()) PinMaskType;
-         typedef decltype(fasthal::common::declval<TPin>().number()) PinNumberType;
+         typedef TFieldBit PinType;
+         typedef decltype(fasthal::common::declval<TFieldBit>().port()) PortType;
+         typedef decltype(fasthal::common::declval<TFieldBit>().mask()) PinMaskType;
+         typedef decltype(fasthal::common::declval<TFieldBit>().number()) PinNumberType;
      };
 
 	template<class TField>
-	struct PortInfo
+	struct FieldInfo
 	{
 		typedef TField PortType;
 		typedef decltype(fasthal::common::declval<TField>().read()) DataType;

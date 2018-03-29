@@ -3,7 +3,7 @@
 
 using namespace fasthal;
 
-typedef VPort<PinB4, PinB5, PinB6, PinD0> TestPort;
+typedef VPort<PinB4, PinB5, PinB6, PinD0, PinD2Inv> TestPort;
 
 int main(){
     TestPort::write(123);

@@ -8,8 +8,8 @@
 
 namespace fasthal{
 	
-	//  nice debouncer for TPin. Uses TStableElapsed instance to poll stability interval (elapsed() and reset()).
-    template<class TPin, class TStableElapsed>
+	//  nice debouncer for TFieldBit. Uses TStableElapsed instance to poll stability interval (elapsed() and reset()).
+    template<class TFieldBit, class TStableElapsed>
     class Bounce{
     private:   
         enum BounceState{
@@ -30,11 +30,11 @@ namespace fasthal{
         }
 
         void begin(uint8_t mode){
-            TPin::setMode(mode);
+            TFieldBit::setMode(mode);
         }
 
         bool update(){
-            bool current = TPin::read();
+            bool current = TFieldBit::read();
             _state &= ~BounceState::Changed;
 
 			if (current == readUnstable()){				

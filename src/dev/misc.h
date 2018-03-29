@@ -6,7 +6,7 @@
 #include <inttypes.h>
 
 namespace fasthal{
-    //template<class TPin>
+    //template<class TFieldBit>
     //class PinToggle{
     //private:
         //uint16_t _on;
@@ -20,13 +20,13 @@ namespace fasthal{
         //}
 //
         //void begin(bool on){
-            //TPin::set(on);
-            //TPin::setMode(PinMode::Output);
+            //TFieldBit::set(on);
+            //TFieldBit::setMode(PinMode::Output);
         //}
 //
         //void reset(){
             //_elapsed.reset();
-            //TPin::clear();
+            //TFieldBit::clear();
         //}
 //
         //void change(uint16_t on, uint16_t off){
@@ -35,10 +35,10 @@ namespace fasthal{
         //}
 //
         //void update(){
-            //auto time = TPin::read() ? _on : _off;
+            //auto time = TFieldBit::read() ? _on : _off;
             //if (_elapsed.elapsed(time)){
                 //_elapsed.reset();
-                //TPin::toggle();
+                //TFieldBit::toggle();
             //}
         //}
     //};

@@ -10,14 +10,14 @@ namespace fasthal
 	class FieldBit
 	{
 		static_assert(VNumber < TField::width(), "FieldBit number out of range");
-		typedef PortInfo<TField> TPortInfo;
+		typedef FieldInfo<TField> TFieldInfo;
 		public:
 
 		static constexpr bool isInverted(){return false;}
 		
 		static constexpr TField port() {return TField();}
-		static constexpr typename TPortInfo::PinMaskType mask() {return TPortInfo::getPinMask(VNumber);}
-		static constexpr typename TPortInfo::PinNumberType number() {return VNumber;}
+		static constexpr typename TFieldInfo::PinMaskType mask() {return TFieldInfo::getPinMask(VNumber);}
+		static constexpr typename TFieldInfo::PinNumberType number() {return VNumber;}
 		static constexpr FieldBit<TField, VNumber> notInverted(){return FieldBit<TField, VNumber>();}
 
 		static void set()
@@ -54,51 +54,51 @@ namespace fasthal
 	};
 
 
-	template<class TPin>
+	template<class TFieldBit>
 	class InvertedFieldBit
 	{
-		static_assert(!TPin::isInverted(), "Don't invert inverted pins... This kills compilation time...");
-		typedef PinInfo<TPin> TPinInfo;
+		static_assert(!TFieldBit::isInverted(), "Don't invert inverted pins... This kills compilation time...");
+		typedef FieldBitInfo<TFieldBit> TFieldBitInfo;
 		public:
 
 		constexpr InvertedFieldBit()
 		{
 		}
 
-		static constexpr bool isInverted(){return !TPin::isInverted();}
+		static constexpr bool isInverted(){return !TFieldBit::isInverted();}
 		
-		static constexpr typename TPinInfo::PortType port() {return TPin::port();}
-		static constexpr typename TPinInfo::PinMaskType mask() {return TPin::mask();}
-		static constexpr typename TPinInfo::PinNumberType number() {return TPin::number();}
-		static constexpr TPin notInverted(){return TPin();}
+		static constexpr typename TFieldBitInfo::PortType port() {return TFieldBit::port();}
+		static constexpr typename TFieldBitInfo::PinMaskType mask() {return TFieldBit::mask();}
+		static constexpr typename TFieldBitInfo::PinNumberType number() {return TFieldBit::number();}
+		static constexpr TFieldBit notInverted(){return TFieldBit();}
 
 		static void set()
 		{
-			TPin::clear();
+			TFieldBit::clear();
 		}
 	
 		static void clear()
 		{
-			TPin::set();
+			TFieldBit::set();
 		}
 	
 		static void set(bool val)
 		{
-			TPin::set(!val);
+			TFieldBit::set(!val);
 		}
 
 		static void toggle()
 		{
-			TPin::toggle();
+			TFieldBit::toggle();
 		}
 
 		static bool read()
 		{
-			return !TPin::read();
+			return !TFieldBit::read();
 		}
 		
 		static void setMode(uint8_t mode){
-			TPin::setMode(mode);
+			TFieldBit::setMode(mode);
 		}
 	};			
 				
