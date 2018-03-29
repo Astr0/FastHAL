@@ -7,13 +7,12 @@
 
 #pragma once
 
-#ifndef PINLIST_H_
-#define PINLIST_H_
+#ifndef FH_FIELDBITS_H_
+#define FH_FIELDBITS_H_
 
 #include "../sys/typelistutils.h"
 #include "../sys/maskutils.h"
-#include "fieldbitinfo.hpp"
-#include "fieldinfo.hpp"
+#include "info.hpp"
 
 namespace fasthal
 {

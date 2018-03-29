@@ -1,8 +1,7 @@
 #ifndef FH_FIELDBIT_H_
 #define FH_FIELDBIT_H_
 
-#include "fieldbitinfo.hpp"
-#include "fieldinfo.hpp"
+#include "info.hpp"
 #include <inttypes.h>
 
 namespace fasthal

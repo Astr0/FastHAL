@@ -6,14 +6,23 @@
  */ 
 
 
-#ifndef PORTINFO_H_
-#define PORTINFO_H_
+#ifndef FH_FIELDS_INFO_H_
+#define FH_FIELDS_INFO_H_
 
 #include "../sys/maskutils.h"
 #include "../sys/typeutils.h"
 
 namespace fasthal
 {
+	 template<class TPin>
+     struct PinInfo
+     {
+         typedef TPin PinType;
+         typedef decltype(fasthal::common::declval<TPin>().port()) PortType;
+         typedef decltype(fasthal::common::declval<TPin>().mask()) PinMaskType;
+         typedef decltype(fasthal::common::declval<TPin>().number()) PinNumberType;
+     };
+
 	template<class TField>
 	struct PortInfo
 	{
