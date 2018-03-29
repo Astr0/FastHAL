@@ -16,8 +16,8 @@ namespace fasthal
 		static constexpr bool isInverted(){return false;}
 		
 		static constexpr TField port() {return TField();}
-		static constexpr typename TFieldInfo::PinMaskType mask() {return TFieldInfo::getPinMask(VNumber);}
-		static constexpr typename TFieldInfo::PinNumberType number() {return VNumber;}
+		static constexpr typename TFieldInfo::BitMaskType mask() {return TFieldInfo::getPinMask(VNumber);}
+		static constexpr typename TFieldInfo::BitNumberType number() {return VNumber;}
 		static constexpr FieldBit<TField, VNumber> notInverted(){return FieldBit<TField, VNumber>();}
 
 		static void set()
@@ -67,9 +67,9 @@ namespace fasthal
 
 		static constexpr bool isInverted(){return !TFieldBit::isInverted();}
 		
-		static constexpr typename TFieldBitInfo::PortType port() {return TFieldBit::port();}
-		static constexpr typename TFieldBitInfo::PinMaskType mask() {return TFieldBit::mask();}
-		static constexpr typename TFieldBitInfo::PinNumberType number() {return TFieldBit::number();}
+		static constexpr typename TFieldBitInfo::FieldType port() {return TFieldBit::port();}
+		static constexpr typename TFieldBitInfo::BitMaskType mask() {return TFieldBit::mask();}
+		static constexpr typename TFieldBitInfo::BitNumberType number() {return TFieldBit::number();}
 		static constexpr TFieldBit notInverted(){return TFieldBit();}
 
 		static void set()

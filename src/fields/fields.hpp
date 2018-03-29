@@ -8,12 +8,9 @@
 
 
 namespace fasthal{
-    class NullPort
+    struct NullField
 	{
-		public:
-		constexpr NullPort(){}
-			
-		typedef NullPort PortType;
+		typedef NullField FieldType;
 		typedef uint8_t DataType;
 		
 		static constexpr uint8_t width(){return 8 * sizeof(DataType);}
@@ -35,74 +32,74 @@ namespace fasthal{
 			
 		template<unsigned VNumber>
 		struct FieldBit{
-			typedef typename fasthal::FieldBit<PortType, VNumber> Type;
+			typedef typename fasthal::FieldBit<FieldType, VNumber> Type;
 		};
 	};
-	typedef FieldBit<NullPort, 0> NullPin;
+	typedef FieldBit<NullField, 0> NullPin;
 
-    // VPort - static port-like wrapper for Pins
-	template<class... TPins>
-	class VPort
+    // VField - static field-like wrapper for FieldBits
+	template<class... TFieldBits>
+	class VField
 	{
 		private:
-			typedef typename fasthal::priv::MakePinList<TPins...>::Result Pins;
-			typedef typename Loki::TL::NoDuplicates<typename priv::MakePortList<Pins>::Result>::Result Ports;
-			static constexpr unsigned PinCount = fasthal::common::TL::length<Pins>();
-			static constexpr unsigned ByteSize = fasthal::common::minSizeInBytes(PinCount);
+			typedef typename fasthal::priv::MakeFieldBitList<TFieldBits...>::Result FieldBits;
+			typedef typename Loki::TL::NoDuplicates<typename priv::MakeFieldList<FieldBits>::Result>::Result Fields;
+			static constexpr unsigned BitCount = fasthal::common::TL::length<FieldBits>();
+			static constexpr unsigned ByteSize = fasthal::common::minSizeInBytes(BitCount);
 			
-			//typedef fasthal::common::BitHolder<fasthal::common::minSizeInBytes(PinCount)> DataType;
-			typedef typename fasthal::common::BitMaskType<fasthal::common::minSizeInBytes(PinCount)>::Result DataType;
+			//typedef fasthal::common::BitHolder<fasthal::common::minSizeInBytes(BitCount)> DataType;
+			typedef typename fasthal::common::BitMaskType<fasthal::common::minSizeInBytes(BitCount)>::Result DataType;
 			typedef fasthal::common::BitMaskTypes<DataType> BitMaskTypes;			
-			typedef typename BitMaskTypes::OneBitMask PinMaskType;
-			typedef typename BitMaskTypes::BitNumberType PinNumberType;
+			typedef typename BitMaskTypes::OneBitMask BitMaskType;
+			typedef typename BitMaskTypes::BitNumberType BitNumberType;
 			typedef typename BitMaskTypes::MaskType MaskType;
 
 		public:
-			constexpr VPort(){}
+			constexpr VField(){}
 	
-			typedef VPort<TPins...> PortType;
+			typedef VField<TFieldBits...> FieldType;
 			
-			static constexpr PinNumberType width(){return PinCount;}
+			static constexpr BitNumberType width(){return BitCount;}
 						
 			static void write(DataType value) 
 			{
-				priv::PortListIterator<Ports, Pins, DataType>::write(value);
+				priv::FieldListIterator<Fields, FieldBits, DataType>::write(value);
 			}
 			
 			static void clearAndSet(MaskType clearMask, MaskType setMask) 
 			{
-				priv::PortListIterator<Ports, Pins, DataType>::clearAndSet(clearMask, setMask);
+				priv::FieldListIterator<Fields, FieldBits, DataType>::clearAndSet(clearMask, setMask);
 			}				
 			static void set(MaskType mask) 
 			{
-				priv::PortListIterator<Ports, Pins, DataType>::set(mask);
+				priv::FieldListIterator<Fields, FieldBits, DataType>::set(mask);
 			}
 			static void clear(MaskType mask) 
 			{
-				priv::PortListIterator<Ports, Pins, DataType>::clear(mask);					
+				priv::FieldListIterator<Fields, FieldBits, DataType>::clear(mask);					
 			}
 			static void toggle(MaskType mask) 
 			{
-				priv::PortListIterator<Ports, Pins, DataType>::toggle(mask);	
+				priv::FieldListIterator<Fields, FieldBits, DataType>::toggle(mask);	
 			}
 			static DataType read() 
 			{
-				return priv::PortListIterator<Ports, Pins, DataType>::read();
+				return priv::FieldListIterator<Fields, FieldBits, DataType>::read();
 			}
-			static bool read(PinMaskType pin)
+			static bool read(BitMaskType bit)
 			{
 				// TODO: Optimize this
-				//return priv::PortListIterator<Ports, Pins, DataType>::Read(pin);
-				return read() & pin;
+				//return priv::FieldListIterator<Fields, FieldBits, DataType>::Read(pin);
+				return read() & bit;
 			}
 			static void setMode(MaskType mask, uint8_t mode)
 			{
-				priv::PortListIterator<Ports, Pins, DataType>::setMode(mask);
+				priv::FieldListIterator<Fields, FieldBits, DataType>::setMode(mask);
 			}
 			
-			template<PinNumberType VPin>
+			template<BitNumberType VPin>
 			struct FieldBit{
-				typedef typename Loki::TL::TypeAt<Pins, VPin>::Result::FieldBit Type;
+				typedef typename Loki::TL::TypeAt<FieldBits, VPin>::Result::FieldBit Type;
 			};
 	};
 }
