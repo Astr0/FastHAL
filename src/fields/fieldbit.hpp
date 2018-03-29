@@ -65,4 +65,4 @@ namespace fasthal
 	}
 }
 
-#endif /* PIN_H_ */
+#endif

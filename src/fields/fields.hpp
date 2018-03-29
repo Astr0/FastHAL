@@ -10,30 +10,15 @@
 namespace fasthal{
     struct NullField
 	{
-		typedef NullField FieldType;
-		typedef uint8_t DataType;
+		static constexpr uint8_t width(){return sizeof(uint8_t);}
 		
-		static constexpr uint8_t width(){return 8 * sizeof(DataType);}
-		
-		static void write(DataType value) {}
-		template<class TClear, class TSet>
-		static void clearAndSet(TClear clearMask, TSet setMask) {}
-		template<class TMask>
-		static void set(TMask mask) {}
-		template<class TMask>
-		static void clear(TMask mask) {}
-		template<class TMask>
-		static void toggle(TMask mask) {}
-		static constexpr DataType read() {return 0;}
-		template<class TMask>
-		static constexpr bool read(TMask pin){return false;}
-		template<class TMask>
-		static void setMode(TMask mask, uint8_t mode){}
-			
-		template<unsigned VNumber>
-		struct FieldBit{
-			typedef typename fasthal::FieldBit<FieldType, VNumber> Type;
-		};
+		static void write(uint8_t value) {}
+		static void clearAndSet(uint8_t clearMask, uint8_t setMask) {}
+		static void set(uint8_t mask) {}
+		static void clear(uint8_t mask) {}
+		static void toggle(uint8_t mask) {}
+		static constexpr uint8_t read() {return 0;}
+		static constexpr bool read(uint8_t pin){return false;}
 	};
 	typedef FieldBit<NullField, 0> NullPin;
 
@@ -91,10 +76,6 @@ namespace fasthal{
 				// TODO: Optimize this
 				//return priv::FieldListIterator<Fields, FieldBits, DataType>::Read(pin);
 				return read() & bit;
-			}
-			static void setMode(MaskType mask, uint8_t mode)
-			{
-				priv::FieldListIterator<Fields, FieldBits, DataType>::setMode(mask);
 			}
 			
 			template<BitNumberType VPin>

@@ -58,25 +58,6 @@ namespace fasthal{
 		inline static uint8_t read() {return PINREG::value();}
 		inline static bool read(uint8_t mask){return PINREG::value() & mask;}
 
-		static void setMode(uint8_t mask, uint8_t mode)
-		{
-			// NoInterrupts noInterrupts;
-			switch (mode)
-			{
-				case PinMode::Input:
-					DDRREG::value() &= ~mask;
-					PORTREG::value() &= ~mask;
-					break;
-				case PinMode::InputPullup:
-					DDRREG::value() &= ~mask;
-					PORTREG::value() |= mask;
-					break;
-				default:
-					// output
-					DDRREG::value() |= mask;
-			}
-		}
-			
 		template<unsigned VNumber>
 		struct FieldBit{
 			typedef typename fasthal::FieldBit<AvrPort<DDRREG, PORTREG, PINREG>, VNumber> Type;

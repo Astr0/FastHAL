@@ -189,9 +189,7 @@ namespace fasthal
 
 			static void toggle(MaskType mask)
 			{   }		
-			
-			static void setMode(MaskType mask, uint8_t mode)
-			{   }	
+		
 		};
 
 		template <class Head, class Tail, class TDataType>
@@ -345,13 +343,6 @@ namespace fasthal
 					result |= ListMask;
 				Next::read(result);
 			}
-
-			static void setMode(MaskType mask, uint8_t mode)					
-			{
-				if (mask & ListMask)
-					FieldBit::setMode(mode);
-				Next::setMode(mask, mode);			
-			}
 		};
 		
 		// Iterates through Field list and write value to them
@@ -392,9 +383,6 @@ namespace fasthal
 			{
 				return DataType();
 			}
-
-			static void setMode(MaskType value, uint8_t mode)
-			{   }
 		};
 		
 		template <class THead, class TTail, class TFieldBitList, class TValueType>
@@ -526,14 +514,6 @@ namespace fasthal
 				DataType FieldValue = Field::read();
 				return PinWrite::appendReadValue(FieldValue, Next::read());
 			}
-
-			static void setMode(MaskType mask, uint8_t mode)
-			{
-				MaskType result = PinWrite::appendMaskValue(mask, MaskType());
-				Field::setMode(result, mode);
-
-				Next::setMode(mask, mode);
-			}
 		};				
 
 
@@ -596,13 +576,6 @@ namespace fasthal
 				DataType result;
 				PinWrite::read(result);
 				return result;
-			}
-		
-			static void setMode(MaskType value, uint8_t mode)
-			{
-				PinWrite::setMode(value, mode);
-
-				Next::setMode(value, mode);
 			}
 		};
 
