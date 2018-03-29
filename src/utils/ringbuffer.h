@@ -3,17 +3,17 @@
 #ifndef UTILS_RINGBUFFER_H_
 #define UTILS_RINGBUFFER_H_
 
-#include "../sys/maskutils.h"
+#include "../mp/brigand_ex.hpp"
 #include <inttypes.h>
 
 namespace fasthal{
     template<unsigned BufferSize>
     class RingBuffer{
     public:
-        typedef typename common::NumberType<BufferSize>::Result BufferIndex;
+        using BufferIndex = brigand::number_type<BufferSize>;
     private:
-        typedef typename common::NumberType<BufferSize * 2>::Result BufferIndex2;
-        typedef typename common::NumberType<BufferSize + 1>::Result BufferIndex1;
+        using BufferIndex2 = brigand::number_type<BufferSize * 2>;
+        using BufferIndex1 = brigand::number_type<BufferSize + 1>;
 
         volatile BufferIndex _head;
         volatile BufferIndex _tail;

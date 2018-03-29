@@ -9,7 +9,7 @@
 #ifndef FH_FIELDS_INFO_H_
 #define FH_FIELDS_INFO_H_
 
-#include "../sys/maskutils.h"
+#include "../utils/mask.hpp"
 #include "../sys/typeutils.h"
 #include "../mp/type_traits.hpp"
 

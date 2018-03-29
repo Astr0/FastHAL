@@ -4,14 +4,14 @@
 #define TIME_H_
 
 #include <inttypes.h>
-#include "../sys/maskutils.h"
+#include "../mp/brigand_ex.hpp"
 
 namespace fasthal{
 	
 	// elapsed checker suitable for Bounce. elapsed() when called Checks count.
 	template <unsigned Checks>
 	class ElapsedChecks{
-		typedef typename common::NumberType<Checks + 1>::Result checks_t;
+		using checks_t = brigand::number_type<Checks + 1>;
 		
 		checks_t _checks;
 	public:

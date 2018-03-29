@@ -4,7 +4,6 @@
 #define DEV_BUTTON_H_
 
 #include <inttypes.h>
-#include "../sys/maskutils.h"
 
 namespace fasthal{
 	

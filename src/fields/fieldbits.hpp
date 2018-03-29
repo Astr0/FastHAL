@@ -11,7 +11,7 @@
 #define FH_FIELDBITS_H_
 
 #include "../sys/typelistutils.h"
-#include "../sys/maskutils.h"
+#include "../utils/mask.hpp"
 #include "info.hpp"
 #include "actions.hpp"
 

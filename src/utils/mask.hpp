@@ -6,11 +6,13 @@
  */ 
 #pragma once
 
-#ifndef MASKUTILS_H_
-#define MASKUTILS_H_
+#ifndef FH_UTILS_MASK_H_
+#define FH_UTILS_MASK_H_
 
-#include "TypeManip.h"
-#include <inttypes.h>
+#include "../mp/std_types.hpp"
+#include "../mp/type_traits.hpp"
+#include "../mp/brigand_ex.hpp"
+
 
 namespace fasthal
 {
@@ -26,13 +28,8 @@ namespace fasthal
 		{
 			return count == 0 ? 0 : ((1 << count) | setBits<MaskType>(count - 1));
 		}
-		
-		template<unsigned int N>
-		struct NumberType
-		{
-			typedef typename Loki::Select<(N <= 256), uint8_t, typename Loki::Select<(N <= 65536), uint16_t, uint32_t>::Result>::Result Result;			
-		};
-		
+				
+		// TODO: Refactor this
 		template<unsigned bytes>
 		struct BitMaskType;
 		
@@ -57,13 +54,13 @@ namespace fasthal
 			typedef uint_fast32_t Result;
 		};		
 		
-		
+		// and this
 		template<class DataType>
 		struct BitMaskTypes
 		{
-			typedef DataType OneBitMask;
-			typedef DataType MaskType;
-			typedef typename NumberType<sizeof(DataType) * 8>::Result BitNumberType;
+			using MaskType = DataType;
+			using OneBitMask = DataType;
+			using BitNumberType = brigand::number_type<sizeof(DataType) * 8>;
 			static constexpr bool OnlyBitInterface = false;
 			static constexpr OneBitMask bitToMask(BitNumberType num){return OneBitMask { 1 } << num; }
 			static constexpr BitNumberType maskToBit(OneBitMask value)
@@ -72,6 +69,7 @@ namespace fasthal
 			}
 		};
 		
+		// and this
 		template<int VBytesToLeft>
 		struct Shifter
 		{

@@ -9,7 +9,8 @@
 #ifndef BITHOLDER_H_
 #define BITHOLDER_H_
 
-#include "maskutils.h"
+#include "mask.hpp"
+#include "../mp/brigand_ex.hpp"
 
 namespace fasthal
 {
@@ -85,15 +86,15 @@ namespace fasthal
 			public:
 				uint8_t _buf[ByteSize];
 		
-				typedef typename fasthal::common::NumberType<N>::Result ByteNumberType;
+				using ByteNumberType = brigand::number_type<N>;
 			
 				constexpr uint8_t operator[](ByteNumberType number){return _buf[number];}
 				uint8_t& operator[](ByteNumberType number){return _buf[number];}
 		
 			public:
-				typedef typename fasthal::common::NumberType<MaxBitIndex>::Result BitNumberType;
-				typedef BitHolder<N> MaskType;
-				typedef BitNumber<BitNumberType> BitMaskType;
+				using BitNumberType = brigand::number_type<MaxBitIndex>;
+				using MaskType = BitHolder<N>;
+				using BitMaskType = BitNumber<BitNumberType>;
 
 
 				template<class Num>
@@ -155,9 +156,9 @@ namespace fasthal
 		template<unsigned N>
 		struct BitMaskTypes<BitHolder<N>>
 		{
-			typedef typename BitHolder<N>::BitMaskType OneBitMask;
-			typedef BitHolder<N> MaskType;
-			typedef typename BitHolder<N>::BitNumberType BitNumberType;
+			using OneBitMask = typename BitHolder<N>::BitMaskType;
+			using MaskType = BitHolder<N> ;
+			using BitNumberType = typename BitHolder<N>::BitNumberType;
 			static constexpr bool OnlyBitInterface = true;
 			static constexpr OneBitMask bitToMask(BitNumberType num){return OneBitMask() << num; }
 			static constexpr BitNumberType maskToBit(OneBitMask value)
