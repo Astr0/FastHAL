@@ -1,7 +1,7 @@
 #ifndef FH_ACTIONS_H_
 #define FH_ACTIONS_H_
 
-#include "../mp/type_traits.hpp"
+#include "../mp/std_fake.hpp"
 
 namespace fasthal{
     namespace actions{
@@ -18,27 +18,27 @@ namespace fasthal{
     }
 
     template <typename TBitField>
-    constexpr mp::enable_if_t<details::is_bit_field<TBitField>::value, unsigned> write(TBitField field, unsigned v){
+    constexpr std::enable_if_t<details::is_bit_field<TBitField>::value, unsigned> write(TBitField field, unsigned v){
         return {};
     }
 
     template <typename TBitField>
-    constexpr mp::enable_if_t<details::is_bit_field<TBitField>::value, unsigned> set(TBitField field){
+    constexpr std::enable_if_t<details::is_bit_field<TBitField>::value, unsigned> set(TBitField field){
         return {};
     }
 
     template <typename TBitField>
-    constexpr mp::enable_if_t<details::is_bit_field<TBitField>::value, unsigned> clear(TBitField field){
+    constexpr std::enable_if_t<details::is_bit_field<TBitField>::value, unsigned> clear(TBitField field){
         return {};
     }
 
     template <typename TBitField>
-    constexpr mp::enable_if_t<details::is_bit_field<TBitField>::value, actions::Action<TBitField, actions::Toggle>> toggle(TBitField field){
+    constexpr std::enable_if_t<details::is_bit_field<TBitField>::value, actions::Action<TBitField, actions::Toggle>> toggle(TBitField field){
         return {};
     }
 
     template <typename TBitField>
-    constexpr mp::enable_if_t<details::is_bit_field<TBitField>::value, unsigned> read(TBitField field){
+    constexpr std::enable_if_t<details::is_bit_field<TBitField>::value, unsigned> read(TBitField field){
         return {};
     }
 };

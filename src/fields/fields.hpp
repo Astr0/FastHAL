@@ -1,8 +1,7 @@
 #ifndef FH_FIELDS_H_
 #define FH_FIELDS_H_
 
-#include "../mp/inttypes.hpp"
-#include "../mp/list.hpp"
+#include "../mp/brigand.hpp"
 #include "../mp/type_traits.hpp"
 
 namespace fasthal
@@ -30,7 +29,7 @@ struct FieldBit
 template <typename... TFieldBits>
 struct BitField
 {
-    using FieldBits = mp::list<TFieldBits...>;
+    using FieldBits = brigand::list<TFieldBits...>;
 };
 
 
@@ -50,21 +49,21 @@ namespace details
 
 // is_field_bit to check if T is FieldBit
 template <class T>
-struct is_field_bit : mp::false_type
+struct is_field_bit : std::false_type
 {
 };
 
 // Only field bit is
 template <typename TField, unsigned VNumber, bool VInverted>
-struct is_field_bit<FieldBit<TField, VNumber, VInverted>> : mp::true_type
+struct is_field_bit<FieldBit<TField, VNumber, VInverted>> : std::true_type
 {
 };
 
 template <class T>
-struct is_bit_field: mp::false_type{};
+struct is_bit_field: std::false_type{};
 
 template <typename... T>
-struct is_bit_field<BitField<T...>>:mp::true_type{};
+struct is_bit_field<BitField<T...>>:std::true_type{};
 
 };
 
@@ -95,7 +94,8 @@ constexpr decltype(auto) inverted(FieldBit<TField, VNumber, true> fb)
 template <typename... TFieldBits>
 constexpr decltype(auto) bitField(TFieldBits... bits)
 {
-    static_assert(mp::all<details::is_field_bit, TFieldBits...>::value, "not field bits");
+    // TODO
+    static_assert(brigand::all<brigand::list<TFieldBits...>, details::is_field_bit<brigand::_1>>::value, "not field bits");
     return BitField<TFieldBits...>{};
 }
 
@@ -103,7 +103,7 @@ constexpr decltype(auto) bitField(TFieldBits... bits)
 template <unsigned VNumber, typename... TFieldBits>
 constexpr decltype(auto) fieldBit(BitField<TFieldBits...> field)
 {
-    return mp::type_at_t<VNumber, TFieldBits...>{};
+    return brigand::at_c<brigand::list<TFieldBits...>, VNumber>{};
 }
 
 // nullfield instance

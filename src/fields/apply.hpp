@@ -1,7 +1,7 @@
 #ifndef FH_APPLY_H_
 #define FH_APPLY_H_
 
-#include "../mp/list.hpp"
+#include "../mp/brigand.hpp"
 #include "actions.hpp"
 
 namespace fasthal{
@@ -25,10 +25,11 @@ namespace fasthal{
         // execute everything 
         // ?
         // return result; // profit
-        using ActionsList = mp::list<TActions...>;
-        using ActionFieldBits = mp::select_t<ActionsList, details::select_action_field_bits>;
-        using FieldBits = mp::flatten_t<ActionFieldBits>;        
-        using Fields = mp::distinct_t<mp::select_t<FieldBits, details::select_field_bit_field>>;
+        using ActionsList = brigand::list<TActions...>;
+        // TODO
+        // using ActionFieldBits = mp::select_t<ActionsList, details::select_action_field_bits>;
+        // using FieldBits = mp::flatten_t<ActionFieldBits>;        
+        // using Fields = mp::distinct_t<mp::select_t<FieldBits, details::select_field_bit_field>>;
         
     }
 };
