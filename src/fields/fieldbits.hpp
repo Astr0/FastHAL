@@ -1,12 +1,5 @@
-/*
- * pin.h
- *
- * Created: 03.02.2013 1:39:43
- *  Author: astr0
- */ 
-
-#ifndef PIN_H_
-#define PIN_H_
+#ifndef FH_FIELDBITS_H_
+#define FH_FIELDBITS_H_
 
 #include "pininfo.h"
 #include "portinfo.h"

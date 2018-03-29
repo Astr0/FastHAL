@@ -8,7 +8,7 @@
 #include "interrupts.h"
 #include <avr/io.h>
 #include "../../utils/functions.h"
-#include "../../io/pin.h"
+#include "../../fields/fieldbits.hpp"
 
 #define FASTHAL_DECLAREPORT(CODE)\
 namespace priv\
@@ -51,7 +51,7 @@ namespace fasthal{
 		static constexpr uint8_t width(){return 8;}			
 	
 		inline static void write(uint8_t value) {PORTREG::value() = value;}
-		inline static void clearAndSet(uint8_t clearMask, uint8_t setMask) {PORTREG::value() = PORTREG::value() & ~clearMask | setMask;}
+		inline static void clearAndSet(uint8_t clearMask, uint8_t setMask) {PORTREG::value() = (PORTREG::value() & ~clearMask) | setMask;}
 		inline static void set(uint8_t mask) {PORTREG::value() |= mask;}
 		inline static void clear(uint8_t mask) {PORTREG::value() &= ~mask;}
 		inline static void toggle(uint8_t mask) {PORTREG::value() ^= mask;}

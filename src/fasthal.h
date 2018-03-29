@@ -8,11 +8,8 @@
 #ifndef FASTHAL_H_
 #define FASTHAL_H_
 
-#include "io/pin.h"
-#include "io/port.h"
+#include "fields/fieldbits.hpp"
 #include "fields/fields.hpp"
-#include "fields/actions.hpp"
-#include "fields/apply.hpp"
 
 #include "platforms/platform.h"
 
