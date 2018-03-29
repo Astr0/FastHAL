@@ -14,15 +14,6 @@
 
 namespace fasthal
 {
-	 template<class TFieldBit>
-     struct FieldBitInfo
-     {
-         typedef TFieldBit PinType;
-         typedef decltype(fasthal::common::declval<TFieldBit>().port()) FieldType;
-         typedef decltype(fasthal::common::declval<TFieldBit>().mask()) BitMaskType;
-         typedef decltype(fasthal::common::declval<TFieldBit>().number()) BitNumberType;
-     };
-
 	template<class TField>
 	struct FieldInfo
 	{
@@ -38,6 +29,18 @@ namespace fasthal
 		static constexpr BitMaskType getPinMask(BitNumberType number){return MT::bitToMask(number);}						
 		static constexpr BitNumberType getPinNumber(BitMaskType pinMask){return MT::maskToBit(pinMask);}
 	};
+
+	//  template<class TFieldBit>
+    //  struct FieldBitInfo{ };
+
+	//  template<class TField, unsigned VNumber, bool VInverted>
+	//  struct FieldBitInfo<FieldBit<TField, VNumber, VInterted>
+    //  {
+    //      typedef TFieldBit PinType;
+    //      typedef decltype(fasthal::common::declval<TFieldBit>().port()) FieldType;
+    //      typedef decltype(fasthal::common::declval<TFieldBit>().mask()) BitMaskType;
+    //      typedef decltype(fasthal::common::declval<TFieldBit>().number()) BitNumberType;
+    //  };
 }
 
 

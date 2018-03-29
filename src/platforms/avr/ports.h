@@ -26,14 +26,14 @@ typedef FieldBit<Port ## CODE, 4> Pin ## CODE ## 4;\
 typedef FieldBit<Port ## CODE, 5> Pin ## CODE ## 5;\
 typedef FieldBit<Port ## CODE, 6> Pin ## CODE ## 6;\
 typedef FieldBit<Port ## CODE, 7> Pin ## CODE ## 7;\
-typedef InvertedFieldBit<Pin ## CODE ## 0> Pin ## CODE ## 0Inv;\
-typedef InvertedFieldBit<Pin ## CODE ## 1> Pin ## CODE ## 1Inv;\
-typedef InvertedFieldBit<Pin ## CODE ## 2> Pin ## CODE ## 2Inv;\
-typedef InvertedFieldBit<Pin ## CODE ## 3> Pin ## CODE ## 3Inv;\
-typedef InvertedFieldBit<Pin ## CODE ## 4> Pin ## CODE ## 4Inv;\
-typedef InvertedFieldBit<Pin ## CODE ## 5> Pin ## CODE ## 5Inv;\
-typedef InvertedFieldBit<Pin ## CODE ## 6> Pin ## CODE ## 6Inv;\
-typedef InvertedFieldBit<Pin ## CODE ## 7> Pin ## CODE ## 7Inv;\
+typedef FieldBit<Port ## CODE, 0, true> Pin ## CODE ## 0Inv;\
+typedef FieldBit<Port ## CODE, 1, true> Pin ## CODE ## 1Inv;\
+typedef FieldBit<Port ## CODE, 2, true> Pin ## CODE ## 2Inv;\
+typedef FieldBit<Port ## CODE, 3, true> Pin ## CODE ## 3Inv;\
+typedef FieldBit<Port ## CODE, 4, true> Pin ## CODE ## 4Inv;\
+typedef FieldBit<Port ## CODE, 5, true> Pin ## CODE ## 5Inv;\
+typedef FieldBit<Port ## CODE, 6, true> Pin ## CODE ## 6Inv;\
+typedef FieldBit<Port ## CODE, 7, true> Pin ## CODE ## 7Inv;\
 
 namespace fasthal{
     struct PinMode {

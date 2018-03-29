@@ -6,102 +6,45 @@
 
 namespace fasthal
 {
-	template<class TField, unsigned VNumber>
-	class FieldBit
+	// The ONE AND ONLY Bit of ANY TField which implements field interface
+	template<class TField, unsigned VNumber, bool VInverted = false>
+	struct FieldBit
 	{
 		static_assert(VNumber < TField::width(), "FieldBit number out of range");
-		typedef FieldInfo<TField> TFieldInfo;
-		public:
 
-		static constexpr bool isInverted(){return false;}
-		
-		static constexpr TField port() {return TField();}
-		static constexpr typename TFieldInfo::BitMaskType mask() {return TFieldInfo::getPinMask(VNumber);}
-		static constexpr typename TFieldInfo::BitNumberType number() {return VNumber;}
-		static constexpr FieldBit<TField, VNumber> notInverted(){return FieldBit<TField, VNumber>();}
+		using Field = TField;
+		using TFieldInfo = FieldInfo<TField>;
 
-		static void set()
-		{
-			TField::set(mask());
-		}
+		static constexpr auto Number = typename TFieldInfo::BitNumberType { VNumber };
+		static constexpr auto Mask = TFieldInfo::getPinMask(VNumber);
+
+		static constexpr auto Inverted = VInverted;
+
+
+
+		//using FieldType = FieldInfo::DataType;
+
+		static void set() { TField::set(Mask); }
 	
-		static void clear()
-		{
-			TField::clear(mask());
-		}
+		static void clear() { TField::clear(Mask); }
 	
-		static void set(bool val)
-		{
+		static void set(bool val) { 
 			if (val)
 				set();
 			else
 				clear();
 		}
 
-		static void toggle()
-		{
-			TField::toggle(mask());
+		static void toggle() {
+			TField::toggle(Mask);
 		}
 
-		static bool read()
-		{
-			return TField::read(mask());
-		}
-
-		static void setMode(uint8_t mode){
-			TField::setMode(mask(), mode);
+		static bool read() {
+			return TField::read(Mask);
 		}
 	};
 
 
-	template<class TFieldBit>
-	class InvertedFieldBit
-	{
-		static_assert(!TFieldBit::isInverted(), "Don't invert inverted pins... This kills compilation time...");
-		typedef FieldBitInfo<TFieldBit> TFieldBitInfo;
-		public:
-
-		constexpr InvertedFieldBit()
-		{
-		}
-
-		static constexpr bool isInverted(){return !TFieldBit::isInverted();}
-		
-		static constexpr typename TFieldBitInfo::FieldType port() {return TFieldBit::port();}
-		static constexpr typename TFieldBitInfo::BitMaskType mask() {return TFieldBit::mask();}
-		static constexpr typename TFieldBitInfo::BitNumberType number() {return TFieldBit::number();}
-		static constexpr TFieldBit notInverted(){return TFieldBit();}
-
-		static void set()
-		{
-			TFieldBit::clear();
-		}
-	
-		static void clear()
-		{
-			TFieldBit::set();
-		}
-	
-		static void set(bool val)
-		{
-			TFieldBit::set(!val);
-		}
-
-		static void toggle()
-		{
-			TFieldBit::toggle();
-		}
-
-		static bool read()
-		{
-			return !TFieldBit::read();
-		}
-		
-		static void setMode(uint8_t mode){
-			TFieldBit::setMode(mode);
-		}
-	};			
-				
 	
 }
 
