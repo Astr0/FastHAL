@@ -230,7 +230,7 @@ namespace fasthal
 					typedef typename fasthal::common::TL::TakeFirst<CurrentList, SerialLength>::Result SerialList;
 					typedef typename fasthal::common::TL::SkipFirst<CurrentList, SerialLength>::Result RestList;
 
-					result |= (fasthal::common::Shifter<FieldBit::Number - Head::Position>::shift(value) & GetFieldMask<SerialList, DataType>::value) ^ InversionMask<SerialList, DataType>::value;
+					result |= (fasthal::common::shift<FieldBit::Number - Head::Position>(value) & GetFieldMask<SerialList, DataType>::value) ^ InversionMask<SerialList, DataType>::value;
 
 					return PinWriteIterator<RestList, TDataType>::template appendValue<DataType, InversionMask>(value, result);
 				}
@@ -282,7 +282,7 @@ namespace fasthal
 					typedef typename fasthal::common::TL::SkipFirst<CurrentList, SerialLength>::Result RestList;
 
 
-					result |= fasthal::common::Shifter<Head::Position - Head::FieldBit::Number>::shift(FieldValue ^ GetInversionMask<SerialList, MaskType>::value) & GetValueMask<SerialList, MaskType>::value;
+					result |= fasthal::common::shift<Head::Position - Head::FieldBit::Number>(FieldValue ^ GetInversionMask<SerialList, MaskType>::value) & GetValueMask<SerialList, MaskType>::value;
 					return PinWriteIterator<RestList, TDataType>::appendReadValue(FieldValue, result);
 				}
 

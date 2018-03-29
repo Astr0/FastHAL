@@ -18,16 +18,17 @@ namespace fasthal
 {
 	namespace common
 	{
+		// min bytes to hold bits
 		constexpr unsigned minSizeInBytes(unsigned sizeInBits)
 		{
 			return sizeInBits == 0 ? 1 : ((sizeInBits / 8)  + ((sizeInBits % 8) ? 1 : 0));
 		}
 		
-		template<class MaskType>
-		constexpr MaskType setBits(int count)
-		{
-			return count == 0 ? 0 : ((1 << count) | setBits<MaskType>(count - 1));
-		}
+		// template<class MaskType>
+		// constexpr MaskType setBits(int count)
+		// {
+		// 	return count == 0 ? 0 : ((1 << count) | setBits<MaskType>(count - 1));
+		// }
 				
 		// TODO: Refactor this
 		template<unsigned bytes>
@@ -69,34 +70,12 @@ namespace fasthal
 			}
 		};
 		
-		// and this
-		template<int VBytesToLeft>
-		struct Shifter
+		template<int VBytesToLeft, class T>
+		static constexpr T shift(T value)
 		{
-			template<class T>
-			static constexpr T shift(T value)
-			{
-				return VBytesToLeft == 0 
-					? value 
-					: (VBytesToLeft > 0 ? value << VBytesToLeft : value >> -VBytesToLeft);
-			}
-		};
-
-		template<class T>
-		constexpr T Or(const T& a, const T& b)
-		{
-			return a | b;
-		}
-
-		template<class T>
-		constexpr T And(const T& a, const T& b)
-		{
-			return a & b;
-		}
-		template<class T>
-		constexpr T Xor(const T& a, const T& b)
-		{
-			return a ^ b;
+			return VBytesToLeft == 0 
+				? value 
+				: (VBytesToLeft > 0 ? value << VBytesToLeft : value >> -VBytesToLeft);
 		}
 	}
 }

@@ -25,5 +25,6 @@ int main(){
         clearAndSet(testPort, 1, 2);
     }
     PORTD = read(testPort);
+    write(testPort, PORTB);
     return 0;
 }
