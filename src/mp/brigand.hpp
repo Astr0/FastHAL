@@ -13,6 +13,28 @@
 
 #ifndef BRIGAND_HPP_INCLUDED
 #define BRIGAND_HPP_INCLUDED
+
+#define BRIGAND_COMP_MSVC_2013
+// #if defined(_MSC_VER) && !defined(__GNUC__) && !defined(__clang__)
+// #define BRIGAND_COMP_MSVC
+// #if _MSC_VER == 1900
+// #define BRIGAND_COMP_MSVC_2015
+// #elif _MSC_VER == 1800
+// #define BRIGAND_COMP_MSVC_2013
+// #endif
+// #elif __INTEL_COMPILER
+// #define BRIGAND_COMP_INTEL
+// #elif __GNUC__
+// #ifndef __clang__
+// #define BRIGAND_COMP_GCC
+// #else
+// #define BRIGAND_COMP_CLANG
+// #endif
+// #endif
+// #if defined(__CUDACC__)
+// #define BRIGAND_COMP_CUDA
+// #endif
+
 namespace brigand
 {
 template <typename T, T Value>
@@ -391,25 +413,7 @@ namespace detail
 template <typename Lambda, typename... Args>
 using apply = typename detail::apply<Lambda, brigand::list<Args...>>::type;
 }
-#if defined(_MSC_VER) && !defined(__GNUC__) && !defined(__clang__)
-#define BRIGAND_COMP_MSVC
-#if _MSC_VER == 1900
-#define BRIGAND_COMP_MSVC_2015
-#elif _MSC_VER == 1800
-#define BRIGAND_COMP_MSVC_2013
-#endif
-#elif __INTEL_COMPILER
-#define BRIGAND_COMP_INTEL
-#elif __GNUC__
-#ifndef __clang__
-#define BRIGAND_COMP_GCC
-#else
-#define BRIGAND_COMP_CLANG
-#endif
-#endif
-#if defined(__CUDACC__)
-#define BRIGAND_COMP_CUDA
-#endif
+
 namespace brigand
 {
 namespace detail

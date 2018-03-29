@@ -95,7 +95,7 @@ template <typename... TFieldBits>
 constexpr decltype(auto) bitField(TFieldBits... bits)
 {
     // TODO
-    static_assert(brigand::all<brigand::list<TFieldBits...>, details::is_field_bit<brigand::_1>>::value, "not field bits");
+    static_assert(brigand::all<brigand::list<TFieldBits...>, details::is_field_bit<brigand::_1> >::value, "not field bits");
     return BitField<TFieldBits...>{};
 }
 

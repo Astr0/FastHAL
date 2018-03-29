@@ -26,10 +26,9 @@ namespace fasthal{
         // ?
         // return result; // profit
         using ActionsList = brigand::list<TActions...>;
-        // TODO
-        // using ActionFieldBits = mp::select_t<ActionsList, details::select_action_field_bits>;
-        // using FieldBits = mp::flatten_t<ActionFieldBits>;        
-        // using Fields = mp::distinct_t<mp::select_t<FieldBits, details::select_field_bit_field>>;
+        using ActionFieldBits = brigand::transform<ActionsList, details::select_action_field_bits<brigand::_1>>;
+        using FieldBits = brigand::flatten<ActionFieldBits>;        
+        using Fields = brigand::set<brigand::transform<FieldBits, details::select_field_bit_field<brigand::_1>>>;
         
     }
 };
