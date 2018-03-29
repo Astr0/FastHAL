@@ -6,8 +6,8 @@ using namespace fasthal;
 //typedef VPort<PinB4, PinB5, PinB6, PinB7> TestPort;
 
 struct PortBField{
-    void write(uint8_t v) { PORTB = v; }
-    uint8_t read() { return PORTB;}
+    static void write(uint8_t v) { PORTB = v; }
+    static uint8_t read() { return PORTB;}
 };
 
 constexpr auto portB = PortBField{};

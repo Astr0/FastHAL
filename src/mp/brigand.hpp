@@ -1385,6 +1385,7 @@ using reverse_fold = typename ::brigand::lazy::reverse_fold<Sequence, State, Fun
 //   template<class F, class...Ts> F for_each_args(F f, Ts&&...a)
 //   {
 //     return (void)std::initializer_list<int>{((void)std::ref(f)(static_cast<Ts&&>(a)),0)...}, f;
+//     //return (void)std::initializer_list<int>{((void)f(static_cast<Ts&&>(a)),0)...}, f;
 //   }
 // }
 namespace brigand

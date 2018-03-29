@@ -12,8 +12,8 @@ namespace fasthal{
         struct Action: TAction{
             template<typename ...Ts>
             constexpr Action(Ts... args): TAction{args...}{}
-
-            using FieldBits = typename TBitField::FieldBits;
+            
+            using BitField = TBitField;            
         };
     }
 
