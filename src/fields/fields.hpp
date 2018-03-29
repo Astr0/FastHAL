@@ -1,8 +1,8 @@
 #ifndef FH_FIELDS_H_
 #define FH_FIELDS_H_
 
+#include "fieldbit.hpp"
 #include "fieldbits.hpp"
-#include "pinlist.h"
 #include "../sys/typelistutils.h"
 #include "../sys/bitholder.h"
 

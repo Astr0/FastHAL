@@ -14,11 +14,11 @@
 
 namespace fasthal
 {
-	template<class TPort>
+	template<class TField>
 	struct PortInfo
 	{
-		typedef TPort PortType;
-		typedef decltype(fasthal::common::declval<TPort>().read()) DataType;
+		typedef TField PortType;
+		typedef decltype(fasthal::common::declval<TField>().read()) DataType;
 		private:
 		typedef fasthal::common::BitMaskTypes<DataType> MT;
 		public:
