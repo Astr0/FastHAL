@@ -8,44 +8,61 @@ namespace fasthal
 {
 	// The ONE AND ONLY Bit of ANY TField which implements field interface
 	template<class TField, unsigned VNumber, bool VInverted = false>
-	struct FieldBit
+	class FieldBit
 	{
-		static_assert(VNumber < TField::width(), "FieldBit number out of range");
-
-		using Field = TField;
 		using TFieldInfo = FieldInfo<TField>;
+		static_assert(VNumber < TField::width(), "FieldBit number out of range");
+		
+		public:
+		using Field = TField;
 
 		static constexpr auto Number = typename TFieldInfo::BitNumberType { VNumber };
 		static constexpr auto Mask = TFieldInfo::getPinMask(VNumber);
-
 		static constexpr auto Inverted = VInverted;
-
-
-
-		//using FieldType = FieldInfo::DataType;
-
-		static void set() { TField::set(Mask); }
-	
-		static void clear() { TField::clear(Mask); }
-	
-		static void set(bool val) { 
-			if (val)
-				set();
-			else
-				clear();
-		}
-
-		static void toggle() {
-			TField::toggle(Mask);
-		}
-
-		static bool read() {
-			return TField::read(Mask);
-		}
 	};
 
+	template<class TField, unsigned VNumber>
+	void set(FieldBit<TField, VNumber, false> fieldBit){
+		TField::set(FieldBit<TField, VNumber, false>::Mask);
+	}
 
-	
+	template<class TField, unsigned VNumber>
+	void set(FieldBit<TField, VNumber, true> fieldBit){
+		TField::clear(FieldBit<TField, VNumber, false>::Mask);
+	}
+
+	template<class TField, unsigned VNumber>
+	void clear(FieldBit<TField, VNumber, false> fieldBit){
+		TField::clear(FieldBit<TField, VNumber, false>::Mask);
+	}
+
+	template<class TField, unsigned VNumber>
+	void clear(FieldBit<TField, VNumber, true> fieldBit){
+		TField::set(FieldBit<TField, VNumber, false>::Mask);
+	}
+
+	template<class TField, unsigned VNumber, bool VInverted>
+	void set(FieldBit<TField, VNumber, VInverted> fieldBit, bool v){
+		if (v)
+			set(fieldBit);
+		else
+			clear(fieldBit);
+	}
+
+	template<class TField, unsigned VNumber, bool VInverted>
+	void toggle(FieldBit<TField, VNumber, VInverted> fieldBit){
+		TField::toggle(FieldBit<TField, VNumber, VInverted>::Mask);
+	}
+
+	template<class TField, unsigned VNumber>
+	bool read(FieldBit<TField, VNumber, false> fieldBit){
+		return TField::read(FieldBit<TField, VNumber, false>::Mask);
+	}
+
+	template<class TField, unsigned VNumber>
+	bool read(FieldBit<TField, VNumber, true> fieldBit){
+		return !TField::read(FieldBit<TField, VNumber, true>::Mask);
+	}
 }
 
 #endif /* PIN_H_ */
