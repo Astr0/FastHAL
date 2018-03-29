@@ -34,11 +34,11 @@ namespace fasthal{
 		static void setMode(TMask mask, uint8_t mode){}
 			
 		template<unsigned VNumber>
-		struct Pin{
-			typedef typename fasthal::Pin<PortType, VNumber> Type;
+		struct FieldBit{
+			typedef typename fasthal::FieldBit<PortType, VNumber> Type;
 		};
 	};
-	typedef Pin<NullPort, 0> NullPin;
+	typedef FieldBit<NullPort, 0> NullPin;
 
     // VPort - static port-like wrapper for Pins
 	template<class... TPins>
@@ -101,8 +101,8 @@ namespace fasthal{
 			}
 			
 			template<PinNumberType VPin>
-			struct Pin{
-				typedef typename Loki::TL::TypeAt<Pins, VPin>::Result::Pin Type;
+			struct FieldBit{
+				typedef typename Loki::TL::TypeAt<Pins, VPin>::Result::FieldBit Type;
 			};
 	};
 }

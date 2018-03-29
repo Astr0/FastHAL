@@ -18,22 +18,22 @@ namespace priv\
 	FH_WRAPVARIABLE(DdrReg ## CODE, DDR ## CODE)\
 }\
 typedef AvrPort<priv::DdrReg ## CODE, priv::PortReg ## CODE, priv::PinReg ## CODE> Port ## CODE;\
-typedef Pin<Port ## CODE, 0> Pin ## CODE ## 0;\
-typedef Pin<Port ## CODE, 1> Pin ## CODE ## 1;\
-typedef Pin<Port ## CODE, 2> Pin ## CODE ## 2;\
-typedef Pin<Port ## CODE, 3> Pin ## CODE ## 3;\
-typedef Pin<Port ## CODE, 4> Pin ## CODE ## 4;\
-typedef Pin<Port ## CODE, 5> Pin ## CODE ## 5;\
-typedef Pin<Port ## CODE, 6> Pin ## CODE ## 6;\
-typedef Pin<Port ## CODE, 7> Pin ## CODE ## 7;\
-typedef InvertedPin<Pin ## CODE ## 0> Pin ## CODE ## 0Inv;\
-typedef InvertedPin<Pin ## CODE ## 1> Pin ## CODE ## 1Inv;\
-typedef InvertedPin<Pin ## CODE ## 2> Pin ## CODE ## 2Inv;\
-typedef InvertedPin<Pin ## CODE ## 3> Pin ## CODE ## 3Inv;\
-typedef InvertedPin<Pin ## CODE ## 4> Pin ## CODE ## 4Inv;\
-typedef InvertedPin<Pin ## CODE ## 5> Pin ## CODE ## 5Inv;\
-typedef InvertedPin<Pin ## CODE ## 6> Pin ## CODE ## 6Inv;\
-typedef InvertedPin<Pin ## CODE ## 7> Pin ## CODE ## 7Inv;\
+typedef FieldBit<Port ## CODE, 0> Pin ## CODE ## 0;\
+typedef FieldBit<Port ## CODE, 1> Pin ## CODE ## 1;\
+typedef FieldBit<Port ## CODE, 2> Pin ## CODE ## 2;\
+typedef FieldBit<Port ## CODE, 3> Pin ## CODE ## 3;\
+typedef FieldBit<Port ## CODE, 4> Pin ## CODE ## 4;\
+typedef FieldBit<Port ## CODE, 5> Pin ## CODE ## 5;\
+typedef FieldBit<Port ## CODE, 6> Pin ## CODE ## 6;\
+typedef FieldBit<Port ## CODE, 7> Pin ## CODE ## 7;\
+typedef InvertedFieldBit<Pin ## CODE ## 0> Pin ## CODE ## 0Inv;\
+typedef InvertedFieldBit<Pin ## CODE ## 1> Pin ## CODE ## 1Inv;\
+typedef InvertedFieldBit<Pin ## CODE ## 2> Pin ## CODE ## 2Inv;\
+typedef InvertedFieldBit<Pin ## CODE ## 3> Pin ## CODE ## 3Inv;\
+typedef InvertedFieldBit<Pin ## CODE ## 4> Pin ## CODE ## 4Inv;\
+typedef InvertedFieldBit<Pin ## CODE ## 5> Pin ## CODE ## 5Inv;\
+typedef InvertedFieldBit<Pin ## CODE ## 6> Pin ## CODE ## 6Inv;\
+typedef InvertedFieldBit<Pin ## CODE ## 7> Pin ## CODE ## 7Inv;\
 
 namespace fasthal{
     struct PinMode {
@@ -78,8 +78,8 @@ namespace fasthal{
 		}
 			
 		template<unsigned VNumber>
-		struct Pin{
-			typedef typename fasthal::Pin<AvrPort<DDRREG, PORTREG, PINREG>, VNumber> Type;
+		struct FieldBit{
+			typedef typename fasthal::FieldBit<AvrPort<DDRREG, PORTREG, PINREG>, VNumber> Type;
 		};
     };	
     

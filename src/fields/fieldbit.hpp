@@ -7,22 +7,18 @@
 namespace fasthal
 {
 	template<class TField, unsigned VNumber>
-	class Pin
+	class FieldBit
 	{
-		static_assert(VNumber < TField::width(), "Pin number out of range");
+		static_assert(VNumber < TField::width(), "FieldBit number out of range");
 		typedef PortInfo<TField> TPortInfo;
 		public:
-
-		constexpr Pin()
-		{
-		}
 
 		static constexpr bool isInverted(){return false;}
 		
 		static constexpr TField port() {return TField();}
 		static constexpr typename TPortInfo::PinMaskType mask() {return TPortInfo::getPinMask(VNumber);}
 		static constexpr typename TPortInfo::PinNumberType number() {return VNumber;}
-		static constexpr Pin<TField, VNumber> notInverted(){return Pin<TField, VNumber>();}
+		static constexpr FieldBit<TField, VNumber> notInverted(){return FieldBit<TField, VNumber>();}
 
 		static void set()
 		{
@@ -59,13 +55,13 @@ namespace fasthal
 
 
 	template<class TPin>
-	class InvertedPin
+	class InvertedFieldBit
 	{
 		static_assert(!TPin::isInverted(), "Don't invert inverted pins... This kills compilation time...");
 		typedef PinInfo<TPin> TPinInfo;
 		public:
 
-		constexpr InvertedPin()
+		constexpr InvertedFieldBit()
 		{
 		}
 

@@ -1,5 +1,8 @@
 #ifndef STD_TYPES_H_
 #define STD_TYPES_H_
+
+#include <inttypes.h>
+
 namespace std{
 
 using uint8_t = ::uint8_t;

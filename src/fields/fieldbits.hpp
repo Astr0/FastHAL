@@ -21,7 +21,7 @@ namespace fasthal
 		template<int VPosition, class TPin>
 		struct PinPositionHolder
 		{
-			typedef TPin Pin;
+			typedef TPin FieldBit;
 			static constexpr int Position = VPosition;
 		};
 
@@ -29,7 +29,7 @@ namespace fasthal
 		template<class TPinHolder>
 		struct SelectPinPort
 		{
-			typedef typename PinInfo<typename TPinHolder::Pin>::PortType Result;
+			typedef typename PinInfo<typename TPinHolder::FieldBit>::PortType Result;
 		};
 
 		template<class TPinList>
@@ -43,14 +43,14 @@ namespace fasthal
 		template<class TPinHolder>
 		struct PinPositionMatchPredicate
 		{
-			static constexpr bool value = TPinHolder::Position == TPinHolder::Pin::number();
+			static constexpr bool value = TPinHolder::Position == TPinHolder::FieldBit::number();
 		};
 
 		// Predicate<PinPositionHolder> - inverted pins
 		template<class TPinHolder>
 		struct InvertedPinsPredicate
 		{
-			static constexpr bool value = TPinHolder::Pin::isInverted();
+			static constexpr bool value = TPinHolder::FieldBit::isInverted();
 		};
 
 		// Result - Predicate<PinPositionHolder> - pins that belongs to TField Port
@@ -60,7 +60,7 @@ namespace fasthal
 			template<class TPinHolder>
 			struct Result
 			{
-				static constexpr bool value = Loki::IsSameType<TField, typename PinInfo<typename TPinHolder::Pin>::PortType>::value;
+				static constexpr bool value = Loki::IsSameType<TField, typename PinInfo<typename TPinHolder::FieldBit>::PortType>::value;
 			};
 		};
 
@@ -73,7 +73,7 @@ namespace fasthal
 			template <class TPinHolder, MaskType VTail>
 			struct Predicate
 			{
-				static constexpr MaskType value = (TPinHolder::Pin::isInverted() ? TPinHolder::Pin::mask() : 0) | VTail;
+				static constexpr MaskType value = (TPinHolder::FieldBit::isInverted() ? TPinHolder::FieldBit::mask() : 0) | VTail;
 			};
 			static constexpr MaskType Empty = MaskType();					
 			static constexpr MaskType value = fasthal::common::TL::Aggregate<TList, MaskType, Empty, Predicate>::value;
@@ -94,7 +94,7 @@ namespace fasthal
 			template <class TPinHolder, MaskType VTail>
 			struct Predicate
 			{
-				static constexpr MaskType value = TPinHolder::Pin::mask() | VTail;
+				static constexpr MaskType value = TPinHolder::FieldBit::mask() | VTail;
 			};					
 			static constexpr MaskType Empty = MaskType();
 			static constexpr MaskType value = fasthal::common::TL::Aggregate<TList, MaskType, Empty, Predicate>::value;
@@ -134,7 +134,7 @@ namespace fasthal
 		struct GetSerialCount< Loki::Typelist<Head, Tail> >
 		{
 			typedef GetSerialCount<Tail> I;
-			static constexpr int PinNumber = Head::Pin::number();
+			static constexpr int PinNumber = Head::FieldBit::number();
 			static constexpr int BitPosition = Head::Position;
 			static constexpr int value =
 				((PinNumber == I::PinNumber - 1 &&
@@ -201,8 +201,8 @@ namespace fasthal
 			typedef typename MT::MaskType MaskType;
 			typedef PinWriteIterator<Tail, TDataType> NextIterator;
 			static constexpr typename MT::OneBitMask ListMask = MT::bitToMask(Head::Position);
-			typedef typename Head::Pin Pin;
-			typedef typename PinInfo<Pin>::PortType PortType;
+			typedef typename Head::FieldBit FieldBit;
+			typedef typename PinInfo<FieldBit>::PortType PortType;
 			typedef PinWriteIterator<Tail, TDataType> Next;
 			
 			public:
@@ -230,7 +230,7 @@ namespace fasthal
 					typedef typename fasthal::common::TL::TakeFirst<CurrentList, SerialLength>::Result SerialList;
 					typedef typename fasthal::common::TL::SkipFirst<CurrentList, SerialLength>::Result RestList;
 
-					result |= (fasthal::common::Shifter<Head::Pin::number() - Head::Position>::shift(value) & GetPortMask<SerialList, DataType>::value) ^ InversionMask<SerialList, DataType>::value;
+					result |= (fasthal::common::Shifter<Head::FieldBit::number() - Head::Position>::shift(value) & GetPortMask<SerialList, DataType>::value) ^ InversionMask<SerialList, DataType>::value;
 
 					return PinWriteIterator<RestList, TDataType>::template appendValue<DataType, InversionMask>(value, result);
 				}
@@ -238,12 +238,12 @@ namespace fasthal
 				if(!(InversionMask<Loki::Typelist<Head, Loki::NullType>, DataType>::value))
 				{
 					if(value & ListMask)
-						result |= Head::Pin::mask();
+						result |= Head::FieldBit::mask();
 				}
 				else
 				{
 					if(!(value & ListMask))
-						result |= Head::Pin::mask();
+						result |= Head::FieldBit::mask();
 				}
 
 				return PinWriteIterator<Tail, TDataType>::template appendValue<DataType, InversionMask>(value, result);
@@ -282,18 +282,18 @@ namespace fasthal
 					typedef typename fasthal::common::TL::SkipFirst<CurrentList, SerialLength>::Result RestList;
 
 
-					result |= fasthal::common::Shifter<Head::Position - Head::Pin::number()>::shift(portValue ^ GetInversionMask<SerialList, MaskType>::value) & GetValueMask<SerialList, MaskType>::value;
+					result |= fasthal::common::Shifter<Head::Position - Head::FieldBit::number()>::shift(portValue ^ GetInversionMask<SerialList, MaskType>::value) & GetValueMask<SerialList, MaskType>::value;
 					return PinWriteIterator<RestList, TDataType>::appendReadValue(portValue, result);
 				}
 
 				if(GetInversionMask<Loki::Typelist<Head, Loki::NullType>, MaskType>::value)
 				{
-					if(!(portValue & Head::Pin::mask()))
+					if(!(portValue & Head::FieldBit::mask()))
 						result |= ListMask;
 
 				}else
 				{
-					if(portValue & Head::Pin::mask())
+					if(portValue & Head::FieldBit::mask())
 						result |= ListMask;
 				}
 
@@ -303,7 +303,7 @@ namespace fasthal
 			
 			static void write(TDataType value)
 			{
-				Pin::set(value & ListMask);
+				FieldBit::set(value & ListMask);
 				Next::write(value);
 			}
 			
@@ -312,36 +312,36 @@ namespace fasthal
 				if (clearMask & ListMask)
 				{
 					if (!(setMask & ListMask))
-						Pin::clear();
+						FieldBit::clear();
 				} else if (setMask & ListMask)
-					Pin::set();
+					FieldBit::set();
 				Next::clearAndSet(clearMask, setMask);								
 			}
 
 			static void set(MaskType mask)					
 			{
 				if (mask & ListMask)
-					Pin::set();
+					FieldBit::set();
 				Next::set(mask);			
 			}
 
 			static void clear(MaskType mask)					
 			{
 				if (mask & ListMask)
-					Pin::clear();
+					FieldBit::clear();
 				Next::clear(mask);
 			}
 
 			static void toggle(MaskType mask)					
 			{
 				if (mask & ListMask)
-					Pin::toggle(mask);
+					FieldBit::toggle(mask);
 				Next::toggle(mask);						
 			}		
 			
 			static void read(TDataType& result)
 			{
-				if (Pin::read())
+				if (FieldBit::read())
 					result |= ListMask;
 				Next::read(result);
 			}
@@ -349,7 +349,7 @@ namespace fasthal
 			static void setMode(MaskType mask, uint8_t mode)					
 			{
 				if (mask & ListMask)
-					Pin::setMode(mode);
+					FieldBit::setMode(mode);
 				Next::setMode(mask, mode);			
 			}
 		};
