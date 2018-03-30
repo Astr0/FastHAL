@@ -9,11 +9,13 @@
 
 
 namespace fasthal{
-    // VField - static field-like wrapper for FieldBits
+    // vfield - static field-like wrapper for FieldBits
 	template<class... TFieldBits>
-	class VField
+	class vfield
 	{
 		private:
+			// TODO: Static assert that all TFieldBits are field bits		
+
 			using fieldbits_t = typename fasthal::priv::MakeFieldBitList<TFieldBits...>::Result ;
 			using fields_t = typename Loki::TL::NoDuplicates<typename priv::MakeFieldList<fieldbits_t>::Result>::Result;			
 			using datatype_t = bytes_bitmask_type<maskSizeInBytes(brigand::count<TFieldBits...>::value)>;
@@ -31,52 +33,52 @@ namespace fasthal{
 			}
 	};
 
-	// create VField
+	// create vfield
 	template<class... TBits>
-	constexpr decltype(auto) vfield(TBits... bits){
-		return VField<TBits...>{};
+	constexpr decltype(auto) vField(TBits... bits){
+		return vfield<TBits...>{};
 	}
 
 	// type info
 	template <class... TFieldBits>
-	struct field_width<VField<TFieldBits...>>: brigand::count<TFieldBits...>{};
+	struct field_width<vfield<TFieldBits...>>: brigand::count<TFieldBits...>{};
 
-	// create VField fieldBit - return passed field bit
+	// create vfield fieldBit - return passed field bit
 	template<unsigned VNumber, class... TFieldBits>
-	constexpr decltype(auto) fieldBit(VField<TFieldBits...> field){
+	constexpr decltype(auto) fieldBit(vfield<TFieldBits...> field){
 		return brigand::at_c<brigand::list<TFieldBits...>, VNumber> {};
 	}
 
 	// optimized actions
     template<class... TFieldBits, 
-		typename Field = VField<TFieldBits...>,
-		typename MaskType = field_mask_type<Field>>
-	static void clearAndSet(VField<TFieldBits...> field, MaskType clearMask, MaskType setMask) 
+		typename TField = vfield<TFieldBits...>,
+		typename TMaskType = field_mask_type<TField>>
+	static void clearAndSet(vfield<TFieldBits...> field, TMaskType clearMask, TMaskType setMask) 
 	{
-		Field::impl_t::clearAndSet(clearMask, setMask);
+		TField::impl_t::clearAndSet(clearMask, setMask);
 	}				
 
 	template<class... TFieldBits, 
-		typename Field = VField<TFieldBits...>,
-		typename MaskType = field_mask_type<Field>>
-	static void set(VField<TFieldBits...> field, MaskType mask) 
+		typename TField = vfield<TFieldBits...>,
+		typename TMaskType = field_mask_type<TField>>
+	static void set(vfield<TFieldBits...> field, TMaskType mask) 
 	{
-		Field::impl_t::set(mask);
+		TField::impl_t::set(mask);
 	}
 	template<class... TFieldBits, 
-		typename Field = VField<TFieldBits...>,
-		typename MaskType = field_mask_type<Field>>
-	static void clear(VField<TFieldBits...> field, MaskType mask) 
+		typename TField = vfield<TFieldBits...>,
+		typename TMaskType = field_mask_type<TField>>
+	static void clear(vfield<TFieldBits...> field, TMaskType mask) 
 	{
-		Field::impl_t::clear(mask);					
+		TField::impl_t::clear(mask);					
 	}
 
 	template<class... TFieldBits, 
-		typename Field = VField<TFieldBits...>,
-		typename MaskType = field_mask_type<Field>>
-	static void toggle(VField<TFieldBits...> field, MaskType mask) 
+		typename TField = vfield<TFieldBits...>,
+		typename TMaskType = field_mask_type<TField>>
+	static void toggle(vfield<TFieldBits...> field, TMaskType mask) 
 	{
-		Field::impl_t::toggle(mask);
+		TField::impl_t::toggle(mask);
 	}
 }
 

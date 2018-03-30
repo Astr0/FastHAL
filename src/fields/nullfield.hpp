@@ -5,13 +5,13 @@
 #include "fieldbit.hpp"
 
 namespace fasthal{    
-    struct NullField
+    struct null_field
 	{
         static void write(uint8_t value) {}
         static constexpr uint8_t read() {return 0;}
 	};
 
-    static constexpr auto nullField = NullField{};
+    static constexpr auto nullField = null_field{};
     static constexpr auto nullBit = fieldBit<0>(nullField);
 }
 
