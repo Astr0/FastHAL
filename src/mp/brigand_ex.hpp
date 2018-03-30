@@ -38,7 +38,6 @@ namespace brigand{
 	// smallest type that fits N
 	template<unsigned int N>
 	using number_type = typename details::number_type_impl<N>::type;
-
 }
 
 #endif
