@@ -2,8 +2,6 @@
 #define FH_VFIELD_H_
 
 #include "fieldbit.hpp"
-#include "../sys/typelistutils.h"
-//#include "../utils/bitholder.h"
 #include "vfield_impl.hpp"
 
 

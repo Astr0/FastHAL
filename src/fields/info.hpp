@@ -10,13 +10,12 @@
 #define FH_FIELDS_INFO_H_
 
 #include "../utils/mask.hpp"
-#include "../sys/typeutils.h"
 #include "../mp/type_traits.hpp"
 
 namespace fasthal
 {
 	template<class TField>
-	using field_data_type = decltype(fasthal::common::declval<TField>().read());
+	using field_data_type = decltype(std::declval<TField>().read());
 
 	template<class TField>
 	using field_mask_types = bitmask_types<field_data_type<TField>>;

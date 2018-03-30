@@ -15,7 +15,8 @@ namespace fasthal{
 	// ATTINY24/44/84: ADMUX: REFS1 REFS0 MUX5  MUX4  MUX3 MUX2 MUX1 MUX0.   ADCSRA: ADEN ADSC ADATE ADIF ADIE ADPS2 ADPS1 ADPS0.   ADCSRB: BIN ACME X   ADLAR X    ADTS2 ADTS1 ADTS0
     // ATTINY25/45/85: ADMUX: REFS1 REFS0 ADLAR REFS2 MUX3 MUX2 MUX1 MUX0.   ADCSRA: ADEN ADSC ADATE ADIF ADIE ADPS2 ADPS1 ADPS0.   ADCSRB: BIN ACME IPR X     X    ADTS2 ADTS1 ADTS0 
 	// Mega:           ADMUX: REFS1 REFS0 ADLAR MUX4  MUX3 MUX2 MUX1 MUX0.   ADCSRA: ADEN ADSC ADATE ADIF ADIE ADPS2 ADPS1 ADPS0    ADCSRB: X   ACME X   X     MUX5 ADTS2 ADTS1 ADTS0
-    // Others:         ADMUX: REFS1 REFS0 ADLAR X     MUX3 MUX2 MUX1 MUX0.   ADCSRA: ADEN ADSC ADATE ADIF ADIE ADPS2 ADPS1 ADPS0.   ADCSRB: X   ACME X   X     X    ADTS2 ADTS1 ADTS0
+    // Others:         ADMUX: REFS1 REFS0 ADLAR X     MUX3 MUX2 MUX1 MUX0.   ADCSRA: ADEN ADSC ADATE ADIF ADIE ADPS2 ADPS1 ADPS0.   ADCSRB: X   ACME X   X     X    ADTS2 ADTS1 ADTS0
+
     enum class AdcRef:uint8_t{
     #if defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)
         Default             = (0 << REFS1) | (0 << REFS0),
@@ -131,7 +132,7 @@ namespace fasthal{
     template<AdcRef ref, bool is8bit, uint8_t mux>
     class AdcChannel{
     public:	
-		typedef typename Loki::Select<is8bit, uint8_t, uint16_t>::Result result_t;
+		typedef typename std::conditional<is8bit, uint8_t, uint16_t>::type result_t;
 	
 		static result_t read(){			
 			Adc::select(ref, is8bit, mux);

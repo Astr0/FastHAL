@@ -2,7 +2,6 @@
 #define FH_BRIGANDEX_H_
 
 #include "brigand.hpp"
-#include "../sys/TypeManip.h"
 
 namespace brigand{
 

@@ -4,7 +4,6 @@
 #define AVR_TIMER_H_
 
 #include "../../utils/functions.h"
-#include "../../sys/TypeManip.h"
 
 // WGM
 #define FH_TIMER_DECLARE_WGM_ENUM_2(Name, M0, M1)\
@@ -16,7 +15,10 @@
 // COM
 #define FH_TIMER_DECLARE_COM_ENUM(Name, M0, M1) \
 	enum class Name: uint8_t{\
-		None   = (0 << M1) | (0 << M0),\		Toggle = (0 << M1) | (1 << M0),\		Clear  = (1 << M1) | (0 << M0),\		Set    = (1 << M1) | (1 << M0)\
+		None   = (0 << M1) | (0 << M0),\
+		Toggle = (0 << M1) | (1 << M0),\
+		Clear  = (1 << M1) | (0 << M0),\
+		Set    = (1 << M1) | (1 << M0)\
 	};\
 	const uint8_t Name ## Mask = (1 << M1) | (1 << M0);
 
@@ -32,7 +34,7 @@ namespace fasthal{
 		class tcnt	
 	>
 	struct AvrTimerCS{
-		typedef typename Loki::Select<sizeof(decltype(tcnt::value())) == 1, uint8_t, uint16_t>::Result count_t;
+		using count_t = typename std::conditional<sizeof(decltype(tcnt::value())) == 1, uint8_t, uint16_t>::type;
 		
 		static void enable(clocksource_t source){
 			tccr::value() = (tccr::value() & ~clocksource_mask) | (uint8_t)source;
@@ -80,7 +82,7 @@ namespace fasthal{
 	
 	template<class tccr, uint8_t nc_bit, uint8_t es_bit, class icr>
 	struct AvrTimerIc{
-		typedef typename Loki::Select<sizeof(decltype(icr::value())) == 1, uint8_t, uint16_t>::Result ic_t;
+		using ic_t = typename std::conditional<sizeof(decltype(icr::value())) == 1, uint8_t, uint16_t>::type;
 		static void enableIcNoiseCanceller(bool enable){ fh_wbi(tccr::value(), nc_bit, enable); }
 		static void setIcEdge(bool rise){ fh_wbi(tccr::value(), es_bit, rise); }
 		static ic_t getIc() { return icr::value(); }
@@ -90,7 +92,7 @@ namespace fasthal{
 #define FH_TIMER_DECLARE_OC_TEMPLATE(x, X)\
 	template<class tccr, typename com_t, uint8_t com_mask, class ocr>\
 	struct AvrTimerOc ## X{\
-		typedef typename Loki::Select<sizeof(decltype(ocr::value())) == 1, uint8_t, uint16_t>::Result oc ## x ## _t;\
+		using oc ## x ## _t = typename std::conditional<sizeof(decltype(ocr::value())) == 1, uint8_t, uint16_t>::type;\
 		static void setCom ## x(com_t com) { tccr::value() = (tccr::value() & ~com_mask) | (uint8_t) com; }\
 		static oc ## x ## _t getOc ## X() { return ocr::value(); }\
 		static void setOc ## X(oc ## x ## _t v){ ocr::value() = v; }\
