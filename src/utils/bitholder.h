@@ -14,105 +14,78 @@
 
 namespace fasthal
 {
+	// TODO: Fix/remove/refactor
 	namespace common
 	{
-		template<class TNumber>
-		class NotBitNumber;
-
-		template<class TNumber>
+		template<class TNumber, bool VNot>
 		class BitNumber
 		{	
 			private:
 				const TNumber _number;
+				
+				using bit_number_t = BitNumber<TNumber, VNot>;
 			public:
-				constexpr BitNumber():_number()
+				constexpr BitNumber():_number{}
 				{
 			
 				}
-				constexpr BitNumber(TNumber number):_number(number)
+				constexpr BitNumber(TNumber number):_number{number}
 				{
 				}
 		
-				constexpr TNumber number(){return _number;}
+				constexpr auto number(){return _number;}
 		
 				template<class T>
-				constexpr BitNumber<TNumber> operator<<(T val){return BitNumber<TNumber>(number() + val);}
+				constexpr auto operator<<(T val){return bit_number_t{number() + val};}
 				template<class T>
-				constexpr BitNumber<TNumber> operator>>(T val){return BitNumber<TNumber>(number() - val);}
+				constexpr auto operator>>(T val){return bit_number_t{number() - val};}
 		
 				template<class T>
-				BitNumber<TNumber>& operator<<=(T val){_number += val; return *this;}
+				bit_number_t& operator<<=(T val){_number += val; return *this;}
 				template<class T>
-				BitNumber<TNumber>& operator>>=(T val){_number -= val; return *this;}
+				bit_number_t& operator>>=(T val){_number -= val; return *this;}
 		
-				NotBitNumber<TNumber> operator~(){ return NotBitNumber<TNumber>(_number);}
+				constexpr auto operator~(){ return BitNumber<TNumber, !VNot>{_number};}
 		};
-
-		template<class TNumber>
-		class NotBitNumber: public BitNumber<TNumber>
-		{
-			private:
-				const TNumber _number;
-			public:
-				constexpr NotBitNumber():_number()
-				{
-			
-				}
-				constexpr NotBitNumber(TNumber number):_number(number)
-				{
-				}
 		
-				constexpr TNumber number(){return _number;}
-		
-				template<class T>
-				constexpr NotBitNumber<TNumber> operator<<(T val){return NotBitNumber<TNumber>(number() + val);}
-				template<class T>
-				constexpr NotBitNumber<TNumber> operator>>(T val){return NotBitNumber<TNumber>(number() - val);}
-		
-				template<class T>
-				NotBitNumber<TNumber>& operator<<=(T val){_number += val; return *this;}
-				template<class T>
-				NotBitNumber<TNumber>& operator>>=(T val){_number -= val; return *this;}
-		
-				BitNumber<TNumber> operator~(){ return BitNumber<TNumber>(_number);}
-		};	
-
 		template<unsigned N>
 		class BitHolder
 		{
 			private:
-				static constexpr unsigned MaxBitIndex = N * 8;
-				static constexpr unsigned ByteSize = N;
+				static constexpr unsigned maxBitIndex = N * 8;
+				static constexpr unsigned byteSize = N;
+
+				using bit_holder_t = BitHolder<N>;
 			public:
-				uint8_t _buf[ByteSize];
+				uint8_t _buf[byteSize];
 		
-				using ByteNumberType = brigand::number_type<N>;
+				using byte_number_t = brigand::number_type<N>;
 			
-				constexpr uint8_t operator[](ByteNumberType number){return _buf[number];}
-				uint8_t& operator[](ByteNumberType number){return _buf[number];}
+				// constexpr uint8_t operator[](byte_number_t number){return _buf[number];}
+				// uint8_t& operator[](byte_number_t number){return _buf[number];}
 		
 			public:
-				using BitNumberType = brigand::number_type<MaxBitIndex>;
-				using MaskType = BitHolder<N>;
-				using BitMaskType = BitNumber<BitNumberType>;
+				using bit_number_t = brigand::number_type<maxBitIndex>;
+				using masktype_t = bit_holder_t;
+				using bit_masktype_t = BitNumber<byte_number_t, false>;
 
 
 				template<class Num>
-				inline BitHolder<N>& operator|=(const BitNumber<Num> num)
+				inline bit_holder_t& operator|=(const BitNumber<Num, false> num)
 				{
 					_buf[num.number() / 8] |= 1 << (num.number() % 8);
 					return *this;
 				}
 
 				template<class Num>
-				inline BitHolder<N>& operator^=(const BitNumber<Num> num)
+				inline bit_holder_t& operator^=(const BitNumber<Num, false> num)
 				{
 					_buf[num.number() / 8] ^= 1 << (num.number() % 8);
 					return *this;
 				}
 
 				template<class Num>
-				inline BitHolder<N>& operator&=(const NotBitNumber<Num> num)
+				inline bit_holder_t& operator&=(const BitNumber<Num, true> num)
 				{
 			
 					_buf[num.number() / 8] &= ~(1 << (num.number() % 8));
@@ -120,7 +93,7 @@ namespace fasthal
 				}
 		
 				template<class Num>
-				constexpr inline bool operator&(const BitNumber<Num> num)const
+				constexpr inline bool operator&(const BitNumber<Num, false> num)const
 				{
 					return _buf[num.number() / 8] & (1 << (num.number() % 8));
 				}
@@ -128,7 +101,7 @@ namespace fasthal
 			private:
 				bool isTruthy()const
 				{
-					for (ByteNumberType i = 0; i < N; ++i)
+					for (bit_number_t i = 0; i < N; ++i)
 						if (_buf[i])
 							return true;
 					return false;					
@@ -162,8 +135,8 @@ namespace fasthal
 	struct bitmask_types<common::BitHolder<N>>
 	{
 		using MaskType = common::BitHolder<N>;
-		using OneBitMask = typename MaskType::BitMaskType;
-		using BitNumberType = typename MaskType::BitNumberType;
+		using OneBitMask = typename MaskType::bit_masktype_t;
+		using BitNumberType = typename MaskType::bit_number_t;
 		static constexpr bool OnlyBitInterface = true;
 		static constexpr OneBitMask bitToMask(BitNumberType num){return OneBitMask() << num; }
 		static constexpr BitNumberType maskToBit(OneBitMask value)
