@@ -70,22 +70,22 @@ namespace fasthal
 	using bytes_bitmask_type = typename details::bytes_bitmask_type_impl<bytes>::type;
 		
 	// TODO: Refactor this
-	template<class DataType>
+	template<class TDataType>
 	struct bitmask_types
 	{
-		using MaskType = DataType;
-		using OneBitMask = DataType;
-		using BitNumberType = brigand::number_type<sizeof(DataType) * 8>;
-		static constexpr bool OnlyBitInterface = false;
-		static constexpr OneBitMask bitToMask(BitNumberType num){return OneBitMask { 1 } << num; }
-		static constexpr BitNumberType maskToBit(OneBitMask value)
+		using masktype_t = TDataType;
+		using onebitmask_t = TDataType;
+		using bitnumer_t = brigand::number_type<sizeof(TDataType) * 8>;
+
+		static constexpr onebitmask_t bitToMask(bitnumer_t num){return onebitmask_t { 1 } << num; }
+		static constexpr bitnumer_t maskToBit(onebitmask_t value)
 		{
 			return (value & 1) ? 0 : (1 + maskToBit(value >> 1));
 		}
 	};
 
-	template <class DataType>
-	using bitmask_type = typename bitmask_types<DataType>::MaskType;
+	template <class TDataType>
+	using bitmask_type = typename bitmask_types<TDataType>::masktype_t;
 }
 
 #endif /* MASKUTILS_H_ */

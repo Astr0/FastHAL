@@ -22,7 +22,7 @@ namespace fasthal
 	using field_mask_types = bitmask_types<field_data_type<TField>>;
 
 	template<class TField>
-	using field_mask_type = typename field_mask_types<TField>::MaskType;
+	using field_mask_type = typename field_mask_types<TField>::masktype_t;
 
 	template <class TField>
 	struct field_width: std::integral_constant<unsigned, sizeof(field_data_type<TField>) * 8>{};

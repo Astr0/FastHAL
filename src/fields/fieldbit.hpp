@@ -2,7 +2,8 @@
 #define FH_FIELDBIT_H_
 
 #include "info.hpp"
-#include <inttypes.h>
+#include "../mp/type_traits.hpp"
+#include "../mp/std_types.hpp"
 
 namespace fasthal
 {
@@ -16,7 +17,7 @@ namespace fasthal
 		public:
 		using field_t = TField;
 
-		static constexpr auto number = typename mask_types_t::BitNumberType { VNumber };
+		static constexpr auto number = typename mask_types_t::bitnumer_t { VNumber };
 		static constexpr auto mask = mask_types_t::bitToMask(number);
 		static constexpr auto inverted = VInverted; 
 	};
@@ -74,6 +75,14 @@ namespace fasthal
 	template<class TField, unsigned VNumber>
 	bool read(field_bit<TField, VNumber, true> fieldBit){
 		return !read(TField{}, field_bit<TField, VNumber, true>::mask);
+	}
+
+	namespace details{
+		template<class T>
+		struct is_field_bit: std::false_type{};
+
+		template<class TField, unsigned VNumber, bool VInverted>
+		struct is_field_bit<field_bit<TField, VNumber, VInverted>>: std::true_type{};
 	}
 }
 

@@ -2,10 +2,8 @@
 #define FH_VFIELD_H_
 
 #include "fieldbit.hpp"
-#include "fieldbits.hpp"
 #include "../sys/typelistutils.h"
 //#include "../utils/bitholder.h"
-#include "../mp/brigand.hpp"
 #include "vfield_impl.hpp"
 
 
@@ -14,27 +12,8 @@ namespace fasthal{
 	template<class... TFieldBits>
 	struct vfield
 	{
-		// TODO: Static assert that all TFieldBits are field bits		
-
-
-		#ifdef VFIELD_OLD
-		using fieldbits_t = typename fasthal::priv::MakeFieldBitList<TFieldBits...>::Result ;
-		using fields_t = typename Loki::TL::NoDuplicates<typename priv::MakeFieldList<fieldbits_t>::Result>::Result;            
-		using datatype_t = bytes_bitmask_type<maskSizeInBytes(brigand::count<TFieldBits...>::value)>;
-		using impl_t = priv::FieldListIterator<fields_t, fieldbits_t, datatype_t>; 
-
-		static void write(datatype_t value) 
-		{
-			impl_t::write(value);
-		}
-
-		static datatype_t read() 
-		{
-			return impl_t::read();
-		}
-		
-		#else
-
+		static_assert(brigand::all<brigand::list<TFieldBits...>, brigand::bind<details::is_field_bit, brigand::_1>>::value, "Only field bits can be passed to make vfield");
+	
 		using impl_container_t = details::vfield_impl<TFieldBits...>;
 		using datatype_t = typename impl_container_t::datatype_t;
 		using impl_t = typename impl_container_t::impl_t;
@@ -50,8 +29,6 @@ namespace fasthal{
 			impl_t::read(result);
 			return result;
 		}
-
-		#endif
 	};
 
 	// create vfield

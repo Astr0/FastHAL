@@ -8,7 +8,7 @@
 #include "interrupts.h"
 #include <avr/io.h>
 #include "../../utils/functions.h"
-#include "../../fields/fieldbits.hpp"
+//#include "../../fields/fieldbits.hpp"
 
 #define FASTHAL_DECLAREREGISTER( NAME, VAR)\
 namespace priv{\
