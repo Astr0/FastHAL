@@ -34,7 +34,7 @@ namespace brigand{
                 typename std::conditional<(N <= 65536), std::uint16_t, std::uint32_t>::type> { };
     }
 
-	// smallest type that fits N
+	// smallest type that can hold N values (N-1 max value)
 	template<unsigned int N>
 	using number_type = typename details::number_type_impl<N>::type;
 }

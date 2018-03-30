@@ -1,4 +1,3 @@
-//#define VFIELD_OLD
 #include <avr/io.h>
 #include "fasthal.h"
 

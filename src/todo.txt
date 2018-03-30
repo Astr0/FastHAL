@@ -1,4 +1,5 @@
-* replace Loki with brigand
-* rename port to Field and FieldBit to FieldBit, simplify port interface
-* constexpr interface with action factories and apply
++ replace Loki with brigand
++ rename port to Field and FieldBit to FieldBit, simplify port interface
++ constexpr interface 
+* interface with action factories and apply
 * make VField generate this interface too
