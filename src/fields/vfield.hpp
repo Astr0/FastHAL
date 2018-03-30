@@ -14,25 +14,20 @@ namespace fasthal{
 	class VField
 	{
 		private:
-			using FieldBits = typename fasthal::priv::MakeFieldBitList<TFieldBits...>::Result ;
-			using Fields = typename Loki::TL::NoDuplicates<typename priv::MakeFieldList<FieldBits>::Result>::Result ;
-			
-			static constexpr auto BitCount = brigand::count<TFieldBits...>::value;
-			static constexpr auto ByteSize = maskSizeInBytes(BitCount);
-			
-			using DataType = bytes_bitmask_type<ByteSize>;
+			using fieldbits_t = typename fasthal::priv::MakeFieldBitList<TFieldBits...>::Result ;
+			using fields_t = typename Loki::TL::NoDuplicates<typename priv::MakeFieldList<fieldbits_t>::Result>::Result;			
+			using datatype_t = bytes_bitmask_type<maskSizeInBytes(brigand::count<TFieldBits...>::value)>;
 		public:		
-			using Impl = priv::FieldListIterator<Fields, FieldBits, DataType>; 
-			// port impl
+			using impl_t = priv::FieldListIterator<fields_t, fieldbits_t, datatype_t>; 
 
-			static void write(DataType value) 
+			static void write(datatype_t value) 
 			{
-				Impl::write(value);
+				impl_t::write(value);
 			}
 
-			static DataType read() 
+			static datatype_t read() 
 			{
-				return Impl::read();
+				return impl_t::read();
 			}
 	};
 
@@ -58,7 +53,7 @@ namespace fasthal{
 		typename MaskType = field_mask_type<Field>>
 	static void clearAndSet(VField<TFieldBits...> field, MaskType clearMask, MaskType setMask) 
 	{
-		Field::Impl::clearAndSet(clearMask, setMask);
+		Field::impl_t::clearAndSet(clearMask, setMask);
 	}				
 
 	template<class... TFieldBits, 
@@ -66,14 +61,14 @@ namespace fasthal{
 		typename MaskType = field_mask_type<Field>>
 	static void set(VField<TFieldBits...> field, MaskType mask) 
 	{
-		Field::Impl::set(mask);
+		Field::impl_t::set(mask);
 	}
 	template<class... TFieldBits, 
 		typename Field = VField<TFieldBits...>,
 		typename MaskType = field_mask_type<Field>>
 	static void clear(VField<TFieldBits...> field, MaskType mask) 
 	{
-		Field::Impl::clear(mask);					
+		Field::impl_t::clear(mask);					
 	}
 
 	template<class... TFieldBits, 
@@ -81,7 +76,7 @@ namespace fasthal{
 		typename MaskType = field_mask_type<Field>>
 	static void toggle(VField<TFieldBits...> field, MaskType mask) 
 	{
-		Field::Impl::toggle(mask);
+		Field::impl_t::toggle(mask);
 	}
 }
 

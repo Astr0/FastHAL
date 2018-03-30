@@ -4,6 +4,7 @@
 #include "info.hpp"
 
 namespace fasthal{
+    // common "fallback" actions for Fields
     template<class TField, typename DataType = field_data_type<TField>>
     constexpr void write(TField field, DataType value) 
     {
