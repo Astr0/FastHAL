@@ -9,26 +9,15 @@ namespace fasthal{
         using namespace brigand;
 
         // hold fieldbit and position
-        template<class TFieldBit, unsigned VPos>
+        template<class TFieldBit, std::uint32_t VPos>
         struct fieldbit_pos{
             using field_bit_t = TFieldBit;
             static constexpr auto position = VPos;
         };
+
+        template<class TFieldBit, class TPos>
+        using make_fieldbit_pos = fieldbit_pos<TFieldBit, TPos::value>;
         
-        // make list with position
-        template<unsigned N, class... TFieldBits>
-        struct make_fieldbit_pos_list{
-            using type = list<>;
-        };
-
-        template<unsigned N, class TFieldBit, class... TRest>
-        struct make_fieldbit_pos_list<N, TFieldBit, TRest...>{
-            using fieldbit_pos_t = fieldbit_pos<TFieldBit, N>;
-            using type = push_front<
-                typename make_fieldbit_pos_list<N + 1, TRest...>::type,
-                fieldbit_pos_t>;
-        };
-
         template<class TFieldBitPos>
         using is_inverted_field_bit_pos = bool_<TFieldBitPos::field_bit_t::inverted>;
 
@@ -89,11 +78,15 @@ namespace fasthal{
         struct vfield_impl
         {
             // calc data type and mask type
-            using datatype_t = bytes_bitmask_type<maskSizeInBytes(count<TFieldBits...>::value)>;
+            static constexpr auto bits_count = count<TFieldBits...>::value;
+            using datatype_t = bytes_bitmask_type<maskSizeInBytes(bits_count)>;
             using masktype_t = bitmask_type<datatype_t>;
 
             // add position to each fieldbit
-            using all_fieldbits_pos_t = typename make_fieldbit_pos_list<0, TFieldBits...>::type;
+            using all_fieldbits_pos_t = transform<
+                list<TFieldBits...>, 
+                make_sequence<brigand::uint32_t<0>, bits_count>, 
+                bind<make_fieldbit_pos, _1, _2>>;
 
             // iterate through bits on one field and do something great
             template <class TFieldBitsPos>
@@ -238,11 +231,13 @@ namespace fasthal{
                     // Apply inversion mask on value
                     auto result = appendWriteValue(value);
 
-                    if(my_fieldbits_count == (int)field_width<TField>()) {// whole Field
+                    if(my_fieldbits_count == (int)field_width<TField>()) {
+                        // whole Field write
                         fasthal::write(field, result);
                     } else {
                         constexpr auto my_mask = make_fieldbits_pos_mask<field_masktype_t, my_fieldbits_pos_t>::value;
-
+                        
+                        // clear everything that belongs to us and set only resut
                         fasthal::clearAndSet(field, my_mask, result);
                     }
                 }	
@@ -251,10 +246,10 @@ namespace fasthal{
                     auto resultC = appendMaskValue(clearMask);
                     auto resultS = appendMaskValue(setMask);
                     if (my_inveted_count == 0) {
-                        // All not inverted
+                        // direct S&C
                         fasthal::clearAndSet(field, resultC, resultS);
                     } else if (my_inveted_count == my_fieldbits_count) {
-                        // All inverted
+                        // Invert S&C
                         fasthal::clearAndSet(field, resultS, resultC);				
                     } else {
                         // Mix... calculate set and clear masks...
@@ -269,6 +264,7 @@ namespace fasthal{
                 }
                 static void set(masktype_t value){
                     if (my_inveted_count == 0) {
+                        // direct set
                         auto result = appendMaskValue(value);
                         fasthal::set(field, result);			
                     } else if (my_inveted_count == my_fieldbits_count) {
@@ -285,6 +281,7 @@ namespace fasthal{
                 }
                 static void clear(masktype_t value){
                     if (my_inveted_count == 0){
+                        // direct clear
                         auto result = appendMaskValue(value);
                         fasthal::clear(field, result);			
                     } else if (my_inveted_count == my_fieldbits_count){
