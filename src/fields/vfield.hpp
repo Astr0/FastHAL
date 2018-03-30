@@ -18,9 +18,9 @@ namespace fasthal{
 			using Fields = typename Loki::TL::NoDuplicates<typename priv::MakeFieldList<FieldBits>::Result>::Result ;
 			
 			static constexpr auto BitCount = brigand::count<TFieldBits...>::value;
-			static constexpr auto ByteSize = fasthal::common::minSizeInBytes(BitCount);
+			static constexpr auto ByteSize = maskSizeInBytes(BitCount);
 			
-			using DataType = typename fasthal::common::BitMaskType<ByteSize>::Result;
+			using DataType = bytes_bitmask_type<ByteSize>;
 		public:		
 			using Impl = priv::FieldListIterator<Fields, FieldBits, DataType>; 
 			// port impl

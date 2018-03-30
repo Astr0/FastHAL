@@ -108,17 +108,13 @@ namespace fasthal
 		template <class TValueType> 
 		struct GetValueMask<Loki::NullType, TValueType>
 		{
-			typedef fasthal::common::BitMaskTypes<TValueType> BM;
-			typedef typename BM::MaskType MaskType;
-			static constexpr MaskType value = MaskType();
+			static constexpr auto value = bitmask_type<TValueType>{};
 		};
 
 		template <class Head, class Tail, class TValueType>
 		struct GetValueMask<Loki::Typelist<Head, Tail>, TValueType>
 		{
-			typedef fasthal::common::BitMaskTypes<TValueType> BM;
-			typedef typename BM::MaskType MaskType;					
-			static constexpr MaskType value = BM::bitToMask(Head::Position) | GetValueMask<Tail, TValueType>::value;
+			static constexpr auto value = bitmask_types<TValueType>::bitToMask(Head::Position) | GetValueMask<Tail, TValueType>::value;
 		};
 
 		// Number of sequental pins in list
@@ -150,8 +146,7 @@ namespace fasthal
 		template <class TDataType> 
 		class PinWriteIterator<Loki::NullType, TDataType>
 		{
-			typedef fasthal::common::BitMaskTypes<TDataType> MT;
-			typedef typename MT::MaskType MaskType;
+			typedef typename bitmask_types<TDataType>::MaskType MaskType;
 			
 			public:
 			
@@ -196,7 +191,7 @@ namespace fasthal
 		template <class Head, class Tail, class TDataType>
 		class PinWriteIterator<Loki::Typelist<Head, Tail>, TDataType>
 		{
-			typedef fasthal::common::BitMaskTypes<TDataType> MT;
+			typedef bitmask_types<TDataType> MT;
 			typedef typename MT::MaskType MaskType;
 			typedef PinWriteIterator<Tail, TDataType> NextIterator;
 			static constexpr typename MT::OneBitMask ListMask = MT::bitToMask(Head::Position);
@@ -230,7 +225,7 @@ namespace fasthal
 					typedef typename fasthal::common::TL::TakeFirst<CurrentList, SerialLength>::Result SerialList;
 					typedef typename fasthal::common::TL::SkipFirst<CurrentList, SerialLength>::Result RestList;
 
-					result |= (fasthal::common::shift<FieldBit::Number - Head::Position>(value) & GetFieldMask<SerialList, DataType>::value) ^ InversionMask<SerialList, DataType>::value;
+					result |= (fasthal::shift<FieldBit::Number - Head::Position>(value) & GetFieldMask<SerialList, DataType>::value) ^ InversionMask<SerialList, DataType>::value;
 
 					return PinWriteIterator<RestList, TDataType>::template appendValue<DataType, InversionMask>(value, result);
 				}
@@ -282,7 +277,7 @@ namespace fasthal
 					typedef typename fasthal::common::TL::SkipFirst<CurrentList, SerialLength>::Result RestList;
 
 
-					result |= fasthal::common::shift<Head::Position - Head::FieldBit::Number>(FieldValue ^ GetInversionMask<SerialList, MaskType>::value) & GetValueMask<SerialList, MaskType>::value;
+					result |= fasthal::shift<Head::Position - Head::FieldBit::Number>(FieldValue ^ GetInversionMask<SerialList, MaskType>::value) & GetValueMask<SerialList, MaskType>::value;
 					return PinWriteIterator<RestList, TDataType>::appendReadValue(FieldValue, result);
 				}
 
@@ -348,9 +343,6 @@ namespace fasthal
 		};
 		
 		// Iterates through Field list and write value to them
-		// TODO: Fix DataType, MaskType and BitMaskType!!!
-		//		 Add Read(BitMaskType) - performance!		
-		
 		template <class TFieldList, class TFieldBitList, class TValueType>
 		struct FieldListIterator;						
 		template <class TFieldList, class TFieldBitList, class TValueType, bool VIsComplex>
@@ -359,7 +351,7 @@ namespace fasthal
 		template <class TFieldBitList, class TValueType, bool VIsComplex> 
 		class FieldListIteratorImpl<Loki::NullType, TFieldBitList, TValueType, VIsComplex>
 		{
-			typedef fasthal::common::BitMaskTypes<TValueType> BitMaskTypes;
+			typedef bitmask_types<TValueType> BitMaskTypes;
 			typedef typename BitMaskTypes::OneBitMask BitMaskType;
 			typedef typename BitMaskTypes::BitNumberType BitNumberType;
 			typedef typename BitMaskTypes::MaskType MaskType;
@@ -408,7 +400,7 @@ namespace fasthal
 
 			typedef typename Loki::Select<sizeof(FieldType) >= sizeof(TValueType), FieldType, TValueType>::Result DataType;
 			
-			typedef fasthal::common::BitMaskTypes<DataType> BitMaskTypes;
+			typedef bitmask_types<DataType> BitMaskTypes;
 			typedef typename BitMaskTypes::OneBitMask BitMaskType;
 			typedef typename BitMaskTypes::BitNumberType BitNumberType;
 			typedef typename BitMaskTypes::MaskType MaskType;
@@ -530,7 +522,7 @@ namespace fasthal
 
 			typedef TValueType DataType;
 			
-			typedef fasthal::common::BitMaskTypes<DataType> BitMaskTypes;
+			typedef bitmask_types<DataType> BitMaskTypes;
 			typedef typename BitMaskTypes::OneBitMask BitMaskType;
 			typedef typename BitMaskTypes::BitNumberType BitNumberType;
 			typedef typename BitMaskTypes::MaskType MaskType;
@@ -586,7 +578,7 @@ namespace fasthal
 		struct IsComplexFieldListImpl
 		{
 			typedef typename FieldList::Head FieldType;
-			static constexpr bool value = !field_mask_types<FieldType>::OnlyBitInterface && !fasthal::common::BitMaskTypes<ValueType>::OnlyBitInterface;
+			static constexpr bool value = !field_mask_types<FieldType>::OnlyBitInterface && !bitmask_types<ValueType>::OnlyBitInterface;
 		};
 
 		template<class ValueType>

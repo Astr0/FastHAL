@@ -19,7 +19,7 @@ namespace fasthal
 	using field_data_type = decltype(fasthal::common::declval<TField>().read());
 
 	template<class TField>
-	using field_mask_types = fasthal::common::BitMaskTypes<field_data_type<TField>>;
+	using field_mask_types = bitmask_types<field_data_type<TField>>;
 
 	template<class TField>
 	using field_mask_type = typename field_mask_types<TField>::MaskType;

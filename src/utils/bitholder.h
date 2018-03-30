@@ -145,28 +145,32 @@ namespace fasthal
 				}				
 		};
 		
+		
+	}
+
+	namespace details{
+		// set this as fallback for large bit masks
 		template<unsigned bytes>
-		struct BitMaskType
+		struct bytes_bitmask_type_impl
 		{
-			typedef BitHolder<bytes> Result;
-		};
-				
-
-
-		template<unsigned N>
-		struct BitMaskTypes<BitHolder<N>>
-		{
-			using OneBitMask = typename BitHolder<N>::BitMaskType;
-			using MaskType = BitHolder<N> ;
-			using BitNumberType = typename BitHolder<N>::BitNumberType;
-			static constexpr bool OnlyBitInterface = true;
-			static constexpr OneBitMask bitToMask(BitNumberType num){return OneBitMask() << num; }
-			static constexpr BitNumberType maskToBit(OneBitMask value)
-			{
-				return value.number();
-			}					
+			using type = common::BitHolder<bytes>;
 		};
 	}
+			
+	// bitmask type info
+	template<unsigned N>
+	struct bitmask_types<common::BitHolder<N>>
+	{
+		using MaskType = common::BitHolder<N>;
+		using OneBitMask = typename MaskType::BitMaskType;
+		using BitNumberType = typename MaskType::BitNumberType;
+		static constexpr bool OnlyBitInterface = true;
+		static constexpr OneBitMask bitToMask(BitNumberType num){return OneBitMask() << num; }
+		static constexpr BitNumberType maskToBit(OneBitMask value)
+		{
+			return value.number();
+		}					
+	};
 }
 
 
