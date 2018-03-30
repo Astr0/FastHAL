@@ -30,7 +30,7 @@ namespace fasthal
 		template<class TFieldBitHolder>
 		struct SelectBitHolderField
 		{
-			using Result = typename TFieldBitHolder::FieldBit::Field;
+			using Result = typename TFieldBitHolder::FieldBit::field_t;
 		};
 
 		template<class TFieldBitList>
@@ -44,14 +44,14 @@ namespace fasthal
 		template<class TFieldBitHolder>
 		struct PinPositionMatchPredicate
 		{
-			static constexpr bool value = TFieldBitHolder::Position == TFieldBitHolder::FieldBit::Number;
+			static constexpr bool value = TFieldBitHolder::Position == TFieldBitHolder::FieldBit::number;
 		};
 
 		// Predicate<BitPositionHolder> - inverted pins
 		template<class TFieldBitHolder>
 		struct InvertedFieldBitsPredicate
 		{
-			static constexpr bool value = TFieldBitHolder::FieldBit::Inverted;
+			static constexpr bool value = TFieldBitHolder::FieldBit::inverted;
 		};
 
 		// Result - Predicate<BitPositionHolder> - pins that belongs to TField Field
@@ -74,7 +74,7 @@ namespace fasthal
 			template <class TFieldBitHolder, MaskType VTail>
 			struct Predicate
 			{
-				static constexpr MaskType value = (TFieldBitHolder::FieldBit::Inverted ? TFieldBitHolder::FieldBit::Mask : 0) | VTail;
+				static constexpr MaskType value = (TFieldBitHolder::FieldBit::inverted ? TFieldBitHolder::FieldBit::mask : 0) | VTail;
 			};
 			static constexpr MaskType Empty = MaskType();					
 			static constexpr MaskType value = fasthal::common::TL::Aggregate<TList, MaskType, Empty, Predicate>::value;
@@ -95,7 +95,7 @@ namespace fasthal
 			template <class TFieldBitHolder, MaskType VTail>
 			struct Predicate
 			{
-				static constexpr MaskType value = TFieldBitHolder::FieldBit::Mask | VTail;
+				static constexpr MaskType value = TFieldBitHolder::FieldBit::mask | VTail;
 			};					
 			static constexpr MaskType Empty = MaskType();
 			static constexpr MaskType value = fasthal::common::TL::Aggregate<TList, MaskType, Empty, Predicate>::value;
@@ -131,7 +131,7 @@ namespace fasthal
 		struct GetSerialCount< Loki::Typelist<Head, Tail> >
 		{
 			typedef GetSerialCount<Tail> I;
-			static constexpr int PinNumber = Head::FieldBit::Number;
+			static constexpr int PinNumber = Head::FieldBit::number;
 			static constexpr int BitPosition = Head::Position;
 			static constexpr int value =
 				((PinNumber == I::PinNumber - 1 &&
@@ -225,7 +225,7 @@ namespace fasthal
 					typedef typename fasthal::common::TL::TakeFirst<CurrentList, SerialLength>::Result SerialList;
 					typedef typename fasthal::common::TL::SkipFirst<CurrentList, SerialLength>::Result RestList;
 
-					result |= (fasthal::shift<FieldBit::Number - Head::Position>(value) & GetFieldMask<SerialList, DataType>::value) ^ InversionMask<SerialList, DataType>::value;
+					result |= (fasthal::shift<FieldBit::number - Head::Position>(value) & GetFieldMask<SerialList, DataType>::value) ^ InversionMask<SerialList, DataType>::value;
 
 					return PinWriteIterator<RestList, TDataType>::template appendValue<DataType, InversionMask>(value, result);
 				}
@@ -233,12 +233,12 @@ namespace fasthal
 				if(!(InversionMask<Loki::Typelist<Head, Loki::NullType>, DataType>::value))
 				{
 					if(value & ListMask)
-						result |= FieldBit::Mask;
+						result |= FieldBit::mask;
 				}
 				else
 				{
 					if(!(value & ListMask))
-						result |= FieldBit::Mask;
+						result |= FieldBit::mask;
 				}
 
 				return PinWriteIterator<Tail, TDataType>::template appendValue<DataType, InversionMask>(value, result);
@@ -277,18 +277,18 @@ namespace fasthal
 					typedef typename fasthal::common::TL::SkipFirst<CurrentList, SerialLength>::Result RestList;
 
 
-					result |= fasthal::shift<Head::Position - Head::FieldBit::Number>(FieldValue ^ GetInversionMask<SerialList, MaskType>::value) & GetValueMask<SerialList, MaskType>::value;
+					result |= fasthal::shift<Head::Position - Head::FieldBit::number>(FieldValue ^ GetInversionMask<SerialList, MaskType>::value) & GetValueMask<SerialList, MaskType>::value;
 					return PinWriteIterator<RestList, TDataType>::appendReadValue(FieldValue, result);
 				}
 
 				if(GetInversionMask<Loki::Typelist<Head, Loki::NullType>, MaskType>::value)
 				{
-					if(!(FieldValue & Head::FieldBit::Mask))
+					if(!(FieldValue & Head::FieldBit::mask))
 						result |= ListMask;
 
 				}else
 				{
-					if(FieldValue & Head::FieldBit::Mask)
+					if(FieldValue & Head::FieldBit::mask)
 						result |= ListMask;
 				}
 

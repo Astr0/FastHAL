@@ -8,53 +8,53 @@ namespace fasthal
 {
 	// The ONE AND ONLY Bit of ANY TField which implements field interface
 	template<class TField, unsigned VNumber, bool VInverted = false>
-	class FieldBit
+	class field_bit
 	{
-		using mask_types = field_mask_types<TField>;
-		static_assert(VNumber < field_width<TField>(), "FieldBit number out of range");
+		using mask_types_t = field_mask_types<TField>;
+		static_assert(VNumber < field_width<TField>(), "field_bit number out of range");
 		
 		public:
-		using Field = TField;
+		using field_t = TField;
 
-		static constexpr auto Number = typename mask_types::BitNumberType { VNumber };
-		static constexpr auto Mask = mask_types::bitToMask(Number);
-		static constexpr auto Inverted = VInverted;
+		static constexpr auto number = typename mask_types_t::BitNumberType { VNumber };
+		static constexpr auto mask = mask_types_t::bitToMask(number);
+		static constexpr auto inverted = VInverted; 
 	};
 
 	// create field bit
 	template<unsigned VNumber, class TField>
 	constexpr decltype(auto) fieldBit(TField field){
-		return FieldBit<TField, VNumber, false>{};
+		return field_bit<TField, VNumber, false>{};
 	}
 
 	// invert field bit
 	template<class TField, unsigned VNumber, bool VInverted>
-	constexpr decltype(auto) invert(FieldBit<TField, VNumber, VInverted> fieldBit){
-		return FieldBit<TField, VNumber, !VInverted>{};
+	constexpr decltype(auto) invert(field_bit<TField, VNumber, VInverted> fieldBit){
+		return field_bit<TField, VNumber, !VInverted>{};
 	}
 
 	template<class TField, unsigned VNumber>
-	void set(FieldBit<TField, VNumber, false> fieldBit){
-		set(TField{}, FieldBit<TField, VNumber, false>::Mask);
+	void set(field_bit<TField, VNumber, false> fieldBit){
+		set(TField{}, field_bit<TField, VNumber, false>::mask);
 	}
 
 	template<class TField, unsigned VNumber>
-	void set(FieldBit<TField, VNumber, true> fieldBit){
-		clear(TField{}, FieldBit<TField, VNumber, false>::Mask);
+	void set(field_bit<TField, VNumber, true> fieldBit){
+		clear(TField{}, field_bit<TField, VNumber, false>::mask);
 	}
 
 	template<class TField, unsigned VNumber>
-	void clear(FieldBit<TField, VNumber, false> fieldBit){
-		clear(TField{}, FieldBit<TField, VNumber, false>::Mask);
+	void clear(field_bit<TField, VNumber, false> fieldBit){
+		clear(TField{}, field_bit<TField, VNumber, false>::mask);
 	}
 
 	template<class TField, unsigned VNumber>
-	void clear(FieldBit<TField, VNumber, true> fieldBit){
-		set(TField{}, FieldBit<TField, VNumber, false>::Mask);
+	void clear(field_bit<TField, VNumber, true> fieldBit){
+		set(TField{}, field_bit<TField, VNumber, false>::mask);
 	}
 
 	template<class TField, unsigned VNumber, bool VInverted>
-	void set(FieldBit<TField, VNumber, VInverted> fieldBit, bool v){
+	void set(field_bit<TField, VNumber, VInverted> fieldBit, bool v){
 		if (v)
 			set(fieldBit);
 		else
@@ -62,18 +62,18 @@ namespace fasthal
 	}
 
 	template<class TField, unsigned VNumber, bool VInverted>
-	void toggle(FieldBit<TField, VNumber, VInverted> fieldBit){
-		toggle(TField{}, FieldBit<TField, VNumber, VInverted>::Mask);
+	void toggle(field_bit<TField, VNumber, VInverted> fieldBit){
+		toggle(TField{}, field_bit<TField, VNumber, VInverted>::mask);
 	}
 
 	template<class TField, unsigned VNumber>
-	bool read(FieldBit<TField, VNumber, false> fieldBit){
-		return read(TField{}, FieldBit<TField, VNumber, false>::Mask);
+	bool read(field_bit<TField, VNumber, false> fieldBit){
+		return read(TField{}, field_bit<TField, VNumber, false>::mask);
 	}
 
 	template<class TField, unsigned VNumber>
-	bool read(FieldBit<TField, VNumber, true> fieldBit){
-		return !read(TField{}, FieldBit<TField, VNumber, true>::Mask);
+	bool read(field_bit<TField, VNumber, true> fieldBit){
+		return !read(TField{}, field_bit<TField, VNumber, true>::mask);
 	}
 }
 
