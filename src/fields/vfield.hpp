@@ -24,9 +24,11 @@ namespace fasthal{
 			impl_t::write(value);
 		}
 
-		static datatype_t read() 
+		static auto read() 
 		{
-			return impl_t::read();
+			auto result = datatype_t{};
+			impl_t::read(result);
+			return result;
 		}
 	};
 
