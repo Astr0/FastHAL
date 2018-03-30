@@ -17,9 +17,7 @@ namespace brigand{
         struct no_duplicates_impl<TList<T, R...>>{
             using type = brigand::push_front<
                 typename no_duplicates_impl<
-                    brigand::remove_if<
-                        TList<R...>, 
-                        std::is_same<T, brigand::_1>>>::type, 
+                    brigand::remove<TList<R...>, T>>::type, 
             T>;
         };
     };
