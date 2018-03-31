@@ -41,6 +41,7 @@ namespace fasthal{
     template<class TField, class TAction, std::size_t VValue>
     struct field_action_static{
         using field_t = TField;
+        using action_t = TAction;
 
         template<typename T>
         constexpr T execute(T current){
@@ -51,6 +52,7 @@ namespace fasthal{
     template<class TField, class TAction, typename TValue>
     struct field_action{
         using field_t = TField;
+        using action_t = TAction;
 
         constexpr field_action(TValue __value): value(__value){}
 

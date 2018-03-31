@@ -70,6 +70,9 @@ namespace fasthal{
 
         template<class... TActions>
         struct actions_apply{            
+            // all actions flattened
+            using all_actions_t = flatten<mp::const_list<TActions...>>;
+
             template <class TField>
             struct field_apply{
                 using field_datatype_t = field_data_type<TField>;
@@ -78,37 +81,30 @@ namespace fasthal{
                 template<class TAction>
                 using is_my_action = std::is_same<typename TAction::field_t, TField>;
 
+                using my_actions_t = filter<all_actions_t, bind<is_my_action, _1>>;
+                static constexpr bool has_writes = any<my_actions_t, bind<is_action_of_type, _1, write_field>>::value;
+
                 static constexpr inline void execute(TActions... actions){
-                    auto value = TField::read();
+                    auto value = has_writes ? field_datatype_t{} : TField::read();
                     
-                    value = actions_executor<field_datatype_t, is_my_action, TActions...>::execute(value, actions...);
+                    actions_executor<field_datatype_t, is_my_action, TActions>::execute(value, actions);
 
                     TField::write(value);
                 }
             };
 
-            // catch all
-            template<class... TFields>
+            // iterate through fields
+            template<class... TField>
             struct fields_iterator{
-                static inline void execute(TActions... actions){}
-            };
-
-            // iterate
-            template<class TField, class... TRestFields>
-            struct fields_iterator<TField, TRestFields...>{
                 static inline void execute(TActions... actions){
-                    field_apply<TField>::execute(actions...);
-
-                    fields_iterator<TRestFields...>::execute(actions...);
+                    (field_apply<TField>::execute(actions...), ...);
                 }
             };
 
             static inline void apply(TActions... actions){
-                using all_actions = flatten<mp::const_list<TActions...>>;
-
                 // group by field
                 using fields_t = no_duplicates<
-                    transform<all_actions, bind<get_action_field, _1>>>;
+                    transform<all_actions_t, bind<get_action_field, _1>>>;
 
                 // execute actions for field            
                 using fields_iterator_t = unpack<fields_t, fields_iterator>;    
