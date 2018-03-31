@@ -87,7 +87,7 @@ namespace fasthal{
                 static constexpr inline void execute(TActions... actions){
                     auto value = has_writes ? field_datatype_t{} : TField::read();
                     
-                    actions_executor<field_datatype_t, is_my_action, TActions>::execute(value, actions);
+                    actions_executor<field_datatype_t, is_my_action, TActions...>::execute(value, actions...);
 
                     TField::write(value);
                 }
