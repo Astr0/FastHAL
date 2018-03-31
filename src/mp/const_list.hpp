@@ -2,6 +2,7 @@
 #define FH_CONSTLIST_H_
 
 #include "brigand.hpp"
+#include "../std/std_fake.hpp"
 
 namespace fasthal{
     namespace mp{
@@ -9,7 +10,7 @@ namespace fasthal{
             template<class TElement>
             struct is_static_element_impl: brigand::false_type{ };
                
-            template<class TElement, bool is_static = is_static_element_impl<TElement>::value>
+            template<class TElement, bool is_static = is_static_element_impl<std::base_type_t<TElement>>::value>
             struct element_holder{
                 const TElement element;
                 
