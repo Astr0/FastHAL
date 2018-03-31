@@ -4,11 +4,36 @@
 #include "info.hpp"
 
 namespace fasthal{
-    struct write_field{};
-    struct set_field{};
-    struct clear_field{};
-    struct toggle_field{};
-    struct read_field{};
+    struct write_field{
+        template<typename T, typename V>
+        static constexpr T execute(T current, V value){
+            return value;
+        }
+    };
+    struct set_field{
+        template<typename T, typename V>
+        static constexpr T execute(T current, V value){
+            return current | value;
+        }
+    };
+    struct clear_field{
+        template<typename T, typename V>
+        static constexpr T execute(T current, V value){
+            return current & ~value;
+        }
+    };
+    struct toggle_field{
+        template<typename T, typename V>
+        static constexpr T execute(T current, V value){
+            return current ^ value;
+        }
+    };
+    struct read_field{
+        template<typename T, typename V>
+        static constexpr T execute(T current){
+            return current;
+        }
+    };
 
     template<class TField, class TAction, typename TValue>
     struct field_action: field_action<TField, TAction, void>{
@@ -17,11 +42,22 @@ namespace fasthal{
         constexpr field_action(value_t __value): value(__value){}
 
         const TValue value;
+
+        template<typename T>
+        constexpr T execute(T current){
+            return TAction::execute(current, value);
+        }
     };
     template<class TField, class TAction>
     struct field_action<TField, TAction, void>{
         using field_t = TField;
+        using field_datatype_t = field_data_type<TField>;
         using action_t = TAction;
+
+        template<typename T>
+        constexpr T execute(T current){
+            return TAction::execute(current);
+        }
     };
     
     template<class TField, typename TDataType = field_data_type<TField>>
