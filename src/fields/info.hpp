@@ -11,6 +11,7 @@
 
 #include "../utils/mask.hpp"
 #include "../std/type_traits.hpp"
+#include "../std/std_fake.hpp"
 
 namespace fasthal
 {
@@ -33,6 +34,9 @@ namespace fasthal
 
 	template <class TField>
 	using is_field = details::is_field_impl<std::base_type_t<TField>>;
+
+	template <class TField, class T>
+	using enable_if_field_t = std::enable_if_t<is_field<TField>::value, T>;
 }
 
 #endif /* PORTINFO_H_ */

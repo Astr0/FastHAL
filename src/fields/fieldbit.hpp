@@ -4,7 +4,6 @@
 #include "info.hpp"
 #include "../std/type_traits.hpp"
 #include "../std/std_types.hpp"
-#include "../std/std_fake.hpp"
 
 namespace fasthal
 {
@@ -26,7 +25,7 @@ namespace fasthal
 	// create field bit
 	template<unsigned VNumber, class TField>
 	//constexpr field_bit<TField, VNumber, false>
-	constexpr std::enable_if_t<is_field<TField>::value, field_bit<TField, VNumber, false>>
+	constexpr enable_if_field_t<TField, field_bit<TField, VNumber, false>>
 	fieldBit(TField field){
 		return {};
 	}

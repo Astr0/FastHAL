@@ -34,7 +34,7 @@ namespace fasthal{
             template<class TAction>
             static constexpr void execute(TValue& value, TAction action){
                 if (TFilter<TAction>::value)
-                    value = action.execute(value);
+                    action.execute(value);
             }
 
             template<class... TTuple>
