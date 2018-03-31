@@ -1,14 +1,14 @@
 #ifndef FH_NULLFIELD_H_
 #define FH_NULLFIELD_H_
 
-#include "../mp/std_types.hpp"
+#include "../std/std_types.hpp"
 #include "fieldbit.hpp"
 
 namespace fasthal{    
     struct null_field
 	{
-        static void write(uint8_t value) {}
-        static constexpr uint8_t read() {return 0;}
+        static void write(std::uint8_t value) {}
+        static constexpr std::uint8_t read() {return 0;}
 	};
 
     static constexpr auto nullField = null_field{};

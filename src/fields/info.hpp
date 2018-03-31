@@ -10,7 +10,7 @@
 #define FH_FIELDS_INFO_H_
 
 #include "../utils/mask.hpp"
-#include "../mp/type_traits.hpp"
+#include "../std/type_traits.hpp"
 
 namespace fasthal
 {

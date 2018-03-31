@@ -9,8 +9,8 @@
 #ifndef FH_UTILS_MASK_H_
 #define FH_UTILS_MASK_H_
 
-#include "../mp/std_types.hpp"
-#include "../mp/type_traits.hpp"
+#include "../std/std_types.hpp"
+#include "../std/type_traits.hpp"
 #include "../mp/brigand_ex.hpp"
 
 

@@ -7,9 +7,9 @@
 #define BRIGAND_NO_BOOST_SUPPORT
 
 
-#include "std_fake.hpp"
-#include "type_traits.hpp"
-#include "initializer_list.hpp"
+#include "../std/utility.hpp"
+#include "../std/type_traits.hpp"
+#include "../std/initializer_list.hpp"
 
 #ifndef BRIGAND_HPP_INCLUDED
 #define BRIGAND_HPP_INCLUDED
