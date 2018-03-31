@@ -5,6 +5,28 @@
 
 namespace fasthal{
     namespace mp{
+        namespace details{
+            template<class TElement>
+            struct is_static_element_impl: brigand::false_type{ };
+               
+            template<class TElement, bool is_static = is_static_element_impl<TElement>::value>
+            struct element_holder{
+                const TElement element;
+                
+                constexpr element_holder(TElement __element): element(__element) { }
+
+                constexpr TElement getElement(){return element;}
+            };
+
+            template<class TElement>
+            struct element_holder<TElement, true>{
+                constexpr element_holder(TElement __element) { }
+
+                constexpr TElement getElement(){return TElement{};}
+            };
+
+        }
+
         // cause tuple is not constexpr is C++14....
         template <class... TElements>
         struct const_list;
@@ -13,14 +35,12 @@ namespace fasthal{
         struct const_list<>{};
 
         template <class T, class...TRest>
-        struct const_list<T, TRest...>{
-            using element_t = T;
+        struct const_list<T, TRest...>: details::element_holder<T>{
             using rest_t = const_list<TRest...>;
 
-            const element_t element;
             const rest_t rest;
 
-            constexpr const_list(const element_t __el, const TRest... __rest): element{__el}, rest{__rest...}
+            constexpr const_list(const T __el, const TRest... __rest): details::element_holder<T>{__el}, rest{__rest...}
             {                
             }
         };
@@ -33,7 +53,7 @@ namespace fasthal{
             struct const_list_get_helper<TList, N, true>
             {
                 static constexpr auto get(TList list){
-                    return list.element;
+                    return list.getElement();
                 }
             };
 
@@ -48,7 +68,7 @@ namespace fasthal{
         }
 
         template<class... TElements>
-        static constexpr auto make_const_list(const TElements... elements){
+        constexpr auto make_const_list(const TElements... elements){
             return const_list<TElements...>{elements...};
         }
 

@@ -5,7 +5,7 @@
 #include "info.hpp"
 #include "../std/type_traits.hpp"
 #include "../mp/brigand_ex.hpp"
-#include "../std/tuple.hpp"
+#include "../mp/const_list.hpp"
 
 namespace fasthal{
     namespace details{
@@ -17,6 +17,7 @@ namespace fasthal{
         template<class TAction, class TActionType>
         using is_action_of_type = std::is_same<typename TAction::action_t, TActionType>;
 
+        // empty
         template<typename TValue, template<class> class TFilter, class... TActions>
         struct actions_executor
         {
@@ -25,12 +26,45 @@ namespace fasthal{
             }
         };
 
+        // normal
         template<typename TValue, template<class> class TFilter, class TAction, class... TRest>
         struct actions_executor<TValue, TFilter, TAction, TRest...>
         {
             static constexpr TValue execute(TValue value, TAction action, TRest... rest){
                 using next_t = actions_executor<TValue, TFilter, TRest...>;
                 return next_t::execute(TFilter<TAction>::value ? action.execute(value) : value, rest...);
+            }
+        };
+
+        // tuple...
+        template<typename TValue, template<class> class TFilter, class... TTuple, class... TRest>
+        struct actions_executor<TValue, TFilter, mp::const_list<TTuple...>, TRest...>
+        {
+            template<std::size_t I = 0, std::size_t N = sizeof...(TTuple)>
+            struct unwrapper{
+                static constexpr TValue execute(TValue value, mp::const_list<TTuple...> tuple){
+                    return unwrapper<I+1>::execute(
+                            actions_executor<TValue, TFilter, at_c<mp::const_list<TTuple...>, I>>::execute(value, mp::get<I>(tuple)),
+                            tuple);
+                    // collect args
+                    //return unwrapper<I+1>::execute(value, tuple, args..., mp::get<I>(tuple));
+                }
+            };
+
+            template<std::size_t N>
+            struct unwrapper<N, N>
+            {
+                static constexpr TValue execute(TValue value, mp::const_list<TTuple...> tuple){
+                    // all args are here 
+                    return value;
+                    //return actions_executor<TValue, TFilter, TArgs...>::execute(value, args...);
+                }
+            };
+
+            static constexpr TValue execute(TValue value, mp::const_list<TTuple...> tuple, TRest... rest){
+                // ignore tuple for now (check if compiles)
+                using next_t = actions_executor<TValue, TFilter, TRest...>;
+                return next_t::execute(unwrapper<>::execute(value, tuple), rest...);
             }
         };
 
@@ -70,7 +104,7 @@ namespace fasthal{
             };
 
             static inline void apply(TActions... actions){
-                using all_actions = flatten<std::tuple<TActions...>>;
+                using all_actions = flatten<mp::const_list<TActions...>>;
 
                 // group by field
                 using fields_t = no_duplicates<
