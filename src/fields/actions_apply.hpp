@@ -5,7 +5,7 @@
 #include "info.hpp"
 #include "../std/type_traits.hpp"
 #include "../mp/brigand_ex.hpp"
-#include "../mp/const_list.hpp"
+#include "../std/tuple.hpp"
 
 namespace fasthal{
     namespace details{
@@ -53,32 +53,32 @@ namespace fasthal{
                 }
             };
 
-            template<class TFields>
-            struct fields_iterator;
-
             // catch all
             template<class... TFields>
-            struct fields_iterator<list<TFields...>>{
+            struct fields_iterator{
                 static inline void execute(TActions... actions){}
             };
 
             // iterate
             template<class TField, class... TRestFields>
-            struct fields_iterator<list<TField, TRestFields...>>{
+            struct fields_iterator<TField, TRestFields...>{
                 static inline void execute(TActions... actions){
                     field_apply<TField>::execute(actions...);
 
-                    fields_iterator<list<TRestFields...>>::execute(actions...);
+                    fields_iterator<TRestFields...>::execute(actions...);
                 }
             };
 
             static inline void apply(TActions... actions){
+                using all_actions = flatten<std::tuple<TActions...>>;
+
                 // group by field
                 using fields_t = no_duplicates<
-                    transform<list<TActions...>, bind<get_action_field, _1>>>;
+                    transform<all_actions, bind<get_action_field, _1>>>;
 
-                // execute actions for field                
-                fields_iterator<fields_t>::execute(actions...);
+                // execute actions for field            
+                using fields_iterator_t = unpack<fields_t, fields_iterator>;    
+                fields_iterator_t::execute(actions...);
             }
         };        
     };

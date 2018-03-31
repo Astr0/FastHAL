@@ -37,6 +37,21 @@ namespace brigand{
 	// smallest type that can hold N values (N-1 max value)
 	template<unsigned int N>
 	using number_type = typename details::number_type_impl<N>::type;
+
+    namespace details{
+        template<template<class...> class TResult>
+        struct unpack_impl
+        {
+            template <typename TR, typename T> struct impl;
+
+            template <typename T, typename... R>
+            struct impl<TResult<R...>, T>{
+                using type = TResult<R..., T>;
+            };
+        };
+    }
+    template<class TList, template<class...> class TResult>
+    using unpack = fold<TList, TResult<>, typename details::unpack_impl<TResult>::template impl<_state, _element>>;
 }
 
 #endif
