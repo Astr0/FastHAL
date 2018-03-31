@@ -8,13 +8,14 @@
 #include "interrupts.h"
 #include <avr/io.h>
 #include "../../utils/functions.h"
-//#include "../../fields/fieldbits.hpp"
+#include "../../std/std_fake.hpp"
+#include "../../fields/info.hpp"
 
 #define FASTHAL_DECLAREREGISTER( NAME, VAR)\
 namespace priv{\
 	FH_WRAPVARIABLE(VAR ## Reg, VAR)\
 }\
-static constexpr auto NAME = AvrRegister<priv::VAR ## Reg>{};\
+static constexpr auto NAME = details::AvrRegister<priv::VAR ## Reg>{};\
 static constexpr auto NAME ## 0 = fieldBit<0>(NAME);\
 static constexpr auto NAME ## 1 = fieldBit<1>(NAME);\
 static constexpr auto NAME ## 2 = fieldBit<2>(NAME);\
@@ -31,12 +32,20 @@ FASTHAL_DECLAREREGISTER(pin ## CODE, PIN ## CODE)\
 FASTHAL_DECLAREREGISTER(ddr ## CODE, DDR ## CODE)
 
 namespace fasthal{
-    template<class TAccess>
-	struct AvrRegister
-	{
-		inline static void write(uint8_t value) { TAccess::value() = value; }
-		inline static uint8_t read() {return TAccess::value();}
-    };	
+	namespace details{
+		template<class TAccess>
+		struct AvrRegister
+		{
+			using datatype_t = std::base_type_t<decltype(TAccess::value())>;
+
+			inline static void write(datatype_t value) { TAccess::value() = value; }
+			inline static datatype_t read() {return TAccess::value();}
+		};	
+
+
+		template<class TAccess>
+		struct is_field_impl<AvrRegister<TAccess>>: std::true_type{};
+	}
     
     #ifdef PORTA
 	FASTHAL_DECLAREPORT(A)

@@ -14,6 +14,11 @@
 
 namespace fasthal
 {
+	namespace details{
+		template<class TField>
+		struct is_field_impl: std::false_type{};
+	}
+
 	template<class TField>
 	using field_data_type = decltype(std::declval<TField>().read());
 
@@ -25,6 +30,9 @@ namespace fasthal
 
 	template <class TField>
 	struct field_width: std::integral_constant<unsigned, sizeof(field_data_type<TField>) * 8>{};
+
+	template <class TField>
+	using is_field = details::is_field_impl<std::base_type_t<TField>>;
 }
 
 #endif /* PORTINFO_H_ */

@@ -1,6 +1,8 @@
 #ifndef FH_VFIELD_H_
 #define FH_VFIELD_H_
 
+#include "info.hpp"
+#include "../std/type_traits.hpp"
 #include "fieldbit.hpp"
 #include "vfield_impl.hpp"
 
@@ -28,6 +30,11 @@ namespace fasthal{
 			return result;
 		}
 	};
+	namespace details{
+		template<class... TFieldBits>
+		struct is_field_impl<vfield<TFieldBits...>>: std::true_type{};
+	}
+
 
 	// create vfield
 	template<class... TBits>
