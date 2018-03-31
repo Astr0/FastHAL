@@ -4,31 +4,31 @@
 #include "info.hpp"
 
 namespace fasthal{
-    // common "fallback" actions for Fields
-    template<class TField, typename DataType = field_data_type<TField>>
-    constexpr void write(TField field, DataType value) 
+    // common "fallback" actions for Fields. TODO: enable_if<is_field>
+    template<class TField, typename TDataType = field_data_type<TField>>
+    constexpr void write(TField field, TDataType value) 
     {
         TField::write(value);
     }
 
-    template<class TField, typename MaskType = field_mask_type<TField>>
-    constexpr void clearAndSet(TField field, MaskType clearMask, MaskType setMask) 
+    template<class TField, typename TMaskType = field_mask_type<TField>>
+    constexpr void clearAndSet(TField field, TMaskType clearMask, TMaskType setMask) 
     {
         TField::write((TField::read() & ~clearMask) | setMask);
     }
 
-    template<class TField, typename MaskType = field_mask_type<TField>>
-    constexpr void set(TField field, MaskType mask) 
+    template<class TField, typename TMaskType = field_mask_type<TField>>
+    constexpr void set(TField field, TMaskType mask) 
     {
         TField::write(TField::read() | mask);
     }
 
-    template<class TField, typename MaskType = field_mask_type<TField>>
-    constexpr void clear(TField field, MaskType mask) {
+    template<class TField, typename TMaskType = field_mask_type<TField>>
+    constexpr void clear(TField field, TMaskType mask) {
         TField::write(TField::read() & ~mask);
     }
-    template<class TField, typename MaskType = field_mask_type<TField>>
-    constexpr void toggle(TField field, MaskType mask) {
+    template<class TField, typename TMaskType = field_mask_type<TField>>
+    constexpr void toggle(TField field, TMaskType mask) {
         TField::write(TField::read() ^ mask);
     }
 
@@ -37,8 +37,8 @@ namespace fasthal{
         return TField::read();
     }
     
-    template<class TField, typename MaskType = typename field_mask_types<TField>::OneBitMask>
-    constexpr bool read(TField field, MaskType pin){
+    template<class TField, typename TMaskType = typename field_mask_types<TField>::OneBitMask>
+    constexpr bool read(TField field, TMaskType pin){
         return TField::read() & pin;
     }
 }

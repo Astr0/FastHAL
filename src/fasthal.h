@@ -12,6 +12,5 @@
 #include "platforms/platform.h"
 #include "utils/utils.h"
 #include "dev/devices.h"
-#include "std/tuple.hpp"
 
 #endif
