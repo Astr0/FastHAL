@@ -17,54 +17,34 @@ namespace fasthal{
         template<class TAction, class TActionType>
         using is_action_of_type = std::is_same<typename TAction::action_t, TActionType>;
 
-        // empty
-        template<typename TValue, template<class> class TFilter, class... TActions>
+        // execute
+        template<typename TValue, template<class> class TFilter>
         struct actions_executor
         {
-            static constexpr TValue execute(TValue value, TActions... actions){
-                return value;
-            }
-        };
-
-        // normal
-        template<typename TValue, template<class> class TFilter, class TAction, class... TRest>
-        struct actions_executor<TValue, TFilter, TAction, TRest...>
-        {
-            static constexpr TValue execute(TValue value, TAction action, TRest... rest){
-                using next_t = actions_executor<TValue, TFilter, TRest...>;
-                return next_t::execute(TFilter<TAction>::value ? action.execute(value) : value, rest...);
-            }
-        };
-
-        // tuple...
-        template<typename TValue, template<class> class TFilter, class... TTuple, class... TRest>
-        struct actions_executor<TValue, TFilter, mp::const_list<TTuple...>, TRest...>
-        {
-            template<std::size_t I = 0, std::size_t N = sizeof...(TTuple)>
+            template<typename TTuple, std::size_t I = 0, std::size_t N = size<TTuple>::value>
             struct unwrapper{
-                static constexpr TValue execute(TValue value, mp::const_list<TTuple...> tuple){
-                    return unwrapper<I+1>::execute(
-                            actions_executor<TValue, TFilter, at_c<mp::const_list<TTuple...>, I>>::execute(value, mp::get<I>(tuple)),
-                            tuple);
-                    // collect args
-                    //return unwrapper<I+1>::execute(value, tuple, args..., mp::get<I>(tuple));
+                static constexpr void execute(TValue& value, TTuple tuple){
+                    actions_executor<TValue, TFilter>::execute(value, mp::get<I>(tuple));
+                    return unwrapper<TTuple, I+1>::execute(value, tuple);
                 }
             };
 
-            template<std::size_t N>
-            struct unwrapper<N, N>
+            template<typename TTuple, std::size_t N>
+            struct unwrapper<TTuple, N, N>
             {
-                static constexpr TValue execute(TValue value, mp::const_list<TTuple...> tuple){
-                    // all args are here 
-                    return value;
-                    //return actions_executor<TValue, TFilter, TArgs...>::execute(value, args...);
+                static constexpr void execute(TValue& value, TTuple tuple){                    
                 }
             };
 
-            static constexpr TValue execute(TValue value, mp::const_list<TTuple...> tuple, TRest... rest){
-                // ignore tuple for now (check if compiles)
-                using next_t = actions_executor<TValue, TFilter, TRest...>;
-                return next_t::execute(unwrapper<>::execute(value, tuple), rest...);
+            template<class TAction>
+            static constexpr void execute(TValue& value, TAction action){
+                if (TFilter<TAction>::value)
+                    value = action.execute(value);
+            }
+
+            template<class... TTuple>
+            static constexpr void execute(TValue& value, mp::const_list<TTuple...> tuple){
+                unwrapper<mp::const_list<TTuple...>>::execute(value, tuple);
             }
         };
 
@@ -87,7 +67,8 @@ namespace fasthal{
                 static constexpr inline void execute(TActions... actions){
                     auto value = has_writes ? field_datatype_t{} : TField::read();
                     
-                    actions_executor<field_datatype_t, is_my_action, TActions...>::execute(value, actions...);
+                    using executor_t = actions_executor<field_datatype_t, is_my_action>;
+                    (executor_t::execute(value, actions), ...);
 
                     TField::write(value);
                 }
