@@ -21,18 +21,13 @@ namespace fasthal{
         template<typename TValue, template<class> class TFilter>
         struct actions_executor
         {
-            template<typename TTuple, std::size_t I = 0, std::size_t N = size<TTuple>::value>
-            struct unwrapper{
-                static constexpr void execute(TValue& value, TTuple tuple){
-                    actions_executor<TValue, TFilter>::execute(value, mp::get<I>(tuple));
-                    return unwrapper<TTuple, I+1>::execute(value, tuple);
-                }
-            };
+            using this_t = actions_executor<TValue, TFilter>;
 
-            template<typename TTuple, std::size_t N>
-            struct unwrapper<TTuple, N, N>
-            {
-                static constexpr void execute(TValue& value, TTuple tuple){                    
+            template<typename... TIndex>
+            struct tuple_exec{
+                template<class TTuple>
+                static constexpr void execute(TValue& value, TTuple tuple){
+                    (this_t::execute(value, mp::get<TIndex::value>(tuple)), ...);
                 }
             };
 
@@ -43,15 +38,18 @@ namespace fasthal{
             }
 
             template<class... TTuple>
-            static constexpr void execute(TValue& value, mp::const_list<TTuple...> tuple){
-                unwrapper<mp::const_list<TTuple...>>::execute(value, tuple);
+            static constexpr void execute(TValue& value, field_actions_list_t<TTuple...> tuple){
+                using tuple_indices_t = make_sequence<
+                    brigand::size_t<0>, 
+                    size<field_actions_list_t<TTuple...>>::value>;
+                unpack<tuple_indices_t, tuple_exec>::execute(value, tuple);
             }
         };
 
         template<class... TActions>
         struct actions_apply{            
             // all actions flattened
-            using all_actions_t = flatten<mp::const_list<TActions...>>;
+            using all_actions_t = flatten<field_actions_list_t<TActions...>>;
 
             template <class TField>
             struct field_apply{
@@ -63,45 +61,54 @@ namespace fasthal{
 
                 using my_actions_t = filter<all_actions_t, bind<is_my_action, _1>>;
                 static constexpr bool has_writes = any<my_actions_t, bind<is_action_of_type, _1, write_field>>::value;
+                static constexpr bool has_modifies = !all<my_actions_t, bind<is_action_of_type, _1, read_field>>::value;
 
-                static constexpr inline void execute(TActions... actions){
+                static constexpr inline field_value<TField> execute(TActions... actions){
                     auto value = has_writes ? field_datatype_t{} : TField::read();
                     
                     using executor_t = actions_executor<field_datatype_t, is_my_action>;
                     (executor_t::execute(value, actions), ...);
 
-                    TField::write(value);
+                    if (has_modifies)
+                        TField::write(value);
+
+                    return field_value<TField> { value };
                 }
             };
 
             // iterate through fields
             template<class... TField>
             struct fields_iterator{
-                static inline void execute(TActions... actions){
-                    (field_apply<TField>::execute(actions...), ...);
+                static constexpr inline auto execute(TActions... actions){
+                    return combine_action_results(field_apply<TField>::execute(actions...)...);
                 }
             };
 
-            static inline void apply(TActions... actions){
+            // // one field iterator - just return field's value
+            // template<class TField>
+            // struct fields_iterator<TField>{
+            //     static constexpr inline auto execute(TActions... actions){
+            //         return field_apply<TField>::execute(actions...).value;
+            //     }
+            // };
+
+            static constexpr inline auto apply(TActions... actions){
                 // group by field
                 using fields_t = no_duplicates<
                     transform<all_actions_t, bind<get_action_field, _1>>>;
 
                 // execute actions for field            
                 using fields_iterator_t = unpack<fields_t, fields_iterator>;    
-                fields_iterator_t::execute(actions...);
+                return fields_iterator_t::execute(actions...);
             }
         };        
     };
 
 
     template<class... T>
-    inline void apply(const T... actions){
-        // flatten actions(TODO)
-        //auto flattenActions = mp::make_const_list(actions...);
-        
+    constexpr inline auto apply(const T... actions){
         // execute
-        details::actions_apply<T...>::apply(actions...);
+        return details::actions_apply<T...>::apply(actions...);
     }
 }
 
