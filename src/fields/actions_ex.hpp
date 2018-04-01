@@ -17,29 +17,58 @@ namespace fasthal{
             constexpr field_data_type<TField> operator()();
         };
 
-        template<class TField, class TAction, std::size_t VValue>
-        struct field_action_static: field_action_base<TField, TAction, field_action_static<TField, TAction, VValue>>{
-            constexpr void execute(field_data_type<TField>& current){ TAction::execute(current, VValue); }
-        };
-
-        template<class TField, class TAction, std::size_t VValue, std::size_t VValue2>
-        struct field_action_static_2: field_action_base<TField, TAction, field_action_static_2<TField, TAction, VValue, VValue2>>{
-            constexpr void execute(field_data_type<TField>& current){ TAction::execute(current, VValue, VValue2); }
+        template<class TField, class TAction, std::size_t... VValues>
+        struct field_action_static: field_action_base<TField, TAction, field_action_static<TField, TAction, VValues...>>{
+            constexpr void execute(field_data_type<TField>& current){ TAction::execute(current, VValues...); }
         };
 
         template<class TField, class TAction, typename TValue>
         struct field_action: field_action_base<TField, TAction, field_action<TField, TAction, TValue>>{
-            const TValue value;
-            constexpr field_action(TValue __value): value(__value){}
+            using value_t = TValue;
+            static constexpr std::size_t value_count = 1;
+
+            template<std::size_t N>
+            constexpr std::size_t getValue(){return N == 0 ? value : 0;}
+
+            const value_t value;
+            constexpr field_action(value_t __value): value(__value){}
             constexpr void execute(field_data_type<TField>& current){ TAction::execute(current, value); }
         };
 
         template<class TField, class TAction, typename TValue>
         struct field_action_2: field_action_base<TField, TAction, field_action_2<TField, TAction, TValue>>{
-            const TValue value, value2;
-            constexpr field_action_2(TValue __value, TValue __value2): value(__value), value2(__value2){}
+            using value_t = TValue;
+            static constexpr std::size_t value_count = 2;
+
+            template<std::size_t N>
+            constexpr std::size_t getValue(){return N == 0 ? value : (N == 1 ? value2 : 0);}
+
+            const value_t value, value2;
+            constexpr field_action_2(value_t __value, value_t __value2): value(__value), value2(__value2){}
             constexpr void execute(field_data_type<TField>& current){ TAction::execute(current, value, value2); }
         };
+
+        // convert dynamic field values to static
+        template<class TFieldAction, std::size_t... VValues>
+        struct to_static_field_action_impl{
+            using field_t = typename TFieldAction::field_t;
+            using action_t = typename TFieldAction::action_t;
+            using args_t = integral_list<std::size_t, VValues...>;
+           
+            using target_args_t = at_c<split_at<args_t, size_t<TFieldAction::value_count>>, 0>;
+
+            template<class... TArgs>
+            struct make_helper{
+                using type = field_action_static<field_t, action_t, TArgs::value...>;
+            };
+
+            using type = typename unpack<target_args_t, make_helper>::type;
+        };
+
+        template<class TFieldAction, std::size_t... VValues>
+        using to_static_field_action = typename to_static_field_action_impl<TFieldAction, VValues...>::type;
+
+        #define FH_TO_STATIC_FIELD_ACTION(a) (::fasthal::details::to_static_field_action<decltype(a), a.get<0>(), a.get<1>()>)
     }
     
     template<class... TFieldAction>
@@ -59,12 +88,6 @@ namespace fasthal{
     {
         return {};
     }
-
-    // template<class TField, typename TMaskType = field_mask_type<TField>>
-    // constexpr auto clear_set(TField field, TMaskType clearMask, TMaskType setMask) 
-    // {
-    //     TField::write((TField::read() & ~clearMask) | setMask);
-    // }
 
     template<class TField, typename TMaskType = field_mask_type<TField>>
     constexpr enable_if_field_t<TField, details::field_action<TField, details::set_field, TMaskType>>
@@ -97,7 +120,7 @@ namespace fasthal{
         return {clearMask, setMask};
     }
     template<std::size_t VValue, std::size_t VValue2, class TField>
-    constexpr enable_if_field_t<TField, details::field_action_static_2<TField, details::clear_set_field, VValue, VValue2>>
+    constexpr enable_if_field_t<TField, details::field_action_static<TField, details::clear_set_field, VValue, VValue2>>
     clear_set_a(TField field) 
     {
         return {};
@@ -139,11 +162,8 @@ namespace fasthal{
     namespace mp{
         namespace details{
             // don't eat space with static actions
-            template<class TField, class TAction, std::size_t VValue>
-            struct is_static_element_impl<fasthal::details::field_action_static<TField, TAction, VValue>>: std::true_type { };
-
-            template<class TField, class TAction, std::size_t VValue, std::size_t VValue2>
-            struct is_static_element_impl<fasthal::details::field_action_static_2<TField, TAction, VValue, VValue2>>: std::true_type { };
+            template<class TField, class TAction, std::size_t... VValues>
+            struct is_static_element_impl<fasthal::details::field_action_static<TField, TAction, VValues...>>: std::true_type { };
         }
     }    
 }

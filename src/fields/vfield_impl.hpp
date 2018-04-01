@@ -98,11 +98,11 @@ namespace fasthal{
             template<class... TFieldBitsPos>
             struct fieldbits_iterator{
                 template<typename TValueType, typename TFieldType, template<typename, class...> class TInversionMask>
-                static inline void appendValue(TValueType value, TFieldType& result)
+                static inline constexpr void appendValue(TValueType value, TFieldType& result)
                 {
                 }
 
-                static inline void appendReadValue(datatype_t fieldValue, datatype_t& result)
+                static inline constexpr void appendReadValue(datatype_t fieldValue, datatype_t& result)
                 {                    
                 }
             };
@@ -127,7 +127,7 @@ namespace fasthal{
                 using my_nonserial_pins_t = at_c<my_serial_pins_split_t, 1>;
 
                 template<typename TValueType, typename TFieldType, template<typename, class...> class TInversionMask>
-                static inline void appendValue(TValueType value, TFieldType& result)
+                static inline constexpr void appendValue(TValueType value, TFieldType& result)
                 {
                     if (my_transparent_count > 1)
                     {
@@ -162,7 +162,7 @@ namespace fasthal{
                     next_t::template appendValue<TValueType, TFieldType, TInversionMask>(value, result);
                 }
                 
-                static inline void appendReadValue(field_datatype_t fieldValue, datatype_t& result)
+                static inline constexpr void appendReadValue(field_datatype_t fieldValue, datatype_t& result)
                 {
                     if (my_transparent_count > 1)
                     {
@@ -215,7 +215,7 @@ namespace fasthal{
                 using bit_iterator_t = unpack<my_fieldbits_pos_t, fieldbits_iterator>;
 
                 template<class TIterator = bit_iterator_t>
-                static inline field_datatype_t appendWriteValue(datatype_t value)
+                static constexpr inline field_datatype_t appendWriteValue(datatype_t value)
                 {
                     auto result = field_datatype_t{};
                     TIterator::template appendValue<datatype_t, field_datatype_t, make_fieldbits_pos_inversion_mask>(value, result);
@@ -223,7 +223,7 @@ namespace fasthal{
                 }
 
                 template<class TIterator = bit_iterator_t>
-                static inline field_masktype_t appendMaskValue(masktype_t value)
+                static constexpr inline field_masktype_t appendMaskValue(masktype_t value)
                 {
                     auto result = field_masktype_t{};
                     TIterator::template appendValue<masktype_t, field_masktype_t, make_fieldbits_pos_false_inversion_mask>(value, result);
@@ -353,10 +353,10 @@ namespace fasthal{
             // field_iterator
             template<typename... TFields>
             struct fields_iterator{
-                static void write(datatype_t value){
-                    auto actions = combine_vfield_actions(field_processor<TFields>::write(value)...);
-                    apply(actions);
-                }		
+                static constexpr auto write_a(datatype_t value){
+                    return combine_vfield_actions(field_processor<TFields>::write(value)...);
+                }
+                static constexpr auto write(datatype_t value){ apply(write_a(value)); }		
                 static void clear_set(masktype_t clearMask, masktype_t setMask){
                     auto actions = combine_vfield_actions(field_processor<TFields>::clear_set(clearMask, setMask)...);
                     apply(actions);
