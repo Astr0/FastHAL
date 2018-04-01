@@ -25,47 +25,33 @@ namespace fasthal{
 
                 constexpr TElement getElement(){return TElement{};}
             };
-
         }
 
-        // cause tuple is not constexpr is C++14....
         template <class... TElements>
-        struct const_list;
+        struct const_list{};
 
-        template<>
-        struct const_list<>{};
+        template <class T, class... TRest>
+        struct const_list<T, TRest...>: 
+            details::element_holder<T, (sizeof...(TRest))>, 
+            const_list<TRest...>{
 
-        template <class T, class...TRest>
-        struct const_list<T, TRest...>: details::element_holder<T>{
-            using rest_t = const_list<TRest...>;
-
-            const rest_t rest;
-
-            constexpr const_list(const T __el, const TRest... __rest): details::element_holder<T>{__el}, rest{__rest...}
+            constexpr const_list(const T __el, const TRest... __rest): details::element_holder<T, (sizeof...(TRest))>{__el}, const_list<TRest...>{__rest...}
             {                
             }
         };
 
         namespace details{
-            template<class TList, std::size_t N, bool found = N == 0>
-            struct const_list_get_helper;
+            template<class TList, std::size_t N>
+            struct const_list_get_helper
+            {
+                static constexpr auto get(TList list){
+                    using el_t = brigand::at_c<TList, N>;
+                    constexpr auto size = brigand::size<TList>::value;
+                    using holder_t = element_holder<el_t, (size - 1 - N)>;
+                    return list.holder_t::getElement();
+                }
+            };
             
-            template<class TList, std::size_t N>
-            struct const_list_get_helper<TList, N, true>
-            {
-                static constexpr auto get(TList list){
-                    return list.getElement();
-                }
-            };
-
-            template<class TList, std::size_t N>
-            struct const_list_get_helper<TList, N, false>
-            {
-                static constexpr auto get(TList list){
-                    using next_t = const_list_get_helper<typename TList::rest_t, N-1>;
-                    return next_t::get(list.rest);
-                }
-            };
         }
 
         template<class... TElements>
@@ -74,7 +60,8 @@ namespace fasthal{
         }
 
         template<std::size_t N, class... TElements>
-        constexpr auto get(const_list<TElements...> list){
+        constexpr auto get(const_list<TElements...> list){            
+            // cause we can't change return type
             return details::const_list_get_helper<const_list<TElements...>, N>::get(list);                
         }
     }
