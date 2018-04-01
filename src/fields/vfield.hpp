@@ -25,9 +25,7 @@ namespace fasthal{
 
 		static auto read() 
 		{
-			auto result = datatype_t{};
-			impl_t::read(result);
-			return result;
+			return impl_t::read();
 		}
 	};
 	namespace details{

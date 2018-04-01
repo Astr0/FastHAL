@@ -70,7 +70,7 @@ namespace fasthal{
         template<class TAction, class TActionType>
         using is_action_of_type = std::is_same<typename TAction::action_t, TActionType>;
 
-        // execute
+        // execute action
         template<typename TValue, template<class> class TFilter>
         struct actions_executor
         {
@@ -99,10 +99,28 @@ namespace fasthal{
             }
         };
 
+        // flatten action lists to one list. Required for custom action lists (like vfield_actions)
+        template<class... TActions>
+        struct flatten_actions_list_impl{
+            using type = field_actions_list_t<TActions...>;
+        };
+        template<class TAction, class... TRest>
+        struct flatten_actions_list_impl<TAction, TRest...>{
+            using type = push_front<typename flatten_actions_list_impl<TRest...>::type, TAction>;
+        };
+        template<class... TListActions, class... TRestActions>
+        struct flatten_actions_list_impl<field_actions_list_t<TListActions...>, TRestActions...>{
+            using type = append<
+                typename flatten_actions_list_impl<TListActions...>::type,
+                typename flatten_actions_list_impl<TRestActions...>::type>;
+        };
+        template<class... TActions>
+        using flatten_actions_list = typename flatten_actions_list_impl<TActions...>::type;
+
         template<class... TActions>
         struct actions_apply{            
             // all actions flattened
-            using all_actions_t = flatten<field_actions_list_t<TActions...>>;
+            using all_actions_t = flatten_actions_list<TActions...>;
 
             template <class TField>
             struct field_apply{

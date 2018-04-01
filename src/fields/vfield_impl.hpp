@@ -75,6 +75,11 @@ namespace fasthal{
         template<class TFieldBitsPos>
         using fieldbit_pos_match = bool_<TFieldBitsPos::position == TFieldBitsPos::field_bit_t::number>;
 
+        // vfield actions forward
+        template<class TField, class... TActions>
+        struct vfield_actions;
+
+
         template<class... TFieldBits>
         struct vfield_impl
         {
@@ -328,37 +333,57 @@ namespace fasthal{
                     return toggle_a(field, appendMaskValue(value));
                 }
 
-                static void read(datatype_t& result){
-                    auto fieldValue = fasthal::read(field);
+                static constexpr auto read(){
+                    return read_a(field);
+                }
+
+                template<typename TReadResult>
+                static void read(datatype_t& result, TReadResult read){
+                    auto fieldValue = get_a(field, read);
 				    bit_iterator_t::appendReadValue(fieldValue, result);
                 }
             };
+
+            template<class... TActions>
+            static constexpr auto combine_vfield_actions(TActions... actions){
+                return combine_a(actions...);
+                //return vfield_actions<vfield_impl<TFieldBits...>, TActions...>{actions...};
+            }
 
             // field_iterator
             template<typename... TFields>
             struct fields_iterator{
                 static void write(datatype_t value){
-                    auto actions = combine_a(field_processor<TFields>::write(value)...);
+                    auto actions = combine_vfield_actions(field_processor<TFields>::write(value)...);
                     apply(actions);
                 }		
                 static void clear_set(masktype_t clearMask, masktype_t setMask){
-                    auto actions = combine_a(field_processor<TFields>::clear_set(clearMask, setMask)...);
+                    auto actions = combine_vfield_actions(field_processor<TFields>::clear_set(clearMask, setMask)...);
                     apply(actions);
                 }
                 static void set(masktype_t value){
-                    auto actions = combine_a(field_processor<TFields>::set(value)...);
+                    auto actions = combine_vfield_actions(field_processor<TFields>::set(value)...);
                     apply(actions);
                 }
                 static void clear(masktype_t value){
-                    auto actions = combine_a(field_processor<TFields>::clear(value)...);
+                    auto actions = combine_vfield_actions(field_processor<TFields>::clear(value)...);
                     apply(actions);
                 }
                 static void toggle(masktype_t value){
-                    auto actions = combine_a(field_processor<TFields>::toggle(value)...);
+                    auto actions = combine_vfield_actions(field_processor<TFields>::toggle(value)...);
                     apply(actions);
                 }
-                static void read(datatype_t& result) { 
-                    (field_processor<TFields>::read(result), ...);
+                static constexpr auto read_a(){
+                    return combine_vfield_actions(field_processor<TFields>::read()...);
+                }
+                template<class TReadResult>
+                static datatype_t read(TReadResult read){
+                    auto result = datatype_t {};
+                    (field_processor<TFields>::read(result, read), ...);
+                    return result;
+                }
+                static datatype_t read() { 
+                    return read(apply(read_a()));
                 }
             };
 
@@ -370,7 +395,27 @@ namespace fasthal{
                 transform<list<TFieldBits...>, bind<get_fieldbit_field, _1>> >;
 
             using impl_t = unpack<fields_t, fields_iterator>;
+
         };
+
+        // vfield actions impl
+        template<class TField, class... TActions>
+        struct vfield_actions: field_actions_list_t<TActions...>
+        {
+            constexpr vfield_actions(TActions... args): field_actions_list_t<TActions...>{args...} {}
+
+            constexpr auto operator()(){
+                return TField::impl_t::read(apply(*this));
+            }
+        };
+
+        template<class TField, class... TListActions, class... TRestActions>
+        struct flatten_actions_list_impl<vfield_actions<TField, TListActions...>, TRestActions...>{
+            using type = append<
+                typename flatten_actions_list_impl<TListActions...>::type,
+                typename flatten_actions_list_impl<TRestActions...>::type>;
+        };
+        
     }
 }
 
