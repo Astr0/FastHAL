@@ -346,8 +346,8 @@ namespace fasthal{
 
             template<class... TActions>
             static constexpr auto combine_vfield_actions(TActions... actions){
-                return combine_a(actions...);
-                //return vfield_actions<vfield_impl<TFieldBits...>, TActions...>{actions...};
+                //return combine_a(actions...);
+                return vfield_actions<vfield_impl<TFieldBits...>, TActions...>{actions...};
             }
 
             // field_iterator
@@ -414,6 +414,15 @@ namespace fasthal{
             using type = append<
                 typename flatten_actions_list_impl<TListActions...>::type,
                 typename flatten_actions_list_impl<TRestActions...>::type>;
+        };
+
+        template<typename TValue, template<class> class TFilter, class TField, class... TActions>
+        struct actions_executor<TValue, TFilter, vfield_actions<TField, TActions...>>
+        {
+            static constexpr void execute(TValue& value, vfield_actions<TField, TActions...> tuple){
+                // forward
+                actions_executor<TValue, TFilter, field_actions_list_t<TActions...>>::execute(value, tuple);
+            }
         };
         
     }

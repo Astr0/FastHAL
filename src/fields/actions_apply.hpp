@@ -71,30 +71,39 @@ namespace fasthal{
         using is_action_of_type = std::is_same<typename TAction::action_t, TActionType>;
 
         // execute action
-        template<typename TValue, template<class> class TFilter>
+        template<typename TValue, template<class> class TFilter, typename TAction>
         struct actions_executor
         {
-            using this_t = actions_executor<TValue, TFilter>;
-
-            template<typename... TIndex>
-            struct tuple_exec{
-                template<class TTuple>
-                static constexpr void execute(TValue& value, TTuple tuple){
-                    (this_t::execute(value, mp::get<TIndex::value>(tuple)), ...);
-                }
-            };
-
-            template<class TAction>
             static constexpr void execute(TValue& value, TAction action){
                 if (TFilter<TAction>::value)
                     action.execute(value);
             }
+        };
 
-            template<class... TTuple>
-            static constexpr void execute(TValue& value, field_actions_list_t<TTuple...> tuple){
+        template<typename TValue, template<class> class TFilter, class... TActions>
+        struct actions_executor<TValue, TFilter, field_actions_list_t<TActions...>>
+        {
+            using tuple_t = field_actions_list_t<TActions...>;
+            template<typename... TIndex>
+            struct tuple_exec{
+                // template<class TAction>
+                // static constexpr void execute(TValue& value, TAction action){
+                //     using executor_t = actions_executor<field_datatype_t, is_my_action, TAction>;
+                //     executor_t::execute(value, action);
+                // }
+
+                static constexpr void execute(TValue& value, tuple_t tuple){
+                    (
+                        (actions_executor<TValue, TFilter, at_c<tuple_t, TIndex::value>>
+                         ::execute(value, mp::get<TIndex::value>(tuple)))
+                    , ...);
+                }
+            };
+
+            static constexpr void execute(TValue& value, tuple_t tuple){
                 using tuple_indices_t = make_sequence<
                     brigand::size_t<0>, 
-                    size<field_actions_list_t<TTuple...>>::value>;
+                    size<tuple_t>::value>;
                 unpack<tuple_indices_t, tuple_exec>::execute(value, tuple);
             }
         };
@@ -134,11 +143,16 @@ namespace fasthal{
                 static constexpr bool has_writes = any<my_actions_t, bind<is_action_of_type, _1, write_field>>::value;
                 static constexpr bool has_modifies = !all<my_actions_t, bind<is_action_of_type, _1, read_field>>::value;
 
+                template<class TAction>
+                static constexpr void execute(field_datatype_t& value, TAction action){
+                    using executor_t = actions_executor<field_datatype_t, is_my_action, TAction>;
+                    executor_t::execute(value, action);
+                }
+
                 static constexpr inline field_value<TField> execute(TActions... actions){
                     auto value = has_writes ? field_datatype_t{} : TField::read();
                     
-                    using executor_t = actions_executor<field_datatype_t, is_my_action>;
-                    (executor_t::execute(value, actions), ...);
+                    (execute(value, actions), ...);
 
                     if (has_modifies)
                         TField::write(value);
