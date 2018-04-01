@@ -56,9 +56,9 @@ namespace fasthal{
     template<class... TFieldBits, 
 		typename TField = vfield<TFieldBits...>,
 		typename TMaskType = field_mask_type<TField>>
-	static void clearAndSet(vfield<TFieldBits...> field, TMaskType clearMask, TMaskType setMask) 
+	static void clear_set(vfield<TFieldBits...> field, TMaskType clearMask, TMaskType setMask) 
 	{
-		TField::impl_t::clearAndSet(clearMask, setMask);
+		TField::impl_t::clear_set(clearMask, setMask);
 	}				
 
 	template<class... TFieldBits, 

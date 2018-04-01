@@ -193,7 +193,7 @@
 // 			static void write(MaskType mask)
 // 			{   }
 		
-// 			static void clearAndSet(MaskType clearMask, MaskType setMask)
+// 			static void clear_set(MaskType clearMask, MaskType setMask)
 // 			{	}
 
 // 			static void set(MaskType mask)
@@ -321,7 +321,7 @@
 // 				Next::write(value);
 // 			}
 			
-// 			static void clearAndSet(MaskType clearMask, MaskType setMask)
+// 			static void clear_set(MaskType clearMask, MaskType setMask)
 // 			{				
 // 				if (clearMask & ListMask)
 // 				{
@@ -329,7 +329,7 @@
 // 						fasthal::clear(fieldBit);
 // 				} else if (setMask & ListMask)
 // 					fasthal::set(fieldBit);
-// 				Next::clearAndSet(clearMask, setMask);								
+// 				Next::clear_set(clearMask, setMask);								
 // 			}
 
 // 			static void set(MaskType mask)					
@@ -380,7 +380,7 @@
 // 			static void write(DataType value)
 // 			{   }
 		
-// 			static void clearAndSet(MaskType clearMask, MaskType setMask)
+// 			static void clear_set(MaskType clearMask, MaskType setMask)
 // 			{	}
 
 // 			static void set(MaskType value)
@@ -438,24 +438,24 @@
 // 					fasthal::write(field, result);
 // 				else
 // 				{
-// 					fasthal::clearAndSet(field, Mask, result);
+// 					fasthal::clear_set(field, Mask, result);
 // 				}
 
 // 				Next::write(value);
 // 			}
 
-// 			static void clearAndSet(MaskType clearMask, MaskType setMask)
+// 			static void clear_set(MaskType clearMask, MaskType setMask)
 // 			{
 // 				MaskType resultC = PinWrite::appendMaskValue(clearMask, MaskType());
 // 				MaskType resultS = PinWrite::appendMaskValue(setMask, MaskType());
 // 				if (NotInvertedFieldBitsLength == FieldBitsLength)
 // 				{
 // 					// All not inverted
-// 					fasthal::clearAndSet(field, resultC, resultS);
+// 					fasthal::clear_set(field, resultC, resultS);
 // 				} else if (InvertedFieldBitsLength == FieldBitsLength)
 // 				{
 // 					// All inverted
-// 					fasthal::clearAndSet(field, resultS, resultC);				
+// 					fasthal::clear_set(field, resultS, resultC);				
 // 				} else
 // 				{
 // 					// Mix... calculate set and clear masks...
@@ -464,10 +464,10 @@
 // 					DataType clearMask = (resultC & ~inversionMask) | (resultS & inversionMask);
 // 					// set - not inverted set + inverted clear
 // 					DataType setMask = (resultS & ~inversionMask) | (resultC & inversionMask);
-// 					fasthal::clearAndSet(field, clearMask, setMask);					
+// 					fasthal::clear_set(field, clearMask, setMask);					
 // 				}
 
-// 				Next::clearAndSet(clearMask, setMask);
+// 				Next::clear_set(clearMask, setMask);
 // 			}
 
 // 			static void set(MaskType value)
@@ -486,7 +486,7 @@
 // 				{
 // 					MaskType clearMask = PinWriteIterator<InvertedFieldBits, DataType>::appendMaskValue(value, MaskType());
 // 					MaskType setMask = PinWriteIterator<NotInvertedFieldBits, DataType>::appendMaskValue(value, MaskType());
-// 					fasthal::clearAndSet(field, clearMask, setMask);
+// 					fasthal::clear_set(field, clearMask, setMask);
 // 				}
 
 // 				Next::set(value);
@@ -507,7 +507,7 @@
 // 				{
 // 					MaskType clearMask = PinWriteIterator<NotInvertedFieldBits, DataType>::appendMaskValue(value, MaskType());
 // 					MaskType setMask = PinWriteIterator<InvertedFieldBits, DataType>::appendMaskValue(value, MaskType());
-// 					fasthal::clearAndSet(field, clearMask, setMask);
+// 					fasthal::clear_set(field, clearMask, setMask);
 // 				}
 
 // 				Next::clear(value);
@@ -557,11 +557,11 @@
 // 				Next::write(value);
 // 			}
 
-// 			static void clearAndSet(MaskType clearMask, MaskType setMask)
+// 			static void clear_set(MaskType clearMask, MaskType setMask)
 // 			{
-// 				PinWrite::clearAndSet(clearMask, setMask);
+// 				PinWrite::clear_set(clearMask, setMask);
 
-// 				Next::clearAndSet(clearMask, setMask);
+// 				Next::clear_set(clearMask, setMask);
 // 			}
 
 // 			static void set(MaskType value)

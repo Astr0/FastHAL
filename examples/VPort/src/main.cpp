@@ -96,7 +96,7 @@ int main(){
     // set(testPin, false);
     // if (read(testPin))
     // {
-    //     clearAndSet(testPort1, 1, 2);
+    //     clear_set(testPort1, 1, 2);
     // }
     // PORTD = read(testPort1);
     

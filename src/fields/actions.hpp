@@ -12,7 +12,7 @@ namespace fasthal{
     }
 
     template<class TField, typename TMaskType = field_mask_type<TField>>
-    constexpr void clearAndSet(TField field, TMaskType clearMask, TMaskType setMask) 
+    constexpr void clear_set(TField field, TMaskType clearMask, TMaskType setMask) 
     {
         TField::write((TField::read() & ~clearMask) | setMask);
     }

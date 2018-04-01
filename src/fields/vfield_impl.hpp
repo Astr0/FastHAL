@@ -2,7 +2,9 @@
 #define FH_VFIELD_IMPL_H_
 
 #include "../mp/brigand_ex.hpp"
+#include "../std/std_types.hpp"
 #include "../utils/mask.hpp"
+#include "actions_ex.hpp"
 
 namespace fasthal{
     namespace details{
@@ -223,79 +225,107 @@ namespace fasthal{
                     return result;
                 }
 
-                static void write(datatype_t value){
-                    // Apply inversion mask on value
-                    auto result = appendWriteValue(value);
+                template<bool whole_field = my_fieldbits_count == (int)field_width<TField>(), bool dummy = false>
+                struct write_helper{
+                    static constexpr auto write(datatype_t value){
+                        // full field - apply inversion mask on value and write
+                        return write_a(field, appendWriteValue(value));
+                    }
+                };
 
-                    if(my_fieldbits_count == (int)field_width<TField>()) {
-                        // whole Field write
-                        fasthal::write(field, result);
-                    } else {
+                template<bool dummy>
+                struct write_helper<false, dummy>{
+                    static constexpr auto write(datatype_t value){
+                        // partial field
+                        // clear everything that belongs to us and set only result
                         constexpr auto my_mask = make_fieldbits_pos_mask<field_masktype_t, my_fieldbits_pos_t>::value;
                         
-                        // clear everything that belongs to us and set only resut
-                        fasthal::clearAndSet(field, my_mask, result);
+                        return clear_set_a(field, my_mask, appendWriteValue(value));
                     }
+                };
+
+                static constexpr auto write(datatype_t value){
+                    return write_helper<>::write(value);
                 }	
 
-                static void clearAndSet(masktype_t clearMask, masktype_t setMask){
-                    auto resultC = appendMaskValue(clearMask);
-                    auto resultS = appendMaskValue(setMask);
-                    if (my_inveted_count == 0) {
-                        // direct S&C
-                        fasthal::clearAndSet(field, resultC, resultS);
-                    } else if (my_inveted_count == my_fieldbits_count) {
-                        // Invert S&C
-                        fasthal::clearAndSet(field, resultS, resultC);				
-                    } else {
+                template<decltype(my_inveted_count) inverted = my_inveted_count, bool dummy = false>
+                struct clear_set_helper{
+                    // some bits inverted, some not
+                    static constexpr auto clear_set(masktype_t clearMask, masktype_t setMask){
+                        auto resultC = appendMaskValue(clearMask);
+                        auto resultS = appendMaskValue(setMask);
+
                         // Mix... calculate set and clear masks...
                         constexpr auto inversionMask = make_fieldbits_pos_inversion_mask<field_masktype_t, my_fieldbits_pos_t>::value;
                         // clear - not inverted clear + inverted set
-                        auto clearMask = (resultC & ~inversionMask) | (resultS & inversionMask);
+                        auto clearFieldMask = (resultC & ~inversionMask) | (resultS & inversionMask);
                         // set - not inverted set + inverted clear
-                        auto setMask = (resultS & ~inversionMask) | (resultC & inversionMask);
-                        fasthal::clearAndSet(field, clearMask, setMask);					
+                        auto setFieldMask = (resultS & ~inversionMask) | (resultC & inversionMask);
+
+                        return clear_set_a(field, clearFieldMask, setFieldMask);
                     }
 
-                }
-                static void set(masktype_t value){
-                    if (my_inveted_count == 0) {
-                        // direct set
-                        auto result = appendMaskValue(value);
-                        fasthal::set(field, result);			
-                    } else if (my_inveted_count == my_fieldbits_count) {
-                        // Invert inverted
-                        auto result = appendMaskValue(value);
-                        fasthal::clear(field, result);
-                    } else {
-                        // Do both
+                    static constexpr auto set(masktype_t value){
                         auto clearMask = appendMaskValue<unpack<my_inverted_fieldbits_pos_t, fieldbits_iterator>>(value);
                         auto setMask = appendMaskValue<unpack<my_noninverted_fieldbits_pos_t, fieldbits_iterator>>(value);
-                        fasthal::clearAndSet(field, clearMask, setMask);
+                        return clear_set_a(field, clearMask, setMask);
                     }
 
-                }
-                static void clear(masktype_t value){
-                    if (my_inveted_count == 0){
-                        // direct clear
-                        auto result = appendMaskValue(value);
-                        fasthal::clear(field, result);			
-                    } else if (my_inveted_count == my_fieldbits_count){
-                        // Invert inverted
-                        auto result = appendMaskValue(value);
-                        fasthal::set(field, result);					
-                    } else{
-                        // Do both
+                    static constexpr auto clear(masktype_t value){
                         auto clearMask = appendMaskValue<unpack<my_noninverted_fieldbits_pos_t, fieldbits_iterator>>(value);
                         auto setMask = appendMaskValue<unpack<my_inverted_fieldbits_pos_t, fieldbits_iterator>>(value);
-                        fasthal::clearAndSet(field, clearMask, setMask);
+                        return clear_set_a(field, clearMask, setMask);
+                    }                    
+                };
+
+                template<bool dummy>
+                struct clear_set_helper<0, dummy>
+                {
+                    // all bits not inverted
+                    static constexpr auto clear_set(masktype_t clearMask, masktype_t setMask){
+                        return clear_set_a(field, appendMaskValue(clearMask), appendMaskValue(setMask));
                     }
 
+                    static constexpr auto set(masktype_t value){
+                        return set_a(field, appendMaskValue(value));			
+                    }
+
+                    static constexpr auto clear(masktype_t value){
+                        return clear_a(field, appendMaskValue(value));			
+                    }                    
+                };
+
+                template<bool dummy>
+                struct clear_set_helper<my_fieldbits_count, dummy>
+                {
+                    // all bits inverted
+                    static constexpr auto clear_set(masktype_t clearMask, masktype_t setMask){
+                        return clear_set_a(field, appendMaskValue(setMask), appendMaskValue(clearMask));
+                    }
+
+                    static constexpr auto set(masktype_t value){
+                        return clear_a(field, appendMaskValue(value));
+                    }                    
+
+                    static constexpr auto clear(masktype_t value){
+                        return set_a(field, appendMaskValue(value));					
+                    }
+                };
+
+                static constexpr auto clear_set(masktype_t clearMask, masktype_t setMask){
+                    return clear_set_helper<>::clear_set(clearMask, setMask);
                 }
-                static void toggle(masktype_t value){
+
+                static constexpr auto set(masktype_t value){
+                    return clear_set_helper<>::set(value);
+                }
+
+                static constexpr auto clear(masktype_t value){
+                   return clear_set_helper<>::clear(value);
+                }
+                static constexpr auto toggle(masktype_t value){
                     // Ignore inverted - toggle does not care
-                    auto result = appendMaskValue(value);
-                    fasthal::toggle(field, result);
+                    return toggle_a(field, appendMaskValue(value));
                 }
 
                 static void read(datatype_t& result){
@@ -308,19 +338,24 @@ namespace fasthal{
             template<typename... TFields>
             struct fields_iterator{
                 static void write(datatype_t value){
-                    (field_processor<TFields>::write(value), ...);
+                    auto actions = combine_a(field_processor<TFields>::write(value)...);
+                    apply(actions);
                 }		
-                static void clearAndSet(masktype_t clearMask, masktype_t setMask){
-                    (field_processor<TFields>::clearAndSet(clearMask, setMask), ...);
+                static void clear_set(masktype_t clearMask, masktype_t setMask){
+                    auto actions = combine_a(field_processor<TFields>::clear_set(clearMask, setMask)...);
+                    apply(actions);
                 }
                 static void set(masktype_t value){
-                    (field_processor<TFields>::set(value), ...);
+                    auto actions = combine_a(field_processor<TFields>::set(value)...);
+                    apply(actions);
                 }
                 static void clear(masktype_t value){
-                    (field_processor<TFields>::clear(value), ...);
+                    auto actions = combine_a(field_processor<TFields>::clear(value)...);
+                    apply(actions);
                 }
                 static void toggle(masktype_t value){
-                    (field_processor<TFields>::toggle(value), ...);
+                    auto actions = combine_a(field_processor<TFields>::toggle(value)...);
+                    apply(actions);
                 }
                 static void read(datatype_t& result) { 
                     (field_processor<TFields>::read(result), ...);

@@ -56,7 +56,7 @@ namespace fasthal{
             template<typename T, typename V>
             static constexpr void execute(T& current, V value) { }
         };
-        struct clear_and_set_field{
+        struct clear_set_field{
             template<typename T, typename V>
             static constexpr void execute(T& current, V value1, V value2) { 
                 clear_field::execute(current, value1);

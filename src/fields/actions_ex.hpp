@@ -61,7 +61,7 @@ namespace fasthal{
     }
 
     // template<class TField, typename TMaskType = field_mask_type<TField>>
-    // constexpr auto clearAndSet(TField field, TMaskType clearMask, TMaskType setMask) 
+    // constexpr auto clear_set(TField field, TMaskType clearMask, TMaskType setMask) 
     // {
     //     TField::write((TField::read() & ~clearMask) | setMask);
     // }
@@ -92,13 +92,13 @@ namespace fasthal{
     }
 
     template<class TField, typename TMaskType = field_mask_type<TField>>
-    constexpr enable_if_field_t<TField, details::field_action_2<TField, details::clear_and_set_field, TMaskType>>
-    clear_and_set_a(TField field, TMaskType clearMask, TMaskType setMask) {
+    constexpr enable_if_field_t<TField, details::field_action_2<TField, details::clear_set_field, TMaskType>>
+    clear_set_a(TField field, TMaskType clearMask, TMaskType setMask) {
         return {clearMask, setMask};
     }
     template<std::size_t VValue, std::size_t VValue2, class TField>
-    constexpr enable_if_field_t<TField, details::field_action_static_2<TField, details::clear_and_set_field, VValue, VValue2>>
-    clear_and_set_a(TField field) 
+    constexpr enable_if_field_t<TField, details::field_action_static_2<TField, details::clear_set_field, VValue, VValue2>>
+    clear_set_a(TField field) 
     {
         return {};
     }
