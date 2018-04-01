@@ -23,11 +23,9 @@ namespace fasthal
 	};
 
 	// create field bit
-	template<unsigned VNumber, class TField>
-	//constexpr field_bit<TField, VNumber, false>
-	constexpr enable_if_field_t<TField, field_bit<TField, VNumber, false>>
-	fieldBit(TField field){
-		return {};
+	template<unsigned VNumber, class TField, enable_if_field_c<TField> dummy = nullptr>
+	constexpr auto fieldBit(TField field){
+		return field_bit<TField, VNumber, false>{};
 	}
 
 	// invert field bit

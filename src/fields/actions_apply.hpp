@@ -50,8 +50,8 @@ namespace fasthal{
             static constexpr void execute(T& current, V value){ current ^= value; }
         };
         struct read_field{
-            template<typename T, typename V>
-            static constexpr void execute(T& current, V value) { }
+            template<typename T>
+            static constexpr void execute(T& current) { }
         };
         struct clear_set_field{
             template<typename T, typename V>

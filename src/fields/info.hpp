@@ -37,6 +37,9 @@ namespace fasthal
 
 	template <class TField, class T>
 	using enable_if_field_t = std::enable_if_t<is_field<TField>::value, T>;
+
+	template <class TField>
+	using enable_if_field_c = std::enable_if_c<is_field<TField>::value>;
 }
 
 #endif /* PORTINFO_H_ */
