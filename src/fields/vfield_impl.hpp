@@ -188,7 +188,7 @@ namespace fasthal{
 
             template<typename TField>
             // field fieldbits iterator - controls field stuff
-            struct field_processor{
+            struct field_processor {
                 static constexpr auto field = TField{};
                 using field_masktype_t = field_mask_type<TField>;
                 using field_datatype_t = field_data_type<TField>;
@@ -304,48 +304,26 @@ namespace fasthal{
                 }
             };
 
-            // field_iterator - terminator
+            // field_iterator
             template<typename... TFields>
             struct fields_iterator{
-                static void write(datatype_t value){}		
-                static void clearAndSet(masktype_t clearMask, masktype_t setMask){}
-                static void set(masktype_t value){}
-                static void clear(masktype_t value){}
-                static void toggle(masktype_t value){}
-
-                static void read(datatype_t& result){}
-            };
-            
-            // field_iterator - have some field
-            template<class TField, class... TRestFields>
-            struct fields_iterator<TField, TRestFields...>{
-                using field_processor_t = field_processor<TField>;
-                using next_t = fields_iterator<TRestFields...>;
-
                 static void write(datatype_t value){
-                    field_processor_t::write(value);
-                    next_t::write(value);
+                    (field_processor<TFields>::write(value), ...);
                 }		
                 static void clearAndSet(masktype_t clearMask, masktype_t setMask){
-                    field_processor_t::clearAndSet(clearMask, setMask);
-                    next_t::clearAndSet(clearMask, setMask);
+                    (field_processor<TFields>::clearAndSet(clearMask, setMask), ...);
                 }
                 static void set(masktype_t value){
-                    field_processor_t::set(value);
-                    next_t::set(value);
+                    (field_processor<TFields>::set(value), ...);
                 }
                 static void clear(masktype_t value){
-                    field_processor_t::clear(value);
-                    next_t::clear(value);
+                    (field_processor<TFields>::clear(value), ...);
                 }
                 static void toggle(masktype_t value){
-                    field_processor_t::toggle(value);
-                    next_t::toggle(value);
+                    (field_processor<TFields>::toggle(value), ...);
                 }
-
                 static void read(datatype_t& result) { 
-                    field_processor_t::read(result);
-                    next_t::read(result);
+                    (field_processor<TFields>::read(result), ...);
                 }
             };
 
