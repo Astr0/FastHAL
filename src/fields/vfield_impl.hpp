@@ -238,7 +238,7 @@ namespace fasthal{
                     static constexpr auto write(datatype_t value){
                         // partial field
                         // clear everything that belongs to us and set only result
-                        constexpr auto my_mask = make_fieldbits_pos_mask<field_masktype_t, my_fieldbits_pos_t>::value;
+                        constexpr auto my_mask = make_fieldbits_pos_mask<field_masktype_t, my_fieldbits_pos_t>{};
                         
                         return clear_set_a(field, my_mask, appendWriteValue(value));
                     }
