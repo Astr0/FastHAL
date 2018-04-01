@@ -66,7 +66,7 @@ namespace fasthal{
         template<class TFieldAction, std::size_t... VValues>
         using to_static_field_action = typename to_static_field_action_impl<TFieldAction, VValues...>::type;
 
-        #define FH_TO_STATIC_FIELD_ACTION(a) (::fasthal::details::to_static_field_action<decltype(a), a.get<0>(), a.get<1>()>)
+        #define FH_TO_STATIC_FIELD_ACTION(a) (::fasthal::details::to_static_field_action<decltype(a), (a).get<0>(), (a).get<1>()>)
     }
 
     namespace mp{
@@ -149,38 +149,33 @@ namespace fasthal{
 
     // static actions
     template<std::size_t VValue, class TField, enable_if_field_c<TField> dummy = nullptr>
-    constexpr enable_if_field_t<TField, details::field_action_static<TField, details::write_field, VValue>>
-    write_a(TField field) 
+    constexpr auto write_a(TField field) 
     {
-        return {};
+        return details::field_action_static<TField, details::write_field, VValue>{};
     }
 
     template<std::size_t VValue, class TField, enable_if_field_c<TField> dummy = nullptr>
-    constexpr enable_if_field_t<TField, details::field_action_static<TField, details::set_field, VValue>>
-    set_a(TField field) 
+    constexpr auto set_a(TField field) 
     {
-        return {};
+        return details::field_action_static<TField, details::set_field, VValue>{};
     }
 
     template<std::size_t VValue, class TField, enable_if_field_c<TField> dummy = nullptr>
-    constexpr enable_if_field_t<TField, details::field_action_static<TField, details::clear_field, VValue>>
-    clear_a(TField field) 
+    constexpr auto clear_a(TField field) 
     {
-        return {};
+        return details::field_action_static<TField, details::clear_field, VValue>{};
     }
 
     template<std::size_t VValue, std::size_t VValue2, class TField, enable_if_field_c<TField> dummy = nullptr>
-    constexpr enable_if_field_t<TField, details::field_action_static<TField, details::clear_set_field, VValue, VValue2>>
-    clear_set_a(TField field) 
+    constexpr auto clear_set_a(TField field) 
     {
-        return {};
+        return details::field_action_static<TField, details::clear_set_field, VValue, VValue2>{};
     }
     
     template<std::size_t VValue, class TField, enable_if_field_c<TField> dummy = nullptr>
-    constexpr enable_if_field_t<TField, details::field_action_static<TField, details::toggle_field, VValue>>
-    toggle_a(TField field) 
+    constexpr auto toggle_a(TField field) 
     {
-        return {};
+        return details::field_action_static<TField, details::toggle_field, VValue>{};
     }
 
     
