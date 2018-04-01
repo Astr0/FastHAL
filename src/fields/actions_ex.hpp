@@ -13,8 +13,6 @@ namespace fasthal{
         struct field_action_base{
             using field_t = TField;
             using action_t = TAction;
-
-            constexpr field_data_type<TField> operator()();
         };
 
         template<class TField, class TAction, std::size_t... VValues>
@@ -73,7 +71,7 @@ namespace fasthal{
     
     template<class... TFieldAction>
     constexpr auto inline combine_a(TFieldAction... actions){
-        return details::field_actions_list_t<TFieldAction...>{actions...};
+        return mp::make_const_list(actions...);
     }
     
     template<class TField, typename TDataType = field_data_type<TField>>
@@ -152,12 +150,11 @@ namespace fasthal{
         return mp::get<index>(results).value;
     }
 
-    namespace details{
-        template<class TField, class TAction, class TConcrete>
-        constexpr field_data_type<TField> field_action_base<TField, TAction, TConcrete>::operator()(){
-            return get_a(TField{}, apply(*static_cast<TConcrete*>(this)));
-        }
-    };
+    template<class TField>
+    constexpr enable_if_field_t<TField, field_data_type<TField>>
+    read_i(TField field) {
+        return get_a(field, apply(read_a(field)));
+    }
 
     namespace mp{
         namespace details{

@@ -75,11 +75,6 @@ namespace fasthal{
         template<class TFieldBitsPos>
         using fieldbit_pos_match = bool_<TFieldBitsPos::position == TFieldBitsPos::field_bit_t::number>;
 
-        // vfield actions forward
-        template<class TField, class... TActions>
-        struct vfield_actions;
-
-
         template<class... TFieldBits>
         struct vfield_impl
         {
@@ -346,8 +341,7 @@ namespace fasthal{
 
             template<class... TActions>
             static constexpr auto combine_vfield_actions(TActions... actions){
-                //return combine_a(actions...);
-                return vfield_actions<vfield_impl<TFieldBits...>, TActions...>{actions...};
+                return combine_a(actions...);
             }
 
             // field_iterator
@@ -396,35 +390,7 @@ namespace fasthal{
 
             using impl_t = unpack<fields_t, fields_iterator>;
 
-        };
-
-        // vfield actions impl
-        template<class TField, class... TActions>
-        struct vfield_actions: field_actions_list_t<TActions...>
-        {
-            constexpr vfield_actions(TActions... args): field_actions_list_t<TActions...>{args...} {}
-
-            constexpr auto operator()(){
-                return TField::impl_t::read(apply(*this));
-            }
-        };
-
-        template<class TField, class... TListActions, class... TRestActions>
-        struct flatten_actions_list_impl<vfield_actions<TField, TListActions...>, TRestActions...>{
-            using type = append<
-                typename flatten_actions_list_impl<TListActions...>::type,
-                typename flatten_actions_list_impl<TRestActions...>::type>;
-        };
-
-        template<typename TValue, template<class> class TFilter, class TField, class... TActions>
-        struct actions_executor<TValue, TFilter, vfield_actions<TField, TActions...>>
-        {
-            static constexpr void execute(TValue& value, vfield_actions<TField, TActions...> tuple){
-                // forward
-                actions_executor<TValue, TFilter, field_actions_list_t<TActions...>>::execute(value, tuple);
-            }
-        };
-        
+        };        
     }
 }
 

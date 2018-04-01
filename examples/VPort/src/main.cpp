@@ -14,11 +14,11 @@ constexpr auto testPin = fieldBit<0>(portB);
 //constexpr auto testPin = portB0;
 constexpr auto testVPin = fieldBit<1>(testPort1);
 
-#define actions_ex 4
+#define actions_ex 2
 
 void test(){
-    #if (actions_ex == 4)
-    auto v = combine_a(
+    #if (actions_ex == 3)
+    auto v = apply(combine_a(
             combine_a(
                 write_a<123>(testPort1),
                 clear_a<77>(testPort2),
@@ -30,32 +30,18 @@ void test(){
                 toggle_a<0xF>(testPort1)),
             toggle_a(testPort2, read(testPort1)),
             write_a(testPort1, PORTB),
-            read_a(testPort1))();
+            read_a(testPort1)));
     PORTC = get_a(testPort1, v) | get_a(testPort2, v);
-    #elif (actions_ex == 3)
-    write_a(testPort1, 123)();
-    clear_a(testPort2, 77)();
-    set_a(testPort1, 1)();
-    write_a(testPort2, PORTC)();
-    clear_a(testPort1, 54)();
-    toggle_a(testPort1, 0xF)();
-    toggle_a(testPort2, read_a(testPort1)())();
-    write_a(testPort1, PORTB)();
-    PORTC = read_a(testPort1)() | read_a(testPort2)();
     #elif (actions_ex == 2)
-    auto v = read(testPort1);
-    auto v2 = read(testPort2);
-    v = write_a(testPort1, 123).execute(v);
-    v2 = clear_a<77>(testPort2).execute(v2);
-    v = set_a(testPort1, 1).execute(v);
-    v2 = write_a(testPort2, PORTC).execute(v2);
-    v = clear_a(testPort1, 54).execute(v);
-    v = toggle_a(testPort1, 0xF).execute(v);
-    v2 = toggle_a(testPort2, read(testPort1)).execute(v2);
-    v = write_a(testPort1, PORTB).execute(v);
-    write(testPort1, v);
-    write(testPort2, v2);
-    PORTC = v | v2;
+    apply(write_a(testPort1, 123));
+    apply(clear_a(testPort2, 77));
+    apply(set_a(testPort1, 1));
+    apply(write_a(testPort2, PORTC));
+    apply(clear_a(testPort1, 54));
+    apply(toggle_a(testPort1, 0xF));
+    apply(toggle_a(testPort2, read_i(testPort1)));
+    apply(write_a(testPort1, PORTB));
+    PORTC = read_i(testPort1) | read_i(testPort2);
     #elif (actions_ex == 1)
     //apply(write_a<123>(testPort1));
     auto v = apply(            

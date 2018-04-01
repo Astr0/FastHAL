@@ -21,11 +21,8 @@ namespace fasthal{
             const datatype_t value;
         };
 
-        template <class... TActions>
-        struct field_actions_list;
-        
         template<class... TActions>
-        using field_actions_list_t = field_actions_list<TActions...>;      
+        using field_actions_list_t = mp::const_list<TActions...>;      
 
         template<class...TFieldValues>
         using field_action_results_t = mp::const_list<TFieldValues...>;
@@ -108,28 +105,10 @@ namespace fasthal{
             }
         };
 
-        // flatten action lists to one list. Required for custom action lists (like vfield_actions)
-        template<class... TActions>
-        struct flatten_actions_list_impl{
-            using type = field_actions_list_t<TActions...>;
-        };
-        template<class TAction, class... TRest>
-        struct flatten_actions_list_impl<TAction, TRest...>{
-            using type = push_front<typename flatten_actions_list_impl<TRest...>::type, TAction>;
-        };
-        template<class... TListActions, class... TRestActions>
-        struct flatten_actions_list_impl<field_actions_list_t<TListActions...>, TRestActions...>{
-            using type = append<
-                typename flatten_actions_list_impl<TListActions...>::type,
-                typename flatten_actions_list_impl<TRestActions...>::type>;
-        };
-        template<class... TActions>
-        using flatten_actions_list = typename flatten_actions_list_impl<TActions...>::type;
-
         template<class... TActions>
         struct actions_apply{            
             // all actions flattened
-            using all_actions_t = flatten_actions_list<TActions...>;
+            using all_actions_t = flatten<field_actions_list_t<TActions...>>;
 
             template <class TField>
             struct field_apply{
@@ -194,18 +173,6 @@ namespace fasthal{
     constexpr inline auto apply(const T... actions){
         // execute
         return details::actions_apply<T...>::apply(actions...);
-    }
-
-    namespace details{
-        template<class... TActions>
-        struct field_actions_list: mp::const_list<TActions...>
-        {
-            constexpr field_actions_list(TActions... args): mp::const_list<TActions...>{args...} {}
-
-            constexpr auto operator()(){
-                return apply(*this);
-            }
-        };
     }
 }
 
