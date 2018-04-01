@@ -244,7 +244,8 @@ namespace fasthal{
                     }
                 };
 
-                static constexpr auto write(datatype_t value){
+                template<typename T>
+                static constexpr auto write(T value){
                     return write_helper<>::write(value);
                 }	
 
@@ -347,10 +348,13 @@ namespace fasthal{
             // field_iterator
             template<typename... TFields>
             struct fields_iterator{
-                static constexpr auto write_a(datatype_t value){
+                template<typename T>
+                static constexpr auto write_a(T value){
                     return combine_vfield_actions(field_processor<TFields>::write(value)...);
                 }
-                static constexpr auto write(datatype_t value){ apply(write_a(value)); }		
+                template<typename T>
+                static constexpr auto write(T value){ apply(write_a(value)); }		
+
                 static void clear_set(masktype_t clearMask, masktype_t setMask){
                     auto actions = combine_vfield_actions(field_processor<TFields>::clear_set(clearMask, setMask)...);
                     apply(actions);

@@ -92,8 +92,11 @@ namespace fasthal{
         return details::make_action<details::clear_field>(field, mask);
     }
 
-    template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_field_c<TField> dummy = nullptr>
-    constexpr auto clear_set_a(TField field, TMaskType clearMask, TMaskType setMask) {
+    template<class TField, 
+        typename TClearMaskType = field_mask_type<TField>, 
+        typename TSetMaskType = field_mask_type<TField>, 
+        enable_if_field_c<TField> dummy = nullptr>
+    constexpr auto clear_set_a(TField field, TClearMaskType clearMask, TSetMaskType setMask) {
         return details::make_action<details::clear_set_field>(field, clearMask, setMask);
     }
 
@@ -120,35 +123,35 @@ namespace fasthal{
     }
 
     // static actions
-    template<std::size_t VValue, class TField, enable_if_field_c<TField> dummy = nullptr>
-    constexpr auto write_a(TField field) 
-    {
-        return details::make_action<details::write_field>(field, brigand::size_t<VValue>{});
-    }
+    // template<std::size_t VValue, class TField, enable_if_field_c<TField> dummy = nullptr>
+    // constexpr auto write_a(TField field) 
+    // {
+    //     return details::make_action<details::write_field>(field, brigand::size_t<VValue>{});
+    // }
 
-    template<std::size_t VValue, class TField, enable_if_field_c<TField> dummy = nullptr>
-    constexpr auto set_a(TField field) 
-    {
-        return details::make_action<details::set_field>(field, brigand::size_t<VValue>{});
-    }
+    // template<std::size_t VValue, class TField, enable_if_field_c<TField> dummy = nullptr>
+    // constexpr auto set_a(TField field) 
+    // {
+    //     return details::make_action<details::set_field>(field, brigand::size_t<VValue>{});
+    // }
 
-    template<std::size_t VValue, class TField, enable_if_field_c<TField> dummy = nullptr>
-    constexpr auto clear_a(TField field) 
-    {
-        return details::make_action<details::clear_field>(field, brigand::size_t<VValue>{});
-    }
+    // template<std::size_t VValue, class TField, enable_if_field_c<TField> dummy = nullptr>
+    // constexpr auto clear_a(TField field) 
+    // {
+    //     return details::make_action<details::clear_field>(field, brigand::size_t<VValue>{});
+    // }
 
-    template<std::size_t VClear, std::size_t VSet, class TField, enable_if_field_c<TField> dummy = nullptr>
-    constexpr auto clear_set_a(TField field) 
-    {
-        return details::make_action<details::clear_set_field>(field, brigand::size_t<VClear>{}, brigand::size_t<VSet>{});
-    }
+    // template<std::size_t VClear, std::size_t VSet, class TField, enable_if_field_c<TField> dummy = nullptr>
+    // constexpr auto clear_set_a(TField field) 
+    // {
+    //     return details::make_action<details::clear_set_field>(field, brigand::size_t<VClear>{}, brigand::size_t<VSet>{});
+    // }
     
-    template<std::size_t VValue, class TField, enable_if_field_c<TField> dummy = nullptr>
-    constexpr auto toggle_a(TField field) 
-    {
-        return details::make_action<details::toggle_field>(field, brigand::size_t<VValue>{});
-    }    
+    // template<std::size_t VValue, class TField, enable_if_field_c<TField> dummy = nullptr>
+    // constexpr auto toggle_a(TField field) 
+    // {
+    //     return details::make_action<details::toggle_field>(field, brigand::size_t<VValue>{});
+    // }    
 }
 
 #endif

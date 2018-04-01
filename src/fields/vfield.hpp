@@ -6,6 +6,7 @@
 #include "fieldbit.hpp"
 #include "vfield_impl.hpp"
 #include "actions_ex.hpp"
+#include "../mp/brigand.hpp"
 
 
 namespace fasthal{
@@ -59,13 +60,6 @@ namespace fasthal{
 	// static constexpr auto write_a(vfield<TFieldBits...> field, TDataType value) 
     // {
     //     return TField::impl_t::write_a(value);
-    // }
-    // template<std::size_t VValue, class... TFieldBits>
-    // static constexpr auto write_a(vfield<TFieldBits...> field) 
-    // {
-    //     constexpr auto write = write_a(field, VValue);
-	// 	//return ::fasthal::details::to_static_field_action<decltype(write), write.get<0>(), write.get<1>()>{};
-	// 	//return FH_TO_STATIC_FIELD_ACTION(write){};
     // }
 
 	// optimized actions

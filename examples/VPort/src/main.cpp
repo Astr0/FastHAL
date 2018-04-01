@@ -17,17 +17,19 @@ constexpr auto testVPin = fieldBit<1>(testPort1);
 #define actions_ex 3
 
 void test(){
+    using brigand::size_t;
+
     #if (actions_ex == 3)
     auto v = apply(combine_a(
             combine_a(
-                write_a<123>(testPort1),
-                clear_a<77>(testPort2),
+                write_a(testPort1, size_t<123>{}),
+                clear_a(testPort2, size_t<77>{}),
                 read_a(testPort2),
-                set_a<1>(testPort1)),
+                set_a(testPort1, size_t<1>{})),
             write_a(testPort2, PORTC),
             combine_a(
-                clear_a<54>(testPort1),
-                toggle_a<0xF>(testPort1)),
+                clear_a(testPort1, size_t<54>{}),
+                toggle_a(testPort1, size_t<0xF>{})),
             toggle_a(testPort2, read(testPort1)),
             write_a(testPort1, PORTB),
             read_a(testPort1)));
