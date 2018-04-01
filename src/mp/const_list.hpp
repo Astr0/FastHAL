@@ -10,7 +10,7 @@ namespace fasthal{
             template<class TElement>
             struct is_static_element_impl: brigand::false_type{ };
                
-            template<class TElement, bool is_static = is_static_element_impl<std::base_type_t<TElement>>::value>
+            template<class TElement, std::size_t Index = 0, bool is_static = is_static_element_impl<std::base_type_t<TElement>>::value>
             struct element_holder{
                 const TElement element;
                 
@@ -19,8 +19,8 @@ namespace fasthal{
                 constexpr TElement getElement(){return element;}
             };
 
-            template<class TElement>
-            struct element_holder<TElement, true>{
+            template<class TElement, std::size_t Index>
+            struct element_holder<TElement, Index, true>{
                 constexpr element_holder(TElement __element) { }
 
                 constexpr TElement getElement(){return TElement{};}

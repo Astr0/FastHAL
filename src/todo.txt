@@ -3,4 +3,6 @@
 + constexpr interface 
 + interface with action factories and apply
 + read with apply
+* integral constant instead of static actions, remove static actions, make them use element_holder
 * vport on actions
+* everything on actions (remove normal)
