@@ -14,7 +14,7 @@ constexpr auto testPin = fieldBit<0>(portB);
 //constexpr auto testPin = portB0;
 constexpr auto testVPin = fieldBit<1>(testPort1);
 
-#define actions_ex 3
+#define actions_ex 1
 
 void test(){
     #if (actions_ex == 3)

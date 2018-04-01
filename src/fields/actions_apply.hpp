@@ -11,6 +11,56 @@ namespace fasthal{
     namespace details{
         using namespace brigand;
 
+        template<class TField>
+        struct field_value{
+            using field_t = TField;
+            using datatype_t = field_data_type<TField>;
+
+            constexpr field_value(datatype_t __value): value(__value){}
+
+            const datatype_t value;
+        };
+        
+        template<class... TActions>
+        using field_actions_list_t = mp::const_list<TActions...>;      
+
+        template<class...TFieldValues>
+        using field_action_results_t = mp::const_list<TFieldValues...>;
+
+        
+        template<class... TField>
+        constexpr auto inline combine_action_results(field_value<TField>... fieldValues){
+            return mp::make_const_list(fieldValues...);
+        }
+
+        struct write_field{
+            template<typename T, typename V>
+            static constexpr void execute(T& current, V value){ current = value; }
+        };
+        struct set_field{
+            template<typename T, typename V>
+            static constexpr void execute(T& current, V value){ current |= value; }
+        };
+        struct clear_field{
+            template<typename T, typename V>
+            static constexpr void execute(T& current, V value){ current &= ~value; }
+        };
+        struct toggle_field{
+            template<typename T, typename V>
+            static constexpr void execute(T& current, V value){ current ^= value; }
+        };
+        struct read_field{
+            template<typename T, typename V>
+            static constexpr void execute(T& current, V value) { }
+        };
+        struct clear_and_set_field{
+            template<typename T, typename V>
+            static constexpr void execute(T& current, V value1, V value2) { 
+                clear_field::execute(current, value1);
+                set_field::execute(current, value2);
+            }
+        };        
+
         template<class TAction>
         using get_action_field = typename TAction::field_t;
 
@@ -110,13 +160,6 @@ namespace fasthal{
         // execute
         return details::actions_apply<T...>::apply(actions...);
     }
-
-    namespace details{
-        template<class TField, class TAction, class TConcrete>
-        constexpr field_data_type<TField> field_action_base<TField, TAction, TConcrete>::operator()(){
-            return get_a(TField{}, apply<TConcrete>(*static_cast<TConcrete*>(this)));
-        }
-    };
 }
 
 #endif
