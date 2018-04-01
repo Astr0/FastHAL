@@ -59,31 +59,33 @@ namespace fasthal{
             }
         };
 
-        template<class TField, class TAction>
+        template<class TField, class TAction, class TConcrete>
         struct field_action_base{
             using field_t = TField;
             using action_t = TAction;
+
+            constexpr field_data_type<TField> operator()();
         };
 
         template<class TField, class TAction, std::size_t VValue>
-        struct field_action_static: field_action_base<TField, TAction>{
+        struct field_action_static: field_action_base<TField, TAction, field_action_static<TField, TAction, VValue>>{
             constexpr void execute(field_data_type<TField>& current){ TAction::execute(current, VValue); }
         };
 
         template<class TField, class TAction, std::size_t VValue, std::size_t VValue2>
-        struct field_action_static_2: field_action_base<TField, TAction>{
+        struct field_action_static_2: field_action_base<TField, TAction, field_action_static_2<TField, TAction, VValue, VValue2>>{
             constexpr void execute(field_data_type<TField>& current){ TAction::execute(current, VValue, VValue2); }
         };
 
         template<class TField, class TAction, typename TValue>
-        struct field_action: field_action_base<TField, TAction>{
+        struct field_action: field_action_base<TField, TAction, field_action<TField, TAction, TValue>>{
             const TValue value;
             constexpr field_action(TValue __value): value(__value){}
             constexpr void execute(field_data_type<TField>& current){ TAction::execute(current, value); }
         };
 
         template<class TField, class TAction, typename TValue>
-        struct field_action_2: field_action_base<TField, TAction>{
+        struct field_action_2: field_action_base<TField, TAction, field_action_2<TField, TAction, TValue>>{
             const TValue value, value2;
             constexpr field_action_2(TValue __value, TValue __value2): value(__value), value2(__value2){}
             constexpr void execute(field_data_type<TField>& current){ TAction::execute(current, value, value2); }

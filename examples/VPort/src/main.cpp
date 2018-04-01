@@ -14,10 +14,20 @@ constexpr auto testPin = fieldBit<0>(portB);
 //constexpr auto testPin = portB0;
 constexpr auto testVPin = fieldBit<1>(testPort1);
 
-#define actions_ex 1
+#define actions_ex 3
 
 void test(){
-    #if (actions_ex == 2)
+    #if (actions_ex == 3)
+    write_a(testPort1, 123)();
+    clear_a(testPort2, 77)();
+    set_a(testPort1, 1)();
+    write_a(testPort2, PORTC)();
+    clear_a(testPort1, 54)();
+    toggle_a(testPort1, 0xF)();
+    toggle_a(testPort2, read_a(testPort1)())();
+    write_a(testPort1, PORTB)();
+    PORTC = read_a(testPort1)() | read_a(testPort2)();
+    #elif (actions_ex == 2)
     auto v = read(testPort1);
     auto v2 = read(testPort2);
     v = write_a(testPort1, 123).execute(v);

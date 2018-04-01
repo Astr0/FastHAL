@@ -110,6 +110,13 @@ namespace fasthal{
         // execute
         return details::actions_apply<T...>::apply(actions...);
     }
+
+    namespace details{
+        template<class TField, class TAction, class TConcrete>
+        constexpr field_data_type<TField> field_action_base<TField, TAction, TConcrete>::operator()(){
+            return get_a(TField{}, apply<TConcrete>(*static_cast<TConcrete*>(this)));
+        }
+    };
 }
 
 #endif
