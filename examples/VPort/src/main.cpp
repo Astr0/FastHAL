@@ -14,10 +14,25 @@ constexpr auto testPin = fieldBit<0>(portB);
 //constexpr auto testPin = portB0;
 constexpr auto testVPin = fieldBit<1>(testPort1);
 
-#define actions_ex 1
+#define actions_ex 4
 
 void test(){
-    #if (actions_ex == 3)
+    #if (actions_ex == 4)
+    auto v = combine_a(
+            combine_a(
+                write_a<123>(testPort1),
+                clear_a<77>(testPort2),
+                read_a(testPort2),
+                set_a<1>(testPort1)),
+            write_a(testPort2, PORTC),
+            combine_a(
+                clear_a<54>(testPort1),
+                toggle_a<0xF>(testPort1)),
+            toggle_a(testPort2, read(testPort1)),
+            write_a(testPort1, PORTB),
+            read_a(testPort1))();
+    PORTC = get_a(testPort1, v) | get_a(testPort2, v);
+    #elif (actions_ex == 3)
     write_a(testPort1, 123)();
     clear_a(testPort2, 77)();
     set_a(testPort1, 1)();
@@ -43,8 +58,7 @@ void test(){
     PORTC = v | v2;
     #elif (actions_ex == 1)
     //apply(write_a<123>(testPort1));
-    auto v = apply(
-            //mp::make_const_list(
+    auto v = apply(            
             combine_a(
                 write_a<123>(testPort1),
                 clear_a<77>(testPort2),
@@ -57,7 +71,6 @@ void test(){
             toggle_a(testPort2, read(testPort1)),
             write_a(testPort1, PORTB),
             read_a(testPort1)
-            //)
     );
     PORTC = get_a(testPort1, v) | get_a(testPort2, v);
     #else

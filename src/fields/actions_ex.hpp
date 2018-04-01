@@ -40,13 +40,11 @@ namespace fasthal{
             constexpr field_action_2(TValue __value, TValue __value2): value(__value), value2(__value2){}
             constexpr void execute(field_data_type<TField>& current){ TAction::execute(current, value, value2); }
         };
-
     }
-
     
     template<class... TFieldAction>
     constexpr auto inline combine_a(TFieldAction... actions){
-        return mp::make_const_list(actions...);
+        return details::field_actions_list_t<TFieldAction...>{actions...};
     }
     
     template<class TField, typename TDataType = field_data_type<TField>>
