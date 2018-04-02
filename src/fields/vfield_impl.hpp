@@ -272,28 +272,16 @@ namespace fasthal{
                     static constexpr auto inversion_mask = make_fieldbits_pos_inversion_mask<field_masktype_t, my_fieldbits_pos_t>::value;
 
                     template<typename TV1, typename TV2>
-                    struct apply_inversion_mask_helper{
-                        static constexpr auto apply(TV1 v1, TV2 v2){
-                            return (v1 & ~inversion_mask) | (v2 & inversion_mask);
-                        }
-                    };
+                    static constexpr auto apply_inversion_mask(TV1 v1, TV2 v2){
+                         return (v1 & ~inversion_mask) | (v2 & inversion_mask);
+                    }
 
                     template<typename TV1, typename TV2, TV1 V1, TV2 V2>
-                    struct apply_inversion_mask_helper<
-                        brigand::integral_constant<TV1, V1>,
-                        brigand::integral_constant<TV2, V2>>
-                    {
-                        static constexpr auto result = apply_inversion_mask_helper<TV1, TV2>::apply(V1, V2);
-                        using result_t = brigand::integral_constant<field_masktype_t, result>;
-
-                        static constexpr auto apply(TV1 v1, TV2 v2){                            
-                            return result_t{};
-                        }
-                    };
-
-                    template<typename TV1, typename TV2>
-                    static constexpr auto apply_inversion_mask(TV1 v1, TV2 v2){
-                        return apply_inversion_mask_helper<TV1, TV2>::apply(v1, v2);
+                    static constexpr auto apply_inversion_mask(
+                        brigand::integral_constant<TV1, V1> v1,
+                        brigand::integral_constant<TV2, V2> v2){
+                        using result_t = brigand::integral_constant<field_masktype_t, apply_inversion_mask(V1, V2)>;
+                        return result_t{};
                     }
 
                     // some bits inverted, some not
