@@ -5,6 +5,7 @@
 #include "mp/const_list.hpp"
 
 using namespace fasthal;
+using namespace fasthal::avr;
 
 constexpr auto testPort1 = vField(pinB4, pinB5, pinB6, pinD0, invert(pinD2), nullBit);
 //constexpr auto testPort1 = vField(nullBit, nullBit, nullBit, nullBit, pinB4, pinB5, pinB6, nullBit);

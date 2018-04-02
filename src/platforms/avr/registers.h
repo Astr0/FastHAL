@@ -32,54 +32,59 @@ FASTHAL_DECLAREREGISTER(pin ## CODE, PIN ## CODE)\
 FASTHAL_DECLAREREGISTER(ddr ## CODE, DDR ## CODE)
 
 namespace fasthal{
+	namespace avr{
+		namespace details{
+			template<class TAccess>
+			struct avr_register
+			{
+				using datatype_t = std::base_type_t<decltype(TAccess::value())>;
+
+				inline static void write(datatype_t value) { TAccess::value() = value; }
+				inline static datatype_t read() {return TAccess::value();}
+			};	
+		}
+	}
+
 	namespace details{
 		template<class TAccess>
-		struct avr_register
-		{
-			using datatype_t = std::base_type_t<decltype(TAccess::value())>;
-
-			inline static void write(datatype_t value) { TAccess::value() = value; }
-			inline static datatype_t read() {return TAccess::value();}
-		};	
-
-
-		template<class TAccess>
-		struct is_field_impl<avr_register<TAccess>>: std::true_type{};
+		struct is_field_impl<::fasthal::avr::details::avr_register<TAccess>>: std::true_type{};
 	}
     
-    #ifdef PORTA
-	FASTHAL_DECLAREPORT(A)
-	#endif
-	#ifdef PORTB
-	FASTHAL_DECLAREPORT(B)
-	#endif
-	#ifdef PORTC
-	FASTHAL_DECLAREPORT(C)
-	#endif
-	#ifdef PORTD
-	FASTHAL_DECLAREPORT(D)
-	#endif
-	#ifdef PORTE
-	FASTHAL_DECLAREPORT(E)
-	#endif
-	#ifdef PORTF
-	FASTHAL_DECLAREPORT(F)
-	#endif
-	#ifdef PORTG
-	FASTHAL_DECLAREPORT(G)
-	#endif
-	#ifdef PORTH
-	FASTHAL_DECLAREPORT(H)
-	#endif
-	#ifdef PORTJ
-	FASTHAL_DECLAREPORT(J)
-    #endif
-	#ifdef PORTK
-	FASTHAL_DECLAREPORT(K)
-    #endif
-	#ifdef PORTL
-	FASTHAL_DECLAREPORT(L)
-    #endif
+	namespace avr{
+		#ifdef PORTA
+		FASTHAL_DECLAREPORT(A)
+		#endif
+		#ifdef PORTB
+		FASTHAL_DECLAREPORT(B)
+		#endif
+		#ifdef PORTC
+		FASTHAL_DECLAREPORT(C)
+		#endif
+		#ifdef PORTD
+		FASTHAL_DECLAREPORT(D)
+		#endif
+		#ifdef PORTE
+		FASTHAL_DECLAREPORT(E)
+		#endif
+		#ifdef PORTF
+		FASTHAL_DECLAREPORT(F)
+		#endif
+		#ifdef PORTG
+		FASTHAL_DECLAREPORT(G)
+		#endif
+		#ifdef PORTH
+		FASTHAL_DECLAREPORT(H)
+		#endif
+		#ifdef PORTJ
+		FASTHAL_DECLAREPORT(J)
+		#endif
+		#ifdef PORTK
+		FASTHAL_DECLAREPORT(K)
+		#endif
+		#ifdef PORTL
+		FASTHAL_DECLAREPORT(L)
+		#endif
+	}
 }    
 
 #undef FASTHAL_DECLAREPORT
