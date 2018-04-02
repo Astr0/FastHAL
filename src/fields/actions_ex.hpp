@@ -52,6 +52,9 @@ namespace fasthal{
         static constexpr auto make_action(TField field, TValue... values){
             return field_action<TField, TAction, TValue...>{values...};
         }
+
+        template<class TField>
+        struct needs_field_actions_impl: is_field_impl<TField> {};
     }
 
     namespace mp{
@@ -74,20 +77,24 @@ namespace fasthal{
     constexpr auto inline combine_a(TFieldAction action){
         return action;
     }
+
+    template<class TField>
+    using enable_if_needs_field_actions = std::enable_if_c<details::needs_field_actions_impl<std::base_type_t<TField>>::value>;
     
-    template<class TField, typename TDataType = field_data_type<TField>, enable_if_field_c<TField> dummy = nullptr>
+    
+    template<class TField, typename TDataType = field_data_type<TField>, enable_if_needs_field_actions<TField> dummy = nullptr>
     constexpr auto write_a(TField field, const TDataType value) 
     {
         return details::make_action<details::write_field>(field, value);
     }
 
-    template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_field_c<TField> dummy = nullptr>
+    template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_needs_field_actions<TField> dummy = nullptr>
     constexpr auto set_a(TField field, TMaskType mask) 
     {
         return details::make_action<details::set_field>(field, mask);
     }
     
-    template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_field_c<TField> dummy = nullptr>
+    template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_needs_field_actions<TField> dummy = nullptr>
     constexpr auto clear_a(TField field, TMaskType mask) {
         return details::make_action<details::clear_field>(field, mask);
     }
@@ -95,25 +102,26 @@ namespace fasthal{
     template<class TField, 
         typename TClearMaskType = field_mask_type<TField>, 
         typename TSetMaskType = field_mask_type<TField>, 
-        enable_if_field_c<TField> dummy = nullptr>
+        enable_if_needs_field_actions<TField> dummy = nullptr>
     constexpr auto clear_set_a(TField field, TClearMaskType clearMask, TSetMaskType setMask) {
         return details::make_action<details::clear_set_field>(field, clearMask, setMask);
     }
 
-    template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_field_c<TField> dummy = nullptr>
+    template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_needs_field_actions<TField> dummy = nullptr>
     constexpr auto toggle_a(TField field, TMaskType mask) {
         return details::make_action<details::toggle_field>(field, mask);
     }
 
-    template<class TField, enable_if_field_c<TField> dummy = nullptr>
+    template<class TField, enable_if_needs_field_actions<TField> dummy = nullptr>
     constexpr auto read_a(TField field) {
         return details::make_action<details::read_field>(field);
     }
 
-    template<class TField, class... TFields, enable_if_field_c<TField> dummy = nullptr>
-    constexpr auto get_a(TField field, details::field_action_results_t<details::field_value<TFields>...> results)
+    template<class TField, class... TFields, enable_if_needs_field_actions<TField> dummy = nullptr>
+    constexpr auto get_a(TField field, details::field_action_results_t<TFields...> results)
     {
-        constexpr auto index = brigand::index_of<brigand::list<TFields...>, TField>::value;
+        using fields_t = brigand::list<TFields...>;
+        constexpr auto index = brigand::index_of<fields_t, TField>::value;
         return mp::get<index>(results).value;
     }
 

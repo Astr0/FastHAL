@@ -9,7 +9,7 @@ template<bool VTest, typename T>
 using enable_if_t = typename enable_if<VTest, T>::type;
 
 template<bool VTest>
-using enable_if_c = typename enable_if<VTest, void*>::type;
+using enable_if_c = enable_if_t<VTest, void*>;
 
 template<typename T>
 using base_type_t = typename std::remove_cv<typename std::remove_reference<T>::type>::type;

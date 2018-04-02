@@ -224,6 +224,22 @@ namespace fasthal{
                     }
                 };
 
+                template<typename T, T V, class TIteratorFieldBits>
+                struct append_value<brigand::integral_constant<T, V>, TIteratorFieldBits>{
+                    using value_t = brigand::integral_constant<T, V>;
+                    using write_value_t = brigand::integral_constant<field_datatype_t, append_value<T, TIteratorFieldBits>::appendWriteValue(V)>;
+                    using mask_value_t = brigand::integral_constant<field_masktype_t, append_value<T, TIteratorFieldBits>::appendMaskValue(V)>;
+                    
+                    static constexpr auto appendWriteValue(value_t value){
+                        return write_value_t{};
+                    }
+
+                    static constexpr inline auto appendMaskValue(value_t value)
+                    {
+                        return mask_value_t{};
+                    }
+                };
+
                 template<bool whole_field = my_fieldbits_count == (int)field_width<TField>(), bool dummy = false>
                 struct write_helper{
                     template<typename T>
@@ -341,7 +357,7 @@ namespace fasthal{
                 template<typename T>
                 static constexpr auto toggle(T value){
                     // Ignore inverted - toggle does not care
-                    return toggle_a(field, appendMaskValue(value));
+                    return toggle_a(field, append_value<T>::appendMaskValue(value));
                 }
 
                 static constexpr auto read(){
@@ -367,28 +383,22 @@ namespace fasthal{
                 static constexpr auto write_a(T value){
                     return combine_vfield_actions(field_processor<TFields>::write(value)...);
                 }
-                template<typename T>
-                static constexpr auto write(T value){ apply(write_a(value)); }		
 
                 template<typename TClear, typename TSet>
-                static void clear_set(TClear clearMask, TSet setMask){
-                    auto actions = combine_vfield_actions(field_processor<TFields>::clear_set(clearMask, setMask)...);
-                    apply(actions);
+                static constexpr auto  clear_set_a(TClear clearMask, TSet setMask){
+                    return combine_vfield_actions(field_processor<TFields>::clear_set(clearMask, setMask)...);
                 }
                 template<typename T>
-                static void set(T value){
-                    auto actions = combine_vfield_actions(field_processor<TFields>::set(value)...);
-                    apply(actions);
+                static constexpr auto  set_a(T value){
+                    return combine_vfield_actions(field_processor<TFields>::set(value)...);
                 }
                 template<typename T>
-                static void clear(T value){
-                    auto actions = combine_vfield_actions(field_processor<TFields>::clear(value)...);
-                    apply(actions);
+                static constexpr auto  clear_a(T value){
+                    return combine_vfield_actions(field_processor<TFields>::clear(value)...);
                 }
                 template<typename T>
-                static void toggle(T value){
-                    auto actions = combine_vfield_actions(field_processor<TFields>::toggle(value)...);
-                    apply(actions);
+                static constexpr auto  toggle_a(T value){
+                    return combine_vfield_actions(field_processor<TFields>::toggle(value)...);
                 }
                 static constexpr auto read_a(){
                     return combine_vfield_actions(field_processor<TFields>::read()...);

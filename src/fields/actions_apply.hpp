@@ -21,11 +21,14 @@ namespace fasthal{
             const datatype_t value;
         };
 
+        template<class TFieldValue>
+        using get_fieldvalue_field = typename TFieldValue::field_t;
+
         template<class... TActions>
         using field_actions_list_t = mp::const_list<TActions...>;      
 
-        template<class...TFieldValues>
-        using field_action_results_t = mp::const_list<TFieldValues...>;
+        template<class...TField>
+        using field_action_results_t = mp::const_list<field_value<TField>...>;
 
         
         template<class... TField>

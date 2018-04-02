@@ -22,8 +22,8 @@ namespace fasthal{
 
 		static void write(datatype_t value) 
 		{
-			impl_t::write(value);
-			//apply(impl_t::write(value));
+			//impl_t::write(value);
+			apply(impl_t::write_a(value));
 		}
 
 		static auto read()
@@ -34,6 +34,9 @@ namespace fasthal{
 	namespace details{
 		template<class... TFieldBits>
 		struct is_field_impl<vfield<TFieldBits...>>: std::true_type{};
+
+	    template<class... TFieldBits>
+        struct needs_field_actions_impl<vfield<TFieldBits...>>: std::false_type{};
 	}
 
 
@@ -54,45 +57,91 @@ namespace fasthal{
 	}
 
 	// optimized actions_ex
-	// template<class... TFieldBits, 
-	// 	typename TField = vfield<TFieldBits...>,
-	// 	typename TDataType = field_data_type<TField>>
-	// static constexpr auto write_a(vfield<TFieldBits...> field, TDataType value) 
-    // {
-    //     return TField::impl_t::write_a(value);
-    // }
+	template<class... TFieldBits, 
+		typename TField = vfield<TFieldBits...>,
+		typename TDataType = field_data_type<TField>>
+	constexpr auto write_a(vfield<TFieldBits...> field, TDataType value) 
+    {
+        return TField::impl_t::write_a(value);
+    }
+
+	template<class... TFieldBits, 
+		typename TField = vfield<TFieldBits...>>
+	constexpr auto read_a(vfield<TFieldBits...> field) 
+    {
+        return TField::impl_t::read_a();
+    }
+
+	template<class... TFieldBits, 
+		typename TField = vfield<TFieldBits...>,
+		typename TMaskType = field_mask_type<TField>>
+	constexpr auto set_a(vfield<TFieldBits...> field, TMaskType mask) 
+	{
+		return TField::impl_t::set_a(mask);
+	}
+
+	template<class... TFieldBits, 
+		typename TField = vfield<TFieldBits...>,
+		typename TMaskType = field_mask_type<TField>>
+	constexpr auto clear_a(vfield<TFieldBits...> field, TMaskType mask) 
+	{
+		return TField::impl_t::clear_a(mask);					
+	}
+
+    template<class... TFieldBits, 
+		typename TField = vfield<TFieldBits...>,
+		typename TClearMask = field_mask_type<TField>,
+		typename TSetMask = field_mask_type<TField>>
+	constexpr auto clear_set_a(vfield<TFieldBits...> field, TClearMask clearMask, TSetMask setMask) 
+	{
+		return TField::impl_t::clear_set_a(clearMask, setMask);
+	}
+
+	template<class... TFieldBits, 
+		typename TField = vfield<TFieldBits...>,
+		typename TMaskType = field_mask_type<TField>>
+	constexpr auto toggle_a(vfield<TFieldBits...> field, TMaskType mask) 
+	{
+		return TField::impl_t::toggle_a(mask);
+	}
+
+    template<class... TFields, class... TFieldBits, typename TField = vfield<TFieldBits...>>
+    constexpr auto get_a(vfield<TFieldBits...> field, details::field_action_results_t<TFields...> results)
+    {
+        return TField::impl_t::read(results);
+    }
 
 	// optimized actions
 	template<class... TFieldBits, 
 		typename TField = vfield<TFieldBits...>,
 		typename TMaskType = field_mask_type<TField>>
-	static void set(vfield<TFieldBits...> field, TMaskType mask) 
+	void set(vfield<TFieldBits...> field, TMaskType mask) 
 	{
-		TField::impl_t::set(mask);
+		apply(set_a(field, mask));
 	}
 
 	template<class... TFieldBits, 
 		typename TField = vfield<TFieldBits...>,
 		typename TMaskType = field_mask_type<TField>>
-	static void clear(vfield<TFieldBits...> field, TMaskType mask) 
+	void clear(vfield<TFieldBits...> field, TMaskType mask) 
 	{
-		TField::impl_t::clear(mask);					
+		apply(clear_a(field, mask));
 	}
 
     template<class... TFieldBits, 
 		typename TField = vfield<TFieldBits...>,
 		typename TMaskType = field_mask_type<TField>>
-	static void clear_set(vfield<TFieldBits...> field, TMaskType clearMask, TMaskType setMask) 
+	void clear_set(vfield<TFieldBits...> field, TMaskType clearMask, TMaskType setMask) 
 	{
-		TField::impl_t::clear_set(clearMask, setMask);
+		return apply(clear_set_a(field, clearMask, setMask));
 	}				
 
 	template<class... TFieldBits, 
 		typename TField = vfield<TFieldBits...>,
 		typename TMaskType = field_mask_type<TField>>
-	static void toggle(vfield<TFieldBits...> field, TMaskType mask) 
+	void toggle(vfield<TFieldBits...> field, TMaskType mask) 
 	{
-		TField::impl_t::toggle(mask);
+		return apply(toggle_a(field, mask));
 	}
 }
 
