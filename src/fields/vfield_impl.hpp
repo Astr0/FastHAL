@@ -5,6 +5,7 @@
 #include "../std/std_types.hpp"
 #include "../utils/mask.hpp"
 #include "actions_ex.hpp"
+#include "nullfield.hpp"
 
 namespace fasthal{
     namespace details{
@@ -418,8 +419,10 @@ namespace fasthal{
             using get_fieldbit_field = typename TFieldBit::field_t;
 
             // distinct fields affected by fieldbits
-   			using fields_t = no_duplicates< 
-                transform<list<TFieldBits...>, bind<get_fieldbit_field, _1>> >;
+   			using fields_t = remove<
+                no_duplicates< 
+                    transform<list<TFieldBits...>, bind<get_fieldbit_field, _1>>>,
+                null_field>;
 
             using impl_t = unpack<fields_t, fields_iterator>;
 
