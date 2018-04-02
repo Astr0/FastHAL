@@ -269,6 +269,33 @@ namespace fasthal{
 
                 template<decltype(my_inveted_count) inverted = my_inveted_count, bool dummy = false>
                 struct clear_set_helper{
+                    static constexpr auto inversion_mask = make_fieldbits_pos_inversion_mask<field_masktype_t, my_fieldbits_pos_t>::value;
+
+                    template<typename TV1, typename TV2>
+                    struct apply_inversion_mask_helper{
+                        static constexpr auto apply(TV1 v1, TV2 v2){
+                            return (v1 & ~inversion_mask) | (v2 & inversion_mask);
+                        }
+                    };
+
+                    template<typename TV1, typename TV2, TV1 V1, TV2 V2>
+                    struct apply_inversion_mask_helper<
+                        brigand::integral_constant<TV1, V1>,
+                        brigand::integral_constant<TV2, V2>>
+                    {
+                        static constexpr auto result = apply_inversion_mask_helper<TV1, TV2>::apply(V1, V2);
+                        using result_t = brigand::integral_constant<field_masktype_t, result>;
+
+                        static constexpr auto apply(TV1 v1, TV2 v2){                            
+                            return result_t{};
+                        }
+                    };
+
+                    template<typename TV1, typename TV2>
+                    static constexpr auto apply_inversion_mask(TV1 v1, TV2 v2){
+                        return apply_inversion_mask_helper<TV1, TV2>::apply(v1, v2);
+                    }
+
                     // some bits inverted, some not
                     template<typename TClear, typename TSet>
                     static constexpr auto clear_set(TClear clearMask, TSet setMask){
@@ -276,12 +303,10 @@ namespace fasthal{
                         auto resultC = append_value<TClear>::appendMaskValue(clearMask);
                         auto resultS = append_value<TSet>::appendMaskValue(setMask);
 
-                        // Mix... calculate set and clear masks...
-                        constexpr auto inversionMask = make_fieldbits_pos_inversion_mask<field_masktype_t, my_fieldbits_pos_t>::value;
                         // clear - not inverted clear + inverted set
-                        auto clearFieldMask = (resultC & ~inversionMask) | (resultS & inversionMask);
+                        auto clearFieldMask = apply_inversion_mask(resultC, resultS);
                         // set - not inverted set + inverted clear
-                        auto setFieldMask = (resultS & ~inversionMask) | (resultC & inversionMask);
+                        auto setFieldMask = apply_inversion_mask(resultS, resultC);
 
                         return clear_set_a(field, clearFieldMask, setFieldMask);
                     }
