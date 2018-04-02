@@ -133,7 +133,7 @@ namespace fasthal{
 		typename TMaskType = field_mask_type<TField>>
 	void clear_set(vfield<TFieldBits...> field, TMaskType clearMask, TMaskType setMask) 
 	{
-		return apply(clear_set_a(field, clearMask, setMask));
+		apply(clear_set_a(field, clearMask, setMask));
 	}				
 
 	template<class... TFieldBits, 
@@ -141,7 +141,7 @@ namespace fasthal{
 		typename TMaskType = field_mask_type<TField>>
 	void toggle(vfield<TFieldBits...> field, TMaskType mask) 
 	{
-		return apply(toggle_a(field, mask));
+		apply(toggle_a(field, mask));
 	}
 }
 
