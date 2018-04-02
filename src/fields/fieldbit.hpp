@@ -130,8 +130,6 @@ namespace fasthal
 	constexpr auto read_(field_bit<TField, VNumber, VInverted> fieldBit){
 		return get(fieldBit, apply(read(fieldBit)));
 	}
-
-	
 }
 
 #endif

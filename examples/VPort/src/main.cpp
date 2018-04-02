@@ -1,3 +1,5 @@
+#define actions_ex 1
+
 #include <avr/io.h>
 #include "fasthal.h"
 #include "mp/const_list.hpp"
@@ -11,16 +13,14 @@ constexpr auto testPort2 = portD;
 
 
 
-constexpr auto testPin = fieldBit<0>(portB);
+constexpr auto testPin1 = fieldBit<0>(portB);
 //constexpr auto testPin = portB0;
-constexpr auto testVPin = fieldBit<1>(testPort1);
+constexpr auto testPin2 = fieldBit<1>(testPort1);
 
 template<std::size_t V>
 using value_t = brigand::uint8_t<V>;
 
-void test(){
-    #define actions_ex 0
-    
+void test_ports(){   
     #if (actions_ex == 3)
     auto v = apply(
         combine_a(
@@ -62,7 +62,7 @@ void test(){
         toggle(testPort2, read_(testPort1)),
         write(testPort1, PORTB));
     PORTC = get(testPort1, v) | get(testPort2, v);
-    #else
+    #elif (actions_ex == 0)
     write_(testPort1, value_t<123>{});
     clear_(testPort2, value_t<77>{});
     set_(testPort1, value_t<1>{});
@@ -75,21 +75,31 @@ void test(){
     #endif
 }
 
-int main(){
-    //test();    
-    PORTC = read_(testPort2);
-
+void test_field_bits(){
+    #if (actions_ex == 1)
     apply(
-        set(testPin),
-        clear(testPin),
-        toggle(testPin),
-        set(testPin, false)
+        set(testPin1),
+        set(testPin2),
+        toggle(testPin1),
+        set(testPin2, false)
     );
-    if (read_(testPin))
-    {
-        clear_set_(testPort1, 1, 2);
-    }
-    PORTD = read_(testPort1);
+    if (read_(testPin1))
+        clear_(testPin2);
+    #elif (actions_ex == 0)
+
+    set_(testPin1);
+    set_(testPin2);
+    toggle_(testPin1);
+    set_(testPin2, false);
+    if (read_(testPin1))
+        clear_(testPin2);
+    
+    #endif
+}
+
+int main(){
+    //test_ports();    
+    test_field_bits();
     
     return 0;
 }
