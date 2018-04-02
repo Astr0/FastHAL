@@ -121,8 +121,8 @@ namespace fasthal{
     constexpr auto get_a(TField field, details::field_action_results_t<TFields...> results)
     {
         using fields_t = brigand::list<TFields...>;
-        constexpr auto index = brigand::index_of<fields_t, TField>::value;
-        return mp::get<index>(results).value;
+        using index_t = brigand::index_of<fields_t, TField>;
+        return mp::get<index_t::value>(results).value;
     }
 
     template<class TField, enable_if_field_c<TField> dummy = nullptr>

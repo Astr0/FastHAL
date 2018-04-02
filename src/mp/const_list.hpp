@@ -56,17 +56,6 @@ namespace fasthal{
         };
 
         namespace details{
-            template<class TList, std::size_t N>
-            struct const_list_get_helper
-            {
-                static constexpr auto get(TList list){
-                    using el_t = brigand::at_c<TList, N>;
-                    constexpr auto size = brigand::size<TList>::value;
-                    using holder_t = element_holder<el_t, (size - 1 - N)>;
-                    return list.holder_t::getElement();
-                }
-            };
-
             // const list statis if all elements are static
             template<typename... T>
             struct is_static_element_impl<const_list<T...>>: brigand::all<const_list<T...>, brigand::bind<is_static_element, brigand::_1>> { };
@@ -78,9 +67,12 @@ namespace fasthal{
         }
 
         template<std::size_t N, class... TElements>
-        constexpr auto get(const_list<TElements...> list){            
+        constexpr auto get(const_list<TElements...> list){      
+            using list_t = const_list<TElements...>;
+            using el_t = brigand::at_c<list_t, N>;                    
+            using holder_t = details::element_holder<el_t, (brigand::size<list_t>::value - 1 - N)>;      
             // cause we can't change return type
-            return details::const_list_get_helper<const_list<TElements...>, N>::get(list);                
+            return list.holder_t::getElement();
         }
     }
 }

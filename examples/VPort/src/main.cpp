@@ -22,22 +22,19 @@ using value_t = brigand::uint8_t<V>;
 
 void test(){
     #if (actions_ex == 3)
-    constexpr auto w1 = combine_a(
+    auto v = apply(
+        combine_a(
+            combine_a(
                 write_a(testPort1, value_t<123>{}),
                 clear_a(testPort2, value_t<77>{}),
-                set_a(testPort1, value_t<1>{}));
-    //PORTC = sizeof(decltype(w1));
-    constexpr auto w2 = combine_a(
-                clear_a(testPort1, value_t<54>{}),
-                toggle_a(testPort1, value_t<0xF>{}));
-    //PORTC = sizeof(decltype(w2));
-    auto wr = combine_a(
-            w1,
+                set_a(testPort1, value_t<1>{})),
             write_a(testPort2, PORTC),
-            w2,
+            combine_a(
+                clear_a(testPort1, value_t<54>{}),
+                toggle_a(testPort1, value_t<0xF>{})),
             toggle_a(testPort2, read_i(testPort1)),
-            write_a(testPort1, PORTB));
-    auto v = apply(wr);
+            write_a(testPort1, PORTB)
+        ));
     // PORTC = sizeof(decltype( write_a(testPort2, PORTC)));
     // PORTC = sizeof(decltype(toggle_a(testPort2, read_i(testPort1)));
     // PORTC = sizeof(write_a(testPort1, PORTB));
