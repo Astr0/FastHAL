@@ -15,12 +15,12 @@ constexpr auto testPin = fieldBit<0>(portB);
 //constexpr auto testPin = portB0;
 constexpr auto testVPin = fieldBit<1>(testPort1);
 
-#define actions_ex 0
-
 template<std::size_t V>
 using value_t = brigand::uint8_t<V>;
 
 void test(){
+    #define actions_ex 0
+    
     #if (actions_ex == 3)
     auto v = apply(
         combine_a(
@@ -39,7 +39,7 @@ void test(){
     // PORTC = sizeof(decltype(toggle(testPort2, read_(testPort1)));
     // PORTC = sizeof(write(testPort1, PORTB));
     // PORTC = sizeof(decltype(wr));
-    PORTC = get_a(testPort1, v) | get_a(testPort2, v);
+    PORTC = get(testPort1, v) | get(testPort2, v);
     #elif (actions_ex == 2)
     apply(write(testPort1, value_t<123>{}));
     apply(clear(testPort2, value_t<77>{}));
@@ -61,7 +61,7 @@ void test(){
         toggle(testPort1, value_t<0xF>{}),
         toggle(testPort2, read_(testPort1)),
         write(testPort1, PORTB));
-    PORTC = get_a(testPort1, v) | get_a(testPort2, v);
+    PORTC = get(testPort1, v) | get(testPort2, v);
     #else
     write_(testPort1, value_t<123>{});
     clear_(testPort2, value_t<77>{});
@@ -76,18 +76,20 @@ void test(){
 }
 
 int main(){
-    test();    
-    //PORTC = get_a(testPort2, apply(read(testPort2)));
+    //test();    
+    PORTC = read_(testPort2);
 
-    // set(testPin);
-    // clear(testPin);
-    // toggle(testPin);
-    // set(testPin, false);
-    // if (read(testPin))
-    // {
-    //     clear_set(testPort1, 1, 2);
-    // }
-    // PORTD = read(testPort1);
+    apply(
+        set(testPin),
+        clear(testPin),
+        toggle(testPin),
+        set(testPin, false)
+    );
+    if (read_(testPin))
+    {
+        clear_set_(testPort1, 1, 2);
+    }
+    PORTD = read_(testPort1);
     
     return 0;
 }

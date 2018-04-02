@@ -105,7 +105,7 @@ namespace fasthal{
 	}
 
     template<class... TFields, class... TFieldBits, typename TField = vfield<TFieldBits...>>
-    constexpr auto get_a(vfield<TFieldBits...> field, details::field_action_results_t<TFields...> results)
+    constexpr auto get(vfield<TFieldBits...> field, details::field_action_results_t<TFields...> results)
     {
         return TField::impl_t::read(results);
     }

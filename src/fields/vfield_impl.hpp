@@ -379,7 +379,7 @@ namespace fasthal{
 
                 template<typename TReadResult>
                 static void read(datatype_t& result, TReadResult read){
-                    auto fieldValue = get_a(field, read);
+                    auto fieldValue = get(field, read);
 				    brigand::unpack<my_fieldbits_pos_t, fieldbits_iterator>::appendReadValue(fieldValue, result);
                 }
             };

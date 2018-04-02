@@ -118,7 +118,7 @@ namespace fasthal{
     }
 
     template<class TField, class... TFields, enable_if_needs_field_actions<TField> dummy = nullptr>
-    constexpr auto get_a(TField field, details::field_action_results_t<TFields...> results)
+    constexpr auto get(TField field, details::field_action_results_t<TFields...> results)
     {
         using fields_t = brigand::list<TFields...>;
         using index_t = brigand::index_of<fields_t, TField>;
@@ -148,7 +148,7 @@ namespace fasthal{
         typename TSetMaskType = field_mask_type<TField>, 
         enable_if_field_c<TField> dummy = nullptr>
     constexpr void clear_set_(TField field, TClearMaskType clearMask, TSetMaskType setMask) {
-        apply(clear_set(clearMask, setMask));
+        apply(clear_set(field, clearMask, setMask));
     }
 
     template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_field_c<TField> dummy = nullptr>
@@ -158,7 +158,7 @@ namespace fasthal{
 
     template<class TField, enable_if_field_c<TField> dummy = nullptr>
     constexpr auto read_(TField field) {
-        return get_a(field, apply(read(field)));
+        return get(field, apply(read(field)));
     }
 }
 
