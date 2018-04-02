@@ -1,1 +1,1 @@
-"c:\Program Files (x86)\Arduino\hardware\tools\avr\bin\avr-objdump.exe" -CD .pioenvs/nanoatmega328/firmware.elf > .pioenvs/nanoatmega328/firmware.asm
+"c:\Users\astr0\.platformio\packages\toolchain-atmelavr\bin\avr-objdump.exe" -I "../../src" -S -l .pioenvs/nanoatmega328/firmware.elf > .pioenvs/nanoatmega328/firmware.asm
