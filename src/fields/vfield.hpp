@@ -26,7 +26,7 @@ namespace fasthal{
 			//apply(impl_t::write(value));
 		}
 
-		static auto read() 
+		static auto read()
 		{
 			return impl_t::read();
 		}

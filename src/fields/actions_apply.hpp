@@ -83,12 +83,6 @@ namespace fasthal{
             using tuple_t = field_actions_list_t<TActions...>;
             template<typename... TIndex>
             struct tuple_exec{
-                // template<class TAction>
-                // static constexpr void execute(TValue& value, TAction action){
-                //     using executor_t = actions_executor<field_datatype_t, is_my_action, TAction>;
-                //     executor_t::execute(value, action);
-                // }
-
                 static constexpr void execute(TValue& value, tuple_t tuple){
                     (
                         (actions_executor<TValue, TFilter, at_c<tuple_t, TIndex::value>>
@@ -147,14 +141,6 @@ namespace fasthal{
                     return combine_action_results(field_apply<TField>::execute(actions...)...);
                 }
             };
-
-            // // one field iterator - just return field's value
-            // template<class TField>
-            // struct fields_iterator<TField>{
-            //     static constexpr inline auto execute(TActions... actions){
-            //         return field_apply<TField>::execute(actions...).value;
-            //     }
-            // };
 
             static constexpr inline auto apply(TActions... actions){
                 // group by field
