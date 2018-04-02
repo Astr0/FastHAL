@@ -26,7 +26,7 @@ namespace fasthal{
                 
                 constexpr element_holder(TElement __element): element(__element) { }
 
-                constexpr TElement getElement(){return element;}
+                constexpr TElement getElement() const{return element;}
             };
 
             template<class TElement, std::size_t Index>
@@ -35,7 +35,7 @@ namespace fasthal{
 
                 constexpr element_holder(TElement __element) { }
 
-                constexpr TElement getElement(){return TElement{};}
+                constexpr TElement getElement() const{return TElement{};}
             };
         }
 
@@ -62,7 +62,7 @@ namespace fasthal{
         }
 
         template<class... TElements>
-        constexpr auto make_const_list(const TElements... elements){
+        constexpr auto make_const_list(TElements... elements){
             return const_list<TElements...>{elements...};
         }
 
@@ -70,10 +70,64 @@ namespace fasthal{
         constexpr auto get(const_list<TElements...> list){      
             using list_t = const_list<TElements...>;
             using el_t = brigand::at_c<list_t, N>;                    
-            using holder_t = details::element_holder<el_t, (brigand::size<list_t>::value - 1 - N)>;      
+            using holder_t = const details::element_holder<el_t, (brigand::size<list_t>::value - 1 - N)>;      
             // cause we can't change return type
             return list.holder_t::getElement();
         }
+
+        namespace details{
+            // empty T == full args
+            template<typename... T>
+            struct flatten_helper{
+                template<typename... TArgs>
+                static constexpr auto flatten(TArgs... args){
+                    return make_const_list(args...);
+                }
+            }; 
+
+            // not const list
+            template<typename T, typename... R>
+            struct flatten_helper<T, R...>{
+                template<typename... TArgs>
+                static constexpr auto flatten(T value, R... rest, TArgs... args){
+                    // forward value
+                    return flatten_helper<R...>::flatten(rest..., args..., value);
+                }
+            }; 
+
+            // unwrap const list
+            template<typename... TList, typename... R>
+            struct flatten_helper<const_list<TList...>, R...>{
+                using list_t = const_list<TList...>;
+                
+                template<typename... TIndex>
+                struct list_exec{
+                    template<typename... TArgs>
+                    static constexpr auto flatten(list_t list, R... rest, TArgs... args){
+                        // forward list elements, we can even fully unfold here if pass get<> to flatten
+                        return flatten_helper<TList..., R...>::flatten(
+                                mp::get<TIndex::value>(list)...,
+                                rest..., 
+                                args...                                
+                        );
+                    }
+                };
+
+                template<typename... TArgs>
+                static constexpr auto flatten(list_t value, R... rest, TArgs... args){
+                    using namespace brigand;
+                    using indices_t = make_sequence<
+                        brigand::size_t<0>, 
+                        size<list_t>::value>;
+                    return unpack<indices_t, list_exec>::flatten(value, rest..., args...);
+                }
+            }; 
+        }
+
+        template<class... TElements>
+        constexpr auto flatten_const_list(TElements... elements){
+            return details::flatten_helper<TElements...>::flatten(elements...);
+        }        
     }
 }
 #endif

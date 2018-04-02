@@ -83,22 +83,22 @@ namespace fasthal{
         template<typename TValue, template<class> class TFilter, class... TActions>
         struct actions_executor<TValue, TFilter, field_actions_list_t<TActions...>>
         {
-            using tuple_t = field_actions_list_t<TActions...>;
+            using list_t = field_actions_list_t<TActions...>;
             template<typename... TIndex>
-            struct tuple_exec{
-                static constexpr void execute(TValue& value, tuple_t tuple){
+            struct list_exec{
+                static constexpr void execute(TValue& value, list_t tuple){
                     (
-                        (actions_executor<TValue, TFilter, at_c<tuple_t, TIndex::value>>
+                        (actions_executor<TValue, TFilter, at_c<list_t, TIndex::value>>
                          ::execute(value, mp::get<TIndex::value>(tuple)))
                     , ...);
                 }
             };
 
-            static constexpr void execute(TValue& value, tuple_t tuple){
-                using tuple_indices_t = make_sequence<
+            static constexpr void execute(TValue& value, list_t tuple){
+                using indices_t = make_sequence<
                     brigand::size_t<0>, 
-                    size<tuple_t>::value>;
-                unpack<tuple_indices_t, tuple_exec>::execute(value, tuple);
+                    size<list_t>::value>;
+                unpack<indices_t, list_exec>::execute(value, tuple);
             }
         };
 
