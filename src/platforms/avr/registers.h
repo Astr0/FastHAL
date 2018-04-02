@@ -13,9 +13,9 @@
 
 #define FASTHAL_DECLAREREGISTER( NAME, VAR)\
 namespace priv{\
-	FH_WRAPVARIABLE(VAR ## Reg, VAR)\
+	FH_WRAPVARIABLE(VAR ## _reg, VAR)\
 }\
-static constexpr auto NAME = details::AvrRegister<priv::VAR ## Reg>{};\
+static constexpr auto NAME = details::avr_register<priv::VAR ## _reg>{};\
 static constexpr auto NAME ## 0 = fieldBit<0>(NAME);\
 static constexpr auto NAME ## 1 = fieldBit<1>(NAME);\
 static constexpr auto NAME ## 2 = fieldBit<2>(NAME);\
@@ -34,7 +34,7 @@ FASTHAL_DECLAREREGISTER(ddr ## CODE, DDR ## CODE)
 namespace fasthal{
 	namespace details{
 		template<class TAccess>
-		struct AvrRegister
+		struct avr_register
 		{
 			using datatype_t = std::base_type_t<decltype(TAccess::value())>;
 
@@ -44,7 +44,7 @@ namespace fasthal{
 
 
 		template<class TAccess>
-		struct is_field_impl<AvrRegister<TAccess>>: std::true_type{};
+		struct is_field_impl<avr_register<TAccess>>: std::true_type{};
 	}
     
     #ifdef PORTA
