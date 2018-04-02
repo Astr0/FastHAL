@@ -15,7 +15,7 @@ constexpr auto testPin = fieldBit<0>(portB);
 //constexpr auto testPin = portB0;
 constexpr auto testVPin = fieldBit<1>(testPort1);
 
-#define actions_ex 3
+#define actions_ex 0
 
 template<std::size_t V>
 using value_t = brigand::uint8_t<V>;
@@ -63,15 +63,15 @@ void test(){
         write(testPort1, PORTB));
     PORTC = get_a(testPort1, v) | get_a(testPort2, v);
     #else
-    write(testPort1, 123);
-    clear(testPort2, 77);
-    set(testPort1, 1);
-    write(testPort2, PORTC);
-    clear(testPort1, 54);
-    toggle(testPort1, 0xF);
-    toggle(testPort2, read(testPort1));
-    write(testPort1, PORTB);
-    PORTC = read(testPort1) | read(testPort2);
+    write_i(testPort1, value_t<123>{});
+    clear_i(testPort2, value_t<77>{});
+    set_i(testPort1, value_t<1>{});
+    write_i(testPort2, PORTC);
+    clear_i(testPort1, value_t<54>{});
+    toggle_i(testPort1, value_t<0xF>{});
+    toggle_i(testPort2, read_i(testPort1));
+    write_i(testPort1, PORTB);
+    PORTC = read_i(testPort1) | read_i(testPort2);
     #endif
 }
 
