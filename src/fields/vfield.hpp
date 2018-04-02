@@ -28,7 +28,7 @@ namespace fasthal{
 
 		static auto read()
 		{
-			return impl_t::read();
+			return impl_t::read(apply(impl_t::read_a()));
 		}
 	};
 	namespace details{
@@ -38,7 +38,6 @@ namespace fasthal{
 	    template<class... TFieldBits>
         struct needs_field_actions_impl<vfield<TFieldBits...>>: std::false_type{};
 	}
-
 
 	// create vfield
 	template<class... TBits>
@@ -110,39 +109,6 @@ namespace fasthal{
     {
         return TField::impl_t::read(results);
     }
-
-	// optimized actions
-	template<class... TFieldBits, 
-		typename TField = vfield<TFieldBits...>,
-		typename TMaskType = field_mask_type<TField>>
-	void set(vfield<TFieldBits...> field, TMaskType mask) 
-	{
-		apply(set_a(field, mask));
-	}
-
-	template<class... TFieldBits, 
-		typename TField = vfield<TFieldBits...>,
-		typename TMaskType = field_mask_type<TField>>
-	void clear(vfield<TFieldBits...> field, TMaskType mask) 
-	{
-		apply(clear_a(field, mask));
-	}
-
-    template<class... TFieldBits, 
-		typename TField = vfield<TFieldBits...>,
-		typename TMaskType = field_mask_type<TField>>
-	void clear_set(vfield<TFieldBits...> field, TMaskType clearMask, TMaskType setMask) 
-	{
-		apply(clear_set_a(field, clearMask, setMask));
-	}				
-
-	template<class... TFieldBits, 
-		typename TField = vfield<TFieldBits...>,
-		typename TMaskType = field_mask_type<TField>>
-	void toggle(vfield<TFieldBits...> field, TMaskType mask) 
-	{
-		apply(toggle_a(field, mask));
-	}
 }
 
 #endif

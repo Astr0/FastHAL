@@ -81,7 +81,7 @@ namespace fasthal{
     template<class TField>
     using enable_if_needs_field_actions = std::enable_if_c<details::needs_field_actions_impl<std::base_type_t<TField>>::value>;
     
-    
+    // ACTIONS
     template<class TField, typename TDataType = field_data_type<TField>, enable_if_needs_field_actions<TField> dummy = nullptr>
     constexpr auto write_a(TField field, const TDataType value) 
     {
@@ -123,6 +123,37 @@ namespace fasthal{
         using fields_t = brigand::list<TFields...>;
         using index_t = brigand::index_of<fields_t, TField>;
         return mp::get<index_t::value>(results).value;
+    }
+
+    // Immidiate actions
+    template<class TField, typename TDataType = field_data_type<TField>, enable_if_field_c<TField> dummy = nullptr>
+    constexpr void write_i(TField field, const TDataType value) 
+    {
+        apply(write_a(field, value));
+    }
+
+    template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_field_c<TField> dummy = nullptr>
+    constexpr void set_i(TField field, TMaskType mask) 
+    {
+        apply(set_a(field, mask));
+    }
+    
+    template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_field_c<TField> dummy = nullptr>
+    constexpr void clear_i(TField field, TMaskType mask) {
+        apply(clear_a(field, mask));
+    }
+
+    template<class TField, 
+        typename TClearMaskType = field_mask_type<TField>, 
+        typename TSetMaskType = field_mask_type<TField>, 
+        enable_if_field_c<TField> dummy = nullptr>
+    constexpr void clear_set_i(TField field, TClearMaskType clearMask, TSetMaskType setMask) {
+        apply(clear_set_a(clearMask, setMask));
+    }
+
+    template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_field_c<TField> dummy = nullptr>
+    constexpr void toggle_i(TField field, TMaskType mask) {
+        apply(toggle_a(field, mask));
     }
 
     template<class TField, enable_if_field_c<TField> dummy = nullptr>

@@ -396,7 +396,6 @@ namespace fasthal{
                 static constexpr auto write_a(T value){
                     return combine_vfield_actions(field_processor<TFields>::write(value)...);
                 }
-
                 template<typename TClear, typename TSet>
                 static constexpr auto  clear_set_a(TClear clearMask, TSet setMask){
                     return combine_vfield_actions(field_processor<TFields>::clear_set(clearMask, setMask)...);
@@ -421,9 +420,6 @@ namespace fasthal{
                     auto result = datatype_t {};
                     (field_processor<TFields>::read(result, read), ...);
                     return result;
-                }
-                static datatype_t read() { 
-                    return read(apply(read_a()));
                 }
             };
 
