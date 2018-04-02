@@ -25,42 +25,42 @@ void test(){
     auto v = apply(
         combine_a(
             combine_a(
-                write_a(testPort1, value_t<123>{}),
-                clear_a(testPort2, value_t<77>{}),
-                set_a(testPort1, value_t<1>{})),
-            write_a(testPort2, PORTC),
+                write(testPort1, value_t<123>{}),
+                clear(testPort2, value_t<77>{}),
+                set(testPort1, value_t<1>{})),
+            write(testPort2, PORTC),
             combine_a(
-                clear_a(testPort1, value_t<54>{}),
-                toggle_a(testPort1, value_t<0xF>{})),
-            toggle_a(testPort2, read_i(testPort1)),
-            write_a(testPort1, PORTB)
+                clear(testPort1, value_t<54>{}),
+                toggle(testPort1, value_t<0xF>{})),
+            toggle(testPort2, read_i(testPort1)),
+            write(testPort1, PORTB)
         ));
-    // PORTC = sizeof(decltype( write_a(testPort2, PORTC)));
-    // PORTC = sizeof(decltype(toggle_a(testPort2, read_i(testPort1)));
-    // PORTC = sizeof(write_a(testPort1, PORTB));
+    // PORTC = sizeof(decltype( write(testPort2, PORTC)));
+    // PORTC = sizeof(decltype(toggle(testPort2, read_i(testPort1)));
+    // PORTC = sizeof(write(testPort1, PORTB));
     // PORTC = sizeof(decltype(wr));
     PORTC = get_a(testPort1, v) | get_a(testPort2, v);
     #elif (actions_ex == 2)
-    apply(write_a(testPort1, value_t<123>{}));
-    apply(clear_a(testPort2, value_t<77>{}));
-    apply(set_a(testPort1, value_t<1>{}));
-    apply(write_a(testPort2, PORTC));
-    apply(clear_a(testPort1, value_t<54>{}));
-    apply(toggle_a(testPort1, value_t<0xF>{}));
-    apply(toggle_a(testPort2, read_i(testPort1)));
-    apply(write_a(testPort1, PORTB));
+    apply(write(testPort1, value_t<123>{}));
+    apply(clear(testPort2, value_t<77>{}));
+    apply(set(testPort1, value_t<1>{}));
+    apply(write(testPort2, PORTC));
+    apply(clear(testPort1, value_t<54>{}));
+    apply(toggle(testPort1, value_t<0xF>{}));
+    apply(toggle(testPort2, read_i(testPort1)));
+    apply(write(testPort1, PORTB));
     PORTC = read_i(testPort1) | read_i(testPort2);
     #elif (actions_ex == 1)
-    //apply(write_a<123>(testPort1));
+    //apply(write<123>(testPort1));
     auto v = apply(
-        write_a(testPort1, value_t<123>{}),
-        clear_a(testPort2, value_t<77>{}),
-        set_a(testPort1, value_t<1>{}),
-        write_a(testPort2, PORTC),
-        clear_a(testPort1, value_t<54>{}),
-        toggle_a(testPort1, value_t<0xF>{}),
-        toggle_a(testPort2, read_i(testPort1)),
-        write_a(testPort1, PORTB));
+        write(testPort1, value_t<123>{}),
+        clear(testPort2, value_t<77>{}),
+        set(testPort1, value_t<1>{}),
+        write(testPort2, PORTC),
+        clear(testPort1, value_t<54>{}),
+        toggle(testPort1, value_t<0xF>{}),
+        toggle(testPort2, read_i(testPort1)),
+        write(testPort1, PORTB));
     PORTC = get_a(testPort1, v) | get_a(testPort2, v);
     #else
     write(testPort1, 123);
@@ -77,7 +77,7 @@ void test(){
 
 int main(){
     test();    
-    //PORTC = get_a(testPort2, apply(read_a(testPort2)));
+    //PORTC = get_a(testPort2, apply(read(testPort2)));
 
     // set(testPin);
     // clear(testPin);

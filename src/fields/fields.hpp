@@ -5,7 +5,7 @@
 #include "info.hpp"
 #include "nullfield.hpp"
 #include "vfield.hpp"
-#include "actions_ex.hpp"
+#include "actions.hpp"
 #include "actions_apply.hpp"
 
 #endif

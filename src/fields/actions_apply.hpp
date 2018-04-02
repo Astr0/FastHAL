@@ -1,7 +1,7 @@
 #ifndef FH_ACTIONSAPPLY_H_
 #define FH_ACTIONSAPPLY_H_
 
-#include "actions_ex.hpp"
+#include "actions.hpp"
 #include "info.hpp"
 #include "../std/type_traits.hpp"
 #include "../mp/brigand_ex.hpp"

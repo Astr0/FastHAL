@@ -4,7 +4,7 @@
 #include "../mp/brigand_ex.hpp"
 #include "../std/std_types.hpp"
 #include "../utils/mask.hpp"
-#include "actions_ex.hpp"
+#include "actions.hpp"
 #include "nullfield.hpp"
 
 namespace fasthal{
@@ -245,7 +245,7 @@ namespace fasthal{
                     template<typename T>
                     static constexpr auto write(T value){
                         // full field - apply inversion mask on value and write
-                        return write_a(field, appendWriteValue(value));
+                        return ::fasthal::clear_set(field, appendWriteValue(value));
                     }
                 };
 
@@ -257,7 +257,7 @@ namespace fasthal{
                         // clear everything that belongs to us and set only result
                         constexpr auto my_mask = make_fieldbits_pos_mask<field_masktype_t, my_fieldbits_pos_t>{};
                         
-                        return clear_set_a(field, my_mask, appendWriteValue(value));
+                        return ::fasthal::clear_set(field, my_mask, appendWriteValue(value));
                     }
                 };
 
@@ -295,21 +295,21 @@ namespace fasthal{
                         // set - not inverted set + inverted clear
                         auto setFieldMask = apply_inversion_mask(resultS, resultC);
 
-                        return clear_set_a(field, clearFieldMask, setFieldMask);
+                        return ::fasthal::clear_set(field, clearFieldMask, setFieldMask);
                     }
 
                     template<typename T>
                     static constexpr auto set(T value){
                         auto clearMask = appendMaskValue<my_inverted_fieldbits_pos_t>(value);
                         auto setMask = appendMaskValue<my_noninverted_fieldbits_pos_t>(value);
-                        return clear_set_a(field, clearMask, setMask);
+                        return ::fasthal::clear_set(field, clearMask, setMask);
                     }
 
                     template<typename T>
                     static constexpr auto clear(T value){
                         auto clearMask = appendMaskValue<my_noninverted_fieldbits_pos_t>(value);
                         auto setMask = appendMaskValue<my_inverted_fieldbits_pos_t>(value);
-                        return clear_set_a(field, clearMask, setMask);
+                        return ::fasthal::clear_set(field, clearMask, setMask);
                     }                    
                 };
 
@@ -319,17 +319,17 @@ namespace fasthal{
                     // all bits not inverted
                     template<typename TClear, typename TSet>                    
                     static constexpr auto clear_set(TClear clearMask, TSet setMask){
-                        return clear_set_a(field, appendMaskValue(clearMask), appendMaskValue(setMask));
+                        return ::fasthal::clear_set(field, appendMaskValue(clearMask), appendMaskValue(setMask));
                     }
 
                     template<typename T>
                     static constexpr auto set(T value){
-                        return set_a(field, appendMaskValue(value));			
+                        return ::fasthal::set(field, appendMaskValue(value));			
                     }
 
                     template<typename T>
                     static constexpr auto clear(T value){
-                        return clear_a(field, appendMaskValue(value));			
+                        return ::fasthal::clear(field, appendMaskValue(value));			
                     }                    
                 };
 
@@ -339,17 +339,17 @@ namespace fasthal{
                     // all bits inverted
                     template<typename TClear, typename TSet>
                     static constexpr auto clear_set(TClear clearMask, TSet setMask){
-                        return clear_set_a(field, appendMaskValue(setMask), appendMaskValue(clearMask));
+                        return ::fasthal::clear_set(field, appendMaskValue(setMask), appendMaskValue(clearMask));
                     }
 
                     template<typename T>
                     static constexpr auto set(T value){
-                        return clear_a(field, appendMaskValue(value));
+                        return ::fasthal::clear(field, appendMaskValue(value));
                     }                    
 
                     template<typename T>
                     static constexpr auto clear(T value){
-                        return set_a(field, appendMaskValue(value));					
+                        return ::fasthal::set(field, appendMaskValue(value));					
                     }
                 };
 
@@ -370,11 +370,11 @@ namespace fasthal{
                 template<typename T>
                 static constexpr auto toggle(T value){
                     // Ignore inverted - toggle does not care
-                    return toggle_a(field, appendMaskValue(value));
+                    return ::fasthal::toggle(field, appendMaskValue(value));
                 }
 
                 static constexpr auto read(){
-                    return read_a(field);
+                    return ::fasthal::read(field);
                 }
 
                 template<typename TReadResult>
@@ -393,26 +393,26 @@ namespace fasthal{
             template<typename... TFields>
             struct fields_iterator{
                 template<typename T>
-                static constexpr auto write_a(T value){
+                static constexpr auto write(T value){
                     return combine_vfield_actions(field_processor<TFields>::write(value)...);
                 }
                 template<typename TClear, typename TSet>
-                static constexpr auto  clear_set_a(TClear clearMask, TSet setMask){
+                static constexpr auto  clear_set(TClear clearMask, TSet setMask){
                     return combine_vfield_actions(field_processor<TFields>::clear_set(clearMask, setMask)...);
                 }
                 template<typename T>
-                static constexpr auto  set_a(T value){
+                static constexpr auto  set(T value){
                     return combine_vfield_actions(field_processor<TFields>::set(value)...);
                 }
                 template<typename T>
-                static constexpr auto  clear_a(T value){
+                static constexpr auto  clear(T value){
                     return combine_vfield_actions(field_processor<TFields>::clear(value)...);
                 }
                 template<typename T>
-                static constexpr auto  toggle_a(T value){
+                static constexpr auto  toggle(T value){
                     return combine_vfield_actions(field_processor<TFields>::toggle(value)...);
                 }
-                static constexpr auto read_a(){
+                static constexpr auto read(){
                     return combine_vfield_actions(field_processor<TFields>::read()...);
                 }
                 template<class TReadResult>

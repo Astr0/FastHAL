@@ -83,19 +83,19 @@ namespace fasthal{
     
     // ACTIONS
     template<class TField, typename TDataType = field_data_type<TField>, enable_if_needs_field_actions<TField> dummy = nullptr>
-    constexpr auto write_a(TField field, const TDataType value) 
+    constexpr auto write(TField field, const TDataType value) 
     {
         return details::make_action<details::write_field>(field, value);
     }
 
     template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_needs_field_actions<TField> dummy = nullptr>
-    constexpr auto set_a(TField field, TMaskType mask) 
+    constexpr auto set(TField field, TMaskType mask) 
     {
         return details::make_action<details::set_field>(field, mask);
     }
     
     template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_needs_field_actions<TField> dummy = nullptr>
-    constexpr auto clear_a(TField field, TMaskType mask) {
+    constexpr auto clear(TField field, TMaskType mask) {
         return details::make_action<details::clear_field>(field, mask);
     }
 
@@ -103,17 +103,17 @@ namespace fasthal{
         typename TClearMaskType = field_mask_type<TField>, 
         typename TSetMaskType = field_mask_type<TField>, 
         enable_if_needs_field_actions<TField> dummy = nullptr>
-    constexpr auto clear_set_a(TField field, TClearMaskType clearMask, TSetMaskType setMask) {
+    constexpr auto clear_set(TField field, TClearMaskType clearMask, TSetMaskType setMask) {
         return details::make_action<details::clear_set_field>(field, clearMask, setMask);
     }
 
     template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_needs_field_actions<TField> dummy = nullptr>
-    constexpr auto toggle_a(TField field, TMaskType mask) {
+    constexpr auto toggle(TField field, TMaskType mask) {
         return details::make_action<details::toggle_field>(field, mask);
     }
 
     template<class TField, enable_if_needs_field_actions<TField> dummy = nullptr>
-    constexpr auto read_a(TField field) {
+    constexpr auto read(TField field) {
         return details::make_action<details::read_field>(field);
     }
 
@@ -129,18 +129,18 @@ namespace fasthal{
     template<class TField, typename TDataType = field_data_type<TField>, enable_if_field_c<TField> dummy = nullptr>
     constexpr void write_i(TField field, const TDataType value) 
     {
-        apply(write_a(field, value));
+        apply(write(field, value));
     }
 
     template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_field_c<TField> dummy = nullptr>
     constexpr void set_i(TField field, TMaskType mask) 
     {
-        apply(set_a(field, mask));
+        apply(set(field, mask));
     }
     
     template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_field_c<TField> dummy = nullptr>
     constexpr void clear_i(TField field, TMaskType mask) {
-        apply(clear_a(field, mask));
+        apply(clear(field, mask));
     }
 
     template<class TField, 
@@ -148,17 +148,17 @@ namespace fasthal{
         typename TSetMaskType = field_mask_type<TField>, 
         enable_if_field_c<TField> dummy = nullptr>
     constexpr void clear_set_i(TField field, TClearMaskType clearMask, TSetMaskType setMask) {
-        apply(clear_set_a(clearMask, setMask));
+        apply(clear_set(clearMask, setMask));
     }
 
     template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_field_c<TField> dummy = nullptr>
     constexpr void toggle_i(TField field, TMaskType mask) {
-        apply(toggle_a(field, mask));
+        apply(toggle(field, mask));
     }
 
     template<class TField, enable_if_field_c<TField> dummy = nullptr>
     constexpr auto read_i(TField field) {
-        return get_a(field, apply(read_a(field)));
+        return get_a(field, apply(read(field)));
     }
 }
 
