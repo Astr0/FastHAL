@@ -14,8 +14,8 @@ namespace fasthal{
             template<typename T, T V>
             struct is_static_element_impl<std::integral_constant<T, V>>: std::true_type{};
 
-            template<typename T, T V>
-            struct is_static_element_impl<brigand::integral_constant<T, V>>: std::true_type{};    
+            // template<typename T, T V>
+            // struct is_static_element_impl<integral_constant<T, V>>: std::true_type{};    
 
             template<class T>
             using is_static_element = is_static_element_impl<std::base_type_t<T>>;
@@ -115,11 +115,10 @@ namespace fasthal{
 
                 template<typename... TArgs>
                 static constexpr auto flatten(list_t value, R... rest, TArgs... args){
-                    using namespace brigand;
-                    using indices_t = make_sequence<
+                    using indices_t = brigand::make_sequence<
                         brigand::size_t<0>, 
-                        size<list_t>::value>;
-                    return unpack<indices_t, list_exec>::flatten(value, rest..., args...);
+                        brigand::size<list_t>::value>;
+                    return brigand::unpack<indices_t, list_exec>::flatten(value, rest..., args...);
                 }
             }; 
         }

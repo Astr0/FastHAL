@@ -3,7 +3,7 @@
 #ifndef DEV_BUTTON_H_
 #define DEV_BUTTON_H_
 
-#include <inttypes.h>
+#include "../std/std_types.hpp"
 
 namespace fasthal{
 	
@@ -18,7 +18,7 @@ namespace fasthal{
         };
         
 		TStableElapsed _stable;
-        uint8_t _state;
+        std::uint8_t _state;
         
     public:
 		Bounce(): _state(0){
@@ -28,7 +28,7 @@ namespace fasthal{
         Bounce(bool state): _state(state ? (BounceState::Debounced | BounceState::Unstable) : 0){
         }
 
-        void begin(uint8_t mode){
+        void begin(std::uint8_t mode){
             TFieldBit::setMode(mode);
         }
 
@@ -71,7 +71,7 @@ namespace fasthal{
         }
     };
 
-    enum ButtonEvent: uint8_t{
+    enum ButtonEvent: std::uint8_t{
         None = 0,
         Click = 1,
         LongClick = 2,

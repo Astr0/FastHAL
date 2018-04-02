@@ -3,12 +3,12 @@
 #ifndef UTILS_TEXTWRITER_H_
 #define UTILS_TEXTWRITER_H_
 
-#include <stdlib.h>
+#include "../std/std_types.hpp"
 #include "stream.h"
 
 namespace fasthal{
     namespace priv{
-        template<uint8_t TSize>
+        template<std::uint8_t TSize>
         struct PrintBufferSize{
             // shouldn't be here actually
             //const static uint8_t size = 2 * TSize + 3;
@@ -17,20 +17,20 @@ namespace fasthal{
 
         template<>
         struct PrintBufferSize<4>{
-            const static uint8_t decSize = 11;
-            const static uint8_t binSize = 4 * 8 + 1;
+            const static std::uint8_t decSize = 11;
+            const static std::uint8_t binSize = 4 * 8 + 1;
         };
 
         template<>
         struct PrintBufferSize<2>{
-            const static uint8_t decSize = 6;
-            const static uint8_t binSize = 2 * 8 +1;
+            const static std::uint8_t decSize = 6;
+            const static std::uint8_t binSize = 2 * 8 +1;
         };
 
         template<>
         struct PrintBufferSize<1>{
-            const static uint8_t decSize = 4;
-            const static uint8_t binSize = 8 + 1;
+            const static std::uint8_t decSize = 4;
+            const static std::uint8_t binSize = 8 + 1;
         };
     }
 
@@ -56,7 +56,7 @@ namespace fasthal{
         }
 
         template<typename T>
-        bool printNumber(T n, uint8_t base) const{
+        bool printNumber(T n, std::uint8_t base) const{
             char buf[priv::PrintBufferSize<sizeof(T)>::binSize]; // Assumes 8-bit chars plus zero byte.
             char *str = &buf[sizeof(buf) - 1];
           
@@ -71,7 +71,7 @@ namespace fasthal{
         }
 
         template<typename T>
-        bool printFloat(T n, uint8_t digits) const{
+        bool printFloat(T n, std::uint8_t digits) const{
             if (isnan(n)) return print("nan");
             if (isinf(n)) return print("inf");
             if (n > 4294967295.0) return print ("ovf");  
@@ -85,13 +85,13 @@ namespace fasthal{
 
             // Round correctly so that print(1.999, 2) prints as "2.00"
             T rounding = 0.5;
-            for (uint8_t i=0; i<digits; ++i)
+            for (std::uint8_t i=0; i<digits; ++i)
                 rounding /= 10.0;
 
             n += rounding;
 
             // Extract the integer part of the number and print it
-            uint32_t int_part = (uint32_t)n;
+            std::uint32_t int_part = (std::uint32_t)n;
             if (!print(int_part))
                 return false;
             n -= (T)int_part;
@@ -106,7 +106,7 @@ namespace fasthal{
             while (digits-- > 0)
             {
                 n *= 10.0;
-                uint8_t toPrint = (uint8_t)(n);
+                std::uint8_t toPrint = (std::uint8_t)(n);
                 if (!print(toPrint))
                     return false;
                 n -= toPrint; 
@@ -116,11 +116,11 @@ namespace fasthal{
     public:
         constexpr TextWriter(const TStream stream): _stream(stream) { }
         
-        bool write(const uint8_t byte) const{
+        bool write(const std::uint8_t byte) const{
             return _stream.write(byte);
         }
 
-        bool write(const uint8_t *buffer, size_t size) const
+        bool write(const std::uint8_t *buffer, std::size_t size) const
         {
           while (size--) {
             if (!write(*buffer++))
@@ -147,107 +147,107 @@ namespace fasthal{
             return print(text) && println();
         }
 
-        bool print(uint8_t n) const{
+        bool print(std::uint8_t n) const{
             return printNumber(n);
         }
 
-        bool println(uint8_t n) const {
+        bool println(std::uint8_t n) const {
             return print(n) && println();
         }
 
-        bool print(uint8_t n, uint8_t base) const{
+        bool print(std::uint8_t n, std::uint8_t base) const{
             return printNumber(n, base);
         }
 
-        bool println(uint8_t n, uint8_t base) const {
+        bool println(std::uint8_t n, std::uint8_t base) const {
             return print(n, base) && println();
         }
 
-        bool print(uint16_t n) const{
+        bool print(std::uint16_t n) const{
             return printNumber(n);
         }
 
-        bool println(uint16_t n) const {
+        bool println(std::uint16_t n) const {
             return print(n) && println();
         }
 
-        bool print(uint16_t n, uint8_t base) const{
+        bool print(std::uint16_t n, std::uint8_t base) const{
             return printNumber(n, base);
         }
 
-        bool println(uint16_t n, uint8_t base) const {
+        bool println(std::uint16_t n, std::uint8_t base) const {
             return print(n, base) && println();
         }
 
-        bool print(uint32_t n) const{
+        bool print(std::uint32_t n) const{
             return printNumber(n);
         }
 
-        bool println(uint32_t n) const {
+        bool println(std::uint32_t n) const {
             return print(n) && println();
         }
 
-        bool print(uint32_t n, uint8_t base) const{
+        bool print(std::uint32_t n, std::uint8_t base) const{
             return printNumber(n, base);
         }
 
-        bool println(uint32_t n, uint8_t base) const {
+        bool println(std::uint32_t n, std::uint8_t base) const {
             return print(n, base) && println();
         }
 
-        bool print(int8_t n) const{
+        bool print(std::int8_t n) const{
             if (n < 0){
                 if (!write('-'))
                     return false;
                 n = -n;
             }
-            return print((uint8_t)n);
+            return print((std::uint8_t)n);
         }
 
-        bool println(int8_t n) const {
+        bool println(std::int8_t n) const {
             return print(n) && println();
         }
 
-        bool print(int16_t n) const{
+        bool print(std::int16_t n) const{
             if (n < 0){
                 if (!write('-'))
                     return false;
                 n = -n;
             }
-            return print((uint16_t)n);
+            return print((std::uint16_t)n);
         }
 
-        bool println(int16_t n) const {
+        bool println(std::int16_t n) const {
             return print(n) && println();
         }
 
-        bool print(int32_t n) const{
+        bool print(std::int32_t n) const{
             if (n < 0){
                 if (!write('-'))
                     return false;
                 n = -n;
             }
-            return print((uint32_t)n);
+            return print((std::uint32_t)n);
         }
 
-        bool println(int32_t n) const {
+        bool println(std::int32_t n) const {
             return print(n) && println();
         }
 
-        bool print(float n, uint8_t digits = 2) const {
+        bool print(float n, std::uint8_t digits = 2) const {
             return printFloat(n, digits);
         }
 
-        bool println(float n, uint8_t digits = 2) const {
+        bool println(float n, std::uint8_t digits = 2) const {
             return print(n, digits) && println();
         }
         
-        bool print(double n, uint8_t digits = 2) const {
+        bool print(double n, std::uint8_t digits = 2) const {
             // TODO: Use float print if sizeof(double) == sizeof(float) should reduce code size
             return printFloat(n, digits);
         }
 
-        bool println(double n, uint8_t digits = 2) const {
+        bool println(double n, std::uint8_t digits = 2) const {
             return print(n, digits) && println();
         }
     };

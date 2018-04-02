@@ -9,8 +9,6 @@
 
 namespace fasthal{
     namespace details{
-        using namespace brigand;
-
         template<class TField>
         struct field_value{
             using field_t = TField;
@@ -88,24 +86,24 @@ namespace fasthal{
             struct list_exec{
                 static constexpr void execute(TValue& value, list_t tuple){
                     (
-                        (actions_executor<TValue, TFilter, at_c<list_t, TIndex::value>>
+                        (actions_executor<TValue, TFilter, brigand::at_c<list_t, TIndex::value>>
                          ::execute(value, mp::get<TIndex::value>(tuple)))
                     , ...);
                 }
             };
 
             static constexpr void execute(TValue& value, list_t tuple){
-                using indices_t = make_sequence<
+                using indices_t = brigand::make_sequence<
                     brigand::size_t<0>, 
-                    size<list_t>::value>;
-                unpack<indices_t, list_exec>::execute(value, tuple);
+                    brigand::size<list_t>::value>;
+                brigand::unpack<indices_t, list_exec>::execute(value, tuple);
             }
         };
 
         template<class... TActions>
         struct actions_apply{            
             // all actions flattened
-            using all_actions_t = flatten<field_actions_list_t<TActions...>>;
+            using all_actions_t = brigand::flatten<field_actions_list_t<TActions...>>;
 
             template <class TField>
             struct field_apply{
@@ -115,9 +113,9 @@ namespace fasthal{
                 template<class TAction>
                 using is_my_action = std::is_same<typename TAction::field_t, TField>;
 
-                using my_actions_t = filter<all_actions_t, bind<is_my_action, _1>>;
-                static constexpr bool has_writes = any<my_actions_t, bind<is_action_of_type, _1, write_field>>::value;
-                static constexpr bool has_modifies = !all<my_actions_t, bind<is_action_of_type, _1, read_field>>::value;
+                using my_actions_t = brigand::filter<all_actions_t, brigand::bind<is_my_action, brigand::_1>>;
+                static constexpr bool has_writes = brigand::any<my_actions_t, brigand::bind<is_action_of_type, brigand::_1, write_field>>::value;
+                static constexpr bool has_modifies = !brigand::all<my_actions_t, brigand::bind<is_action_of_type, brigand::_1, read_field>>::value;
 
                 template<class TAction>
                 static constexpr void execute(field_datatype_t& value, TAction action){
@@ -147,11 +145,11 @@ namespace fasthal{
 
             static constexpr inline auto apply(TActions... actions){
                 // group by field
-                using fields_t = no_duplicates<
-                    transform<all_actions_t, bind<get_action_field, _1>>>;
+                using fields_t = brigand::no_duplicates<
+                    brigand::transform<all_actions_t, brigand::bind<get_action_field, brigand::_1>>>;
 
                 // execute actions for field            
-                using fields_iterator_t = unpack<fields_t, fields_iterator>;    
+                using fields_iterator_t = brigand::unpack<fields_t, fields_iterator>;    
                 return fields_iterator_t::execute(actions...);
             }
         };        

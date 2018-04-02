@@ -10,8 +10,10 @@
 #define FH_FIELDS_INFO_H_
 
 #include "../utils/mask.hpp"
+#include "../utils/types.hpp"
 #include "../std/type_traits.hpp"
 #include "../std/std_fake.hpp"
+#include "../std/std_types.hpp"
 
 namespace fasthal
 {
@@ -30,7 +32,7 @@ namespace fasthal
 	using field_mask_type = typename field_mask_types<TField>::masktype_t;
 
 	template <class TField>
-	struct field_width: std::integral_constant<unsigned, sizeof(field_data_type<TField>) * 8>{};
+	struct field_width: integral_constant<std::size_t, sizeof(field_data_type<TField>) * 8>{};
 
 	template <class TField>
 	using is_field = details::is_field_impl<std::base_type_t<TField>>;

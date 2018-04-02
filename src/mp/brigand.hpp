@@ -37,17 +37,18 @@
 
 namespace brigand
 {
-template <typename T, T Value>
-struct integral_constant
-{
-    static const T value = Value;
-    using value_type = T;
-    using type = integral_constant<T, Value>;
-    operator value_type() const { return (value); }
-    value_type operator()() const { return (value); }
-};
-template <typename T, T Value>
-const T integral_constant<T, Value>::value;
+    using std::integral_constant;
+// template <typename T, T Value>
+// struct integral_constant
+// {
+//     static const T value = Value;
+//     using value_type = T;
+//     using type = integral_constant<T, Value>;
+//     operator value_type() const { return (value); }
+//     value_type operator()() const { return (value); }
+// };
+// template <typename T, T Value>
+// const T integral_constant<T, Value>::value;
 using true_type = ::brigand::integral_constant<bool, true>;
 using false_type = ::brigand::integral_constant<bool, false>;
 }
