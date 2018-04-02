@@ -207,46 +207,47 @@ namespace fasthal{
                 using my_noninverted_fieldbits_pos_t = remove_if<my_fieldbits_pos_t, bind<is_inverted_field_bit_pos, _1>>;
                 static constexpr auto my_inveted_count = size<my_inverted_fieldbits_pos_t>::value;
 
-                template<typename T, class TIteratorFieldBits = my_fieldbits_pos_t>
-                struct append_value{
-                    using bit_iterator_t = unpack<TIteratorFieldBits, fieldbits_iterator>;
-                    
-                    static constexpr auto appendWriteValue(T value){
-                        auto result = field_datatype_t{};
-                        bit_iterator_t::template appendValue<datatype_t, field_datatype_t, make_fieldbits_pos_inversion_mask>(value, result);
-                        return result;
-                    }
+                template<class TIteratorFieldBits = my_fieldbits_pos_t,
+                    typename T,
+                    typename TIterator = unpack<TIteratorFieldBits, fieldbits_iterator>>                    
+                static constexpr auto appendWriteValue(T value){
+                    auto result = field_datatype_t{};
+                    TIterator::template appendValue<datatype_t, field_datatype_t, make_fieldbits_pos_inversion_mask>(value, result);
+                    return result;
+                }
 
-                    static constexpr inline auto appendMaskValue(T value)
-                    {
-                        auto result = field_masktype_t{};
-                        bit_iterator_t::template appendValue<masktype_t, field_masktype_t, make_fieldbits_pos_false_inversion_mask>(value, result);
-                        return result;
-                    }
-                };
+                template<class TIteratorFieldBits = my_fieldbits_pos_t,
+                    typename T, T V,
+                    typename TIterator = unpack<TIteratorFieldBits, fieldbits_iterator>>                    
+                static constexpr auto appendWriteValue(brigand::integral_constant<T, V> value){
+                    using result_t = brigand::integral_constant<field_datatype_t, appendWriteValue<TIteratorFieldBits>(V)>;
+                    return result_t{};
+                }
 
-                template<typename T, T V, class TIteratorFieldBits>
-                struct append_value<brigand::integral_constant<T, V>, TIteratorFieldBits>{
-                    using value_t = brigand::integral_constant<T, V>;
-                    using write_value_t = brigand::integral_constant<field_datatype_t, append_value<T, TIteratorFieldBits>::appendWriteValue(V)>;
-                    using mask_value_t = brigand::integral_constant<field_masktype_t, append_value<T, TIteratorFieldBits>::appendMaskValue(V)>;
-                    
-                    static constexpr auto appendWriteValue(value_t value){
-                        return write_value_t{};
-                    }
+                template<class TIteratorFieldBits = my_fieldbits_pos_t,
+                    typename T,
+                    typename TIterator = unpack<TIteratorFieldBits, fieldbits_iterator>>                    
+                static constexpr inline auto appendMaskValue(T value)
+                {
+                    auto result = field_masktype_t{};
+                    TIterator::template appendValue<masktype_t, field_masktype_t, make_fieldbits_pos_false_inversion_mask>(value, result);
+                    return result;
+                }
 
-                    static constexpr inline auto appendMaskValue(value_t value)
-                    {
-                        return mask_value_t{};
-                    }
-                };
+                template<class TIteratorFieldBits = my_fieldbits_pos_t,
+                    typename T, T V,
+                    typename TIterator = unpack<TIteratorFieldBits, fieldbits_iterator>>                    
+                static constexpr auto appendMaskValue(brigand::integral_constant<T, V> value){
+                    using result_t = brigand::integral_constant<field_datatype_t, appendMaskValue<TIteratorFieldBits>(V)>;
+                    return result_t{};
+                }
 
                 template<bool whole_field = my_fieldbits_count == (int)field_width<TField>(), bool dummy = false>
                 struct write_helper{
                     template<typename T>
                     static constexpr auto write(T value){
                         // full field - apply inversion mask on value and write
-                        return write_a(field, append_value<T>::appendWriteValue(value));
+                        return write_a(field, appendWriteValue(value));
                     }
                 };
 
@@ -258,7 +259,7 @@ namespace fasthal{
                         // clear everything that belongs to us and set only result
                         constexpr auto my_mask = make_fieldbits_pos_mask<field_masktype_t, my_fieldbits_pos_t>{};
                         
-                        return clear_set_a(field, my_mask, append_value<T>::appendWriteValue(value));
+                        return clear_set_a(field, my_mask, appendWriteValue(value));
                     }
                 };
 
@@ -288,8 +289,8 @@ namespace fasthal{
                     template<typename TClear, typename TSet>
                     static constexpr auto clear_set(TClear clearMask, TSet setMask){
                         // TODO: Think how to optimize using integral_constant
-                        auto resultC = append_value<TClear>::appendMaskValue(clearMask);
-                        auto resultS = append_value<TSet>::appendMaskValue(setMask);
+                        auto resultC = appendMaskValue(clearMask);
+                        auto resultS = appendMaskValue(setMask);
 
                         // clear - not inverted clear + inverted set
                         auto clearFieldMask = apply_inversion_mask(resultC, resultS);
@@ -301,15 +302,15 @@ namespace fasthal{
 
                     template<typename T>
                     static constexpr auto set(T value){
-                        auto clearMask = append_value<T, my_inverted_fieldbits_pos_t>::appendMaskValue(value);
-                        auto setMask = append_value<T, my_noninverted_fieldbits_pos_t>::appendMaskValue(value);
+                        auto clearMask = appendMaskValue<my_inverted_fieldbits_pos_t>(value);
+                        auto setMask = appendMaskValue<my_noninverted_fieldbits_pos_t>(value);
                         return clear_set_a(field, clearMask, setMask);
                     }
 
                     template<typename T>
                     static constexpr auto clear(T value){
-                        auto clearMask = append_value<T, my_noninverted_fieldbits_pos_t>::appendMaskValue(value);
-                        auto setMask = append_value<T, my_inverted_fieldbits_pos_t>::appendMaskValue(value);
+                        auto clearMask = appendMaskValue<my_noninverted_fieldbits_pos_t>(value);
+                        auto setMask = appendMaskValue<my_inverted_fieldbits_pos_t>(value);
                         return clear_set_a(field, clearMask, setMask);
                     }                    
                 };
@@ -320,17 +321,17 @@ namespace fasthal{
                     // all bits not inverted
                     template<typename TClear, typename TSet>                    
                     static constexpr auto clear_set(TClear clearMask, TSet setMask){
-                        return clear_set_a(field, append_value<TClear>::appendMaskValue(clearMask), append_value<TSet>::appendMaskValue(setMask));
+                        return clear_set_a(field, appendMaskValue(clearMask), appendMaskValue(setMask));
                     }
 
                     template<typename T>
                     static constexpr auto set(T value){
-                        return set_a(field, append_value<T>::appendMaskValue(value));			
+                        return set_a(field, appendMaskValue(value));			
                     }
 
                     template<typename T>
                     static constexpr auto clear(T value){
-                        return clear_a(field, append_value<T>::appendMaskValue(value));			
+                        return clear_a(field, appendMaskValue(value));			
                     }                    
                 };
 
@@ -340,17 +341,17 @@ namespace fasthal{
                     // all bits inverted
                     template<typename TClear, typename TSet>
                     static constexpr auto clear_set(TClear clearMask, TSet setMask){
-                        return clear_set_a(field, append_value<TSet>::appendMaskValue(setMask), append_value<TClear>::appendMaskValue(clearMask));
+                        return clear_set_a(field, appendMaskValue(setMask), appendMaskValue(clearMask));
                     }
 
                     template<typename T>
                     static constexpr auto set(T value){
-                        return clear_a(field, append_value<T>::appendMaskValue(value));
+                        return clear_a(field, appendMaskValue(value));
                     }                    
 
                     template<typename T>
                     static constexpr auto clear(T value){
-                        return set_a(field, append_value<T>::appendMaskValue(value));					
+                        return set_a(field, appendMaskValue(value));					
                     }
                 };
 
@@ -371,7 +372,7 @@ namespace fasthal{
                 template<typename T>
                 static constexpr auto toggle(T value){
                     // Ignore inverted - toggle does not care
-                    return toggle_a(field, append_value<T>::appendMaskValue(value));
+                    return toggle_a(field, appendMaskValue(value));
                 }
 
                 static constexpr auto read(){
