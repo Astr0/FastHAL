@@ -7,6 +7,8 @@
 + vport on actions
 + everything on actions (remove normal)
 
+* typed and masked mport?
+* type for vport?
 * check/refactor ADC code
 * design something n1ce for interrupts
 * check/refactor serial code, make streaming using same constexpr interface as pins/ports

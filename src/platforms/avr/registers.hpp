@@ -11,6 +11,13 @@
 #include "../../std/std_fake.hpp"
 #include "../../fields/info.hpp"
 
+#define FASTHAL_DECLAREREGISTER_ONLY( NAME, VAR)\
+namespace priv{\
+	FH_WRAPVARIABLE(VAR ## _reg, VAR)\
+}\
+static constexpr auto NAME = details::avr_register<priv::VAR ## _reg>{};\
+
+
 #define FASTHAL_DECLAREREGISTER( NAME, VAR)\
 namespace priv{\
 	FH_WRAPVARIABLE(VAR ## _reg, VAR)\
@@ -24,12 +31,6 @@ static constexpr auto NAME ## 4 = fieldBit<4>(NAME);\
 static constexpr auto NAME ## 5 = fieldBit<5>(NAME);\
 static constexpr auto NAME ## 6 = fieldBit<6>(NAME);\
 static constexpr auto NAME ## 7 = fieldBit<7>(NAME);\
-
-
-#define FASTHAL_DECLAREPORT(CODE)\
-FASTHAL_DECLAREREGISTER(port ## CODE, PORT ## CODE)\
-FASTHAL_DECLAREREGISTER(pin ## CODE, PIN ## CODE)\
-FASTHAL_DECLAREREGISTER(ddr ## CODE, DDR ## CODE)
 
 namespace fasthal{
 	namespace avr{
@@ -51,42 +52,12 @@ namespace fasthal{
 	}
     
 	namespace avr{
-		#ifdef PORTA
-		FASTHAL_DECLAREPORT(A)
-		#endif
-		#ifdef PORTB
-		FASTHAL_DECLAREPORT(B)
-		#endif
-		#ifdef PORTC
-		FASTHAL_DECLAREPORT(C)
-		#endif
-		#ifdef PORTD
-		FASTHAL_DECLAREPORT(D)
-		#endif
-		#ifdef PORTE
-		FASTHAL_DECLAREPORT(E)
-		#endif
-		#ifdef PORTF
-		FASTHAL_DECLAREPORT(F)
-		#endif
-		#ifdef PORTG
-		FASTHAL_DECLAREPORT(G)
-		#endif
-		#ifdef PORTH
-		FASTHAL_DECLAREPORT(H)
-		#endif
-		#ifdef PORTJ
-		FASTHAL_DECLAREPORT(J)
-		#endif
-		#ifdef PORTK
-		FASTHAL_DECLAREPORT(K)
-		#endif
-		#ifdef PORTL
-		FASTHAL_DECLAREPORT(L)
-		#endif
+		#include "registers_impl/gpio.hpp"
+		#include "registers_impl/adc.hpp"
 	}
 }    
 
-#undef FASTHAL_DECLAREPORT
+#undef FASTHAL_DECLAREREGISTER
+#undef FASTHAL_DECLAREREGISTER_ONLY
 
 #endif
