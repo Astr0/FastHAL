@@ -105,7 +105,8 @@ void test_adc_regs(){
         write(mux, mux_v<MUX::_0>),
         write(refs, refs_v<REFS::_0 | REFS::_1>),
         set(adps, adps_v<ADPS::_0 | ADPS::_1>),
-        set(aden)
+        set(aden),
+        set(mux, mux_v<MUX::_1 | MUX::_5>)
     );
     PORTC = static_cast<std::uint8_t>(read_(mux));
     #else

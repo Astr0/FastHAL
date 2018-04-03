@@ -48,6 +48,12 @@ enum class MUX: std::uint8_t{
     #endif
     #endif    
 };
+
+inline constexpr MUX operator|(MUX x, MUX y){
+    return static_cast<MUX>(static_cast<std::uint8_t>(x) | static_cast<std::uint8_t>(y));
+}
+
+
 template<MUX V>
 static constexpr auto mux_v = integral_constant<MUX, V>{};
 

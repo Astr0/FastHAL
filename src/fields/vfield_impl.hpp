@@ -93,7 +93,7 @@ namespace fasthal{
             // iterate through bits on one field and do something great
             template<class... TFieldBitsPos>
             struct fieldbits_iterator{
-                template<typename TValueType, typename TFieldType, template<typename, class...> class TInversionMask>
+                template<template<typename, class...> class TInversionMask, typename TValueType, typename TFieldType>
                 static inline constexpr void appendValue(TValueType value, TFieldType& result)
                 {
                 }
@@ -125,7 +125,7 @@ namespace fasthal{
                 using my_nonserial_pins_t = brigand::at_c<my_serial_pins_split_t, 1>;
                 
 
-                template<typename TValueType, typename TFieldType, template<typename, class...> class TInversionMask>
+                template<template<typename, class...> class TInversionMask, typename TValueType, typename TFieldType>
                 static inline constexpr void appendValue(TValueType value, TFieldType& result)
                 {
                     if (my_transparent_count > 1)
@@ -134,7 +134,7 @@ namespace fasthal{
                         result |= (value & make_fieldbits_pos_mask<TFieldType, my_transparent_fieldbits_pos_t>::value) ^
                                 TInversionMask<TFieldType, my_transparent_fieldbits_pos_t>::value;
 
-                        return brigand::unpack<my_nottransparent_fieldbits_pos_t, fieldbits_iterator>::template appendValue<TValueType, TFieldType, TInversionMask>(value, result);
+                        return brigand::unpack<my_nottransparent_fieldbits_pos_t, fieldbits_iterator>::template appendValue<TInversionMask>(value, result);
                     }
 
                     if (my_serial_count > 1)
@@ -143,7 +143,7 @@ namespace fasthal{
                         result |= (fasthal::shift<field_bit_t::number - TFieldBitPos::position>(value) & make_fieldbits_pos_mask<TFieldType, my_serial_pins_t>::value) 
                             ^ TInversionMask<TFieldType, my_serial_pins_t>::value;
 
-                        return brigand::unpack<my_nonserial_pins_t, fieldbits_iterator>::template appendValue<TValueType, TFieldType, TInversionMask>(value, result);
+                        return brigand::unpack<my_nonserial_pins_t, fieldbits_iterator>::template appendValue<TInversionMask>(value, result);
                     }
 
                     // general case - check individual bit
@@ -158,7 +158,7 @@ namespace fasthal{
                             result |= field_bit_t::mask;                        
                     }
 
-                    next_t::template appendValue<TValueType, TFieldType, TInversionMask>(value, result);
+                    next_t::template appendValue<TInversionMask>(value, result);
                 }
                 
                 template<typename TFieldValue>
@@ -216,7 +216,7 @@ namespace fasthal{
                     typename TIterator = brigand::unpack<TIteratorFieldBits, fieldbits_iterator>>                    
                 static constexpr auto appendWriteValue(T value){
                     auto result = field_datatype_t{};
-                    TIterator::template appendValue<bit_datatype_t, field_datatype_t, make_fieldbits_pos_inversion_mask>(static_cast<bit_datatype_t>(value), result);
+                    TIterator::template appendValue<make_fieldbits_pos_inversion_mask>(static_cast<bit_datatype_t>(value), result);
                     return result;
                 }
 
@@ -234,7 +234,7 @@ namespace fasthal{
                 static constexpr inline auto appendMaskValue(T value)
                 {
                     auto result = field_masktype_t{};
-                    TIterator::template appendValue<masktype_t, field_masktype_t, make_fieldbits_pos_false_inversion_mask>(value, result);
+                    TIterator::template appendValue<make_fieldbits_pos_false_inversion_mask>(static_cast<bit_masktype_t>(value), result);
                     return result;
                 }
 
