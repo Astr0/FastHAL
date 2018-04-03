@@ -14,6 +14,11 @@ struct CLASSNAME\
 static decltype(VARNAME)& value(){return VARNAME;}\
 };
 
+#define FH_BITENUM_OPS(NAME, BASE)\
+inline constexpr NAME operator|(NAME x, NAME y){ return static_cast<NAME>(static_cast<BASE>(x) | static_cast<BASE>(y)); }\
+inline constexpr NAME operator&(NAME x, NAME y){ return static_cast<NAME>(static_cast<BASE>(x) & static_cast<BASE>(y)); }
+
+
 
 namespace fasthal{
     template<int val>

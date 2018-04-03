@@ -49,10 +49,7 @@ enum class MUX: std::uint8_t{
     #endif    
 };
 
-inline constexpr MUX operator|(MUX x, MUX y){
-    return static_cast<MUX>(static_cast<std::uint8_t>(x) | static_cast<std::uint8_t>(y));
-}
-
+FH_BITENUM_OPS(MUX, std::uint8_t);
 
 template<MUX V>
 static constexpr auto mux_v = integral_constant<MUX, V>{};
@@ -98,9 +95,7 @@ enum class REFS: std::uint8_t{
     #endif
 };
 
-inline constexpr REFS operator|(REFS x, REFS y){
-    return static_cast<REFS>(static_cast<std::uint8_t>(x) | static_cast<std::uint8_t>(y));
-}
+FH_BITENUM_OPS(REFS, std::uint8_t);
 
 template<REFS V>
 static constexpr auto refs_v = integral_constant<REFS, V>{};
@@ -126,9 +121,7 @@ enum class ADPS: std::uint8_t{
     #endif    
 };
 
-inline constexpr ADPS operator|(ADPS x, ADPS y){
-    return static_cast<ADPS>(static_cast<std::uint8_t>(x) | static_cast<std::uint8_t>(y));
-}
+FH_BITENUM_OPS(ADPS, std::uint8_t);
 
 template<ADPS V>
 static constexpr auto adps_v = integral_constant<ADPS, V>{};
