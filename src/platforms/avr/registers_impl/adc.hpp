@@ -26,30 +26,7 @@ FASTHAL_DECLAREREGISTER_ONLY(adcl, ADCL)
 
 // select channel - MUX different on ATTINY*4 and others
 #ifdef MUX0
-enum class MUX: std::uint8_t{
-    _0 = 1 << MUX0
-    #ifdef MUX1
-    , _1 = 1 << MUX1
-    #endif
-    #ifdef MUX2
-    , _2 = 1 << MUX2
-    #endif
-    #ifdef MUX3
-    , _3 = 1 << MUX3
-    #endif
-    #ifdef MUX4
-    , _4 = 1 << MUX4
-    #endif
-    #ifdef MUX5
-    #if defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)    
-    , _5 = 1 << MUX5
-    #else
-    , _5 = 1 << 5
-    #endif
-    #endif    
-};
-
-FH_BITENUM_OPS(MUX, std::uint8_t);
+using MUX = std::uint8_t;
 
 template<MUX V>
 static constexpr auto mux_v = integral_constant<MUX, V>{};
@@ -89,7 +66,8 @@ constexpr auto mux = vField<MUX>(
 // select reference volatage - constant on all supported platforms
 #ifdef REFS0
 enum class REFS: std::uint8_t{
-    _0 = 1 << REFS0
+    _ = 0
+    , _0 = 1 << REFS0
     #ifdef REFS1
     , _1 = 1 << REFS1
     #endif

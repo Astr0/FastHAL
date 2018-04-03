@@ -130,6 +130,16 @@ namespace fasthal
 	constexpr auto read_(field_bit<TField, VNumber, VInverted> fieldBit){
 		return get(fieldBit, apply(read(fieldBit)));
 	}
+
+	template<class TField, unsigned VNumber, bool VInverted>
+	constexpr auto wait_lo(field_bit<TField, VNumber, VInverted> fieldBit){
+		while (read_(fieldBit));
+	}
+
+	template<class TField, unsigned VNumber, bool VInverted>
+	constexpr auto wait_hi(field_bit<TField, VNumber, VInverted> fieldBit){
+		while (!read_(fieldBit));
+	}
 }
 
 #endif
