@@ -1,4 +1,4 @@
-#define actions_ex 3
+#define actions_ex 1
 
 #include <avr/io.h>
 #include "fasthal.h"
@@ -7,7 +7,8 @@
 using namespace fasthal;
 using namespace fasthal::avr;
 
-constexpr auto testPort1 = vField(pinB4, pinB5, pinB6, pinD0, invert(pinD2), nullBit);
+//constexpr auto testPort1 = vField(pinB4, pinB5, pinB6, pinD0, invert(pinD2), nullBit);
+constexpr auto testPort1 = mField<42>(portB);
 //constexpr auto testPort1 = vField(nullBit, nullBit, nullBit, nullBit, pinB4, pinB5, pinB6, nullBit);
 constexpr auto testPort2 = portD;
 //constexpr auto testPort = vField(pinB1, pinB2);
@@ -77,7 +78,7 @@ void test_ports(){
 }
 
 void test_field_bits(){
-    #if (actions_ex == 1)
+    #if (actions_ex >= 1)
     apply(
         set(testPin1),
         set(testPin2),
@@ -98,9 +99,28 @@ void test_field_bits(){
     #endif
 }
 
+void test_adc_regs(){
+    #if actions_ex >= 1
+    apply(
+        write(mux, mux_v<MUX::_0>),
+        write(refs, refs_v<REFS::_0 | REFS::_1>),
+        set(adps, adps_v<ADPS::_0 | ADPS::_1>),
+        set(aden)
+    );
+    #else
+    constexpr auto muxMask = (1 << MUX0) | (1 << MUX1) | (1 << MUX2) | (1 << MUX3);
+    constexpr auto refsMask = (1 << REFS0) | (1 << REFS1);
+    ADMUX = (ADMUX & ~muxMask & ~refsMask) | (1 << MUX0) | (1 << REFS0) | (1 << REFS1);
+    constexpr auto adpsMask = (1 << ADPS0) | (1 << ADPS1) | (1 << ADPS2);
+    ADSRA1 = (ADSRA1 & ~adpsMask) | (1 << ADPS0) | (1 << ADPS1) | (1 << ADEN);
+    #endif
+}
+
+
 int main(){
-    test_ports();    
-    test_field_bits();
+    test_adc_regs();
+    //test_ports();    
+    //test_field_bits();
     
     return 0;
 }

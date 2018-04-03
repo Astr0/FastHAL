@@ -7,16 +7,152 @@
 
 #ifdef ADMUX
 FASTHAL_DECLAREREGISTER_ONLY(admux, ADMUX)
-#ifdef MUX0
-enum class adc_mux: std::uint8_t{
-    // TODO: define
-};
-#endif
-
 #endif
 #ifdef ADCSRA
 FASTHAL_DECLAREREGISTER_ONLY(adcsra, ADCSRA)
 #endif
 #ifdef ADCSRB
 FASTHAL_DECLAREREGISTER_ONLY(adcsrb, ADCSRB)
+#endif
+#ifdef ADC
+FASTHAL_DECLAREREGISTER_ONLY(adc, ADC)
+#endif
+#ifdef ADCH
+FASTHAL_DECLAREREGISTER_ONLY(adch, ADCH)
+#endif
+#ifdef ADCL
+FASTHAL_DECLAREREGISTER_ONLY(adcl, ADCL)
+#endif
+
+// select channel - MUX different on ATTINY*4 and others
+#ifdef MUX0
+enum class MUX: std::uint8_t{
+    _0 = 1 << MUX0
+    #ifdef MUX1
+    , _1 = 1 << MUX1
+    #endif
+    #ifdef MUX2
+    , _2 = 1 << MUX2
+    #endif
+    #ifdef MUX3
+    , _3 = 1 << MUX3
+    #endif
+    #ifdef MUX4
+    , _4 = 1 << MUX4
+    #endif
+    #ifdef MUX5
+    #if defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)    
+    , _5 = 1 << MUX5
+    #else
+    , _5 = 1 << 5
+    #endif
+    #endif    
+};
+template<MUX V>
+static constexpr auto mux_v = integral_constant<MUX, V>{};
+
+#if defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__) || !defined(MUX5)
+constexpr auto mux = mField<
+        (1 << MUX0)
+        #ifdef MUX1
+        | (1 << MUX1)
+        #endif
+        #ifdef MUX2
+        | (1 << MUX2)
+        #endif
+        #ifdef MUX3
+        | (1 << MUX3)
+        #endif
+        #ifdef MUX4
+        | (1 << MUX4)
+        #endif
+        #ifdef MUX5
+        | (1 << MUX5)
+        #endif
+, MUX>(admux);
+#else
+// TODO: typed vfield
+constexpr auto mux = vField<MUX>(
+    fieldBit<MUX0>(admux),
+    fieldBit<MUX1>(admux),
+    fieldBit<MUX2>(admux),
+    fieldBit<MUX3>(admux),
+    fieldBit<MUX4>(admux),
+    fieldBit<MUX5>(adcsrb)
+);
+#endif
+#endif
+
+// select reference volatage - constant on all supported platforms
+#ifdef REFS0
+enum class REFS: std::uint8_t{
+    _0 = 1 << REFS0
+    #ifdef REFS1
+    , _1 = 1 << REFS1
+    #endif
+};
+
+inline constexpr REFS operator|(REFS x, REFS y){
+    return static_cast<REFS>(static_cast<std::uint8_t>(x) | static_cast<std::uint8_t>(y));
+}
+
+template<REFS V>
+static constexpr auto refs_v = integral_constant<REFS, V>{};
+
+constexpr auto refs = mField<
+        (1 << REFS0)
+        #ifdef REFS1
+        | (1 << REFS1)
+        #endif
+, REFS>(admux);
+#endif
+
+// Prescaler (ADC speed) - constant on all supported platforms
+#ifdef ADPS0
+
+enum class ADPS: std::uint8_t{
+    _0 = 1 << ADPS0
+    #ifdef ADPS1
+    , _1 = 1 << ADPS1
+    #endif
+    #ifdef ADPS2
+    , _2 = 1 << ADPS2
+    #endif    
+};
+
+inline constexpr ADPS operator|(ADPS x, ADPS y){
+    return static_cast<ADPS>(static_cast<std::uint8_t>(x) | static_cast<std::uint8_t>(y));
+}
+
+template<ADPS V>
+static constexpr auto adps_v = integral_constant<ADPS, V>{};
+
+constexpr auto adps = mField<
+        (1 << ADPS0)
+        #ifdef ADPS1
+        | (1 << ADPS1)
+        #endif
+        #ifdef ADPS2
+        | (1 << ADPS2)
+        #endif
+, ADPS>(adcsra);
+#endif
+
+// ADC enabled flag - constant on all supported platforms
+#ifdef ADEN 
+constexpr auto aden = fieldBit<ADEN>(adcsra);
+#endif
+
+// 8 or 10 bit selector - different on ATTiny*4
+#ifdef ADLAR
+#if defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)
+constexpr auto adlar = fieldBit<ADLAR>(adcsrb);
+#else
+constexpr auto adlar = fieldBit<ADLAR>(admux);
+#endif
+#endif
+
+// ADC start conversion, cleared when conversion finishes
+#ifdef ADSC
+constexpr auto adsc = fieldBit<ADSC>(adcsra);
 #endif

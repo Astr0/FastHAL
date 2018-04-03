@@ -10,6 +10,7 @@
 #include "../../utils/functions.h"
 #include "../../std/std_fake.hpp"
 #include "../../fields/info.hpp"
+#include "../../fields/mfield.hpp"
 
 #define FASTHAL_DECLAREREGISTER_ONLY( NAME, VAR)\
 namespace priv{\
