@@ -1,11 +1,9 @@
-#pragma once
-
-#ifndef AVR_HAL_H_
-#define AVR_HAL_H_
+#ifndef FH_AVR_PLATFORM_H_
+#define FH_AVR_PLATFORM_H_
 
 #include "interrupts.h"
 #include "registers.hpp"
-#include "adc.h"
+#include "adc.hpp"
 #include "serial.h"
 #include "timers.h"
 

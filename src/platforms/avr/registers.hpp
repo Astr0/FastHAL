@@ -2,8 +2,8 @@
 
 #pragma once
 
-#ifndef AVR_PORTS_H_
-#define AVR_PORTS_H_
+#ifndef FH_AVR_REGISTERS_H_
+#define FH_AVR_REGISTERS_H_
 
 #include "interrupts.h"
 #include <avr/io.h>

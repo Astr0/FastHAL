@@ -9,7 +9,7 @@
 #define FASTHAL_H_
 
 #include "fields/fields.hpp"
-#include "platforms/platform.h"
+#include "platforms/platform.hpp"
 #include "utils/utils.hpp"
 #include "dev/devices.h"
 

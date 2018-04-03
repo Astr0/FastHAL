@@ -133,3 +133,7 @@ constexpr auto adlar = fieldBit<ADLAR>(admux);
 #ifdef ADSC
 constexpr auto adsc = fieldBit<ADSC>(adcsra);
 #endif
+
+#if defined(ADMUX) && defined(ADCSRA) && defined(ADEN) && defined(ADSC)
+#define FH_HAS_ADC
+#endif
