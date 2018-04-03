@@ -48,41 +48,41 @@ namespace fasthal
 		return field_bit<TField, VNumber, !VInverted>{};
 	}
 
+	namespace details{
+		template<class TFieldBit>
+		static constexpr auto set_fieldbit(TFieldBit fieldBit, integral_constant<bool, true>){
+			return set(typename TFieldBit::field_t{}, TFieldBit::mask);
+		}
+		template<class TFieldBit>
+		static constexpr auto set_fieldbit(TFieldBit fieldBit, integral_constant<bool, false>){
+			return clear(typename TFieldBit::field_t{}, TFieldBit::mask);
+		}
+	}
 	// actions
-	template<class TField, unsigned VNumber>
-	constexpr auto set(field_bit<TField, VNumber, false> fieldBit){
-		return set(TField{}, field_bit<TField, VNumber, false>::mask_c);
+	template<class TField, unsigned VNumber, bool VInverted>
+	constexpr auto set(field_bit<TField, VNumber, VInverted> fieldBit){
+		return details::set_fieldbit(fieldBit, integral_constant<bool, !VInverted>{});
 	}
 
-	template<class TField, unsigned VNumber>
-	constexpr auto set(field_bit<TField, VNumber, true> fieldBit){
-		return clear(TField{}, field_bit<TField, VNumber, false>::mask_c);
+	template<class TField, unsigned VNumber, bool VInverted>
+	constexpr auto clear(field_bit<TField, VNumber, VInverted> fieldBit){
+		return details::set_fieldbit(fieldBit, integral_constant<bool, VInverted>{});
 	}
 
-	template<class TField, unsigned VNumber>
-	constexpr auto clear(field_bit<TField, VNumber, false> fieldBit){
-		return clear(TField{}, field_bit<TField, VNumber, false>::mask_c);
-	}
-
-	template<class TField, unsigned VNumber>
-	constexpr auto clear(field_bit<TField, VNumber, true> fieldBit){
-		return set(TField{}, field_bit<TField, VNumber, false>::mask_c);
-	}
-
-	template<class TField, unsigned VNumber>
-	constexpr auto set(field_bit<TField, VNumber, false> fieldBit, bool v){
-		using fieldbit_t = field_bit<TField, VNumber, false>;
+	template<class TField, unsigned VNumber, bool VInverted>
+	constexpr auto set(field_bit<TField, VNumber, VInverted> fieldBit, bool v){
+		using fieldbit_t = field_bit<TField, VNumber, VInverted>;
+		if (VInverted) 
+			v = !v;
+		// shitty, but type of result should be the same...
 		return v 
 			? clear_set(TField{}, fieldbit_t::zero_mask, fieldbit_t::mask)
 			: clear_set(TField{}, fieldbit_t::mask, fieldbit_t::zero_mask);
 	}
 
-	template<class TField, unsigned VNumber>
-	constexpr auto set(field_bit<TField, VNumber, true> fieldBit, bool v){
-		using fieldbit_t = field_bit<TField, VNumber, true>;
-		return v 
-			? clear_and_set(TField{}, fieldbit_t::mask, fieldbit_t::zero_mask)
-			: clear_and_set(TField{}, fieldbit_t::zero_mask, fieldbit_t::mask);
+	template<class TField, unsigned VNumber, bool VInverted, bool V>
+	constexpr auto set(field_bit<TField, VNumber, VInverted> fieldBit, integral_constant<bool, V> v){
+		return details::set_fieldbit(fieldBit, integral_constant<bool, VInverted ? !V : V>{});
 	}
 
 	template<class TField, unsigned VNumber, bool VInverted>

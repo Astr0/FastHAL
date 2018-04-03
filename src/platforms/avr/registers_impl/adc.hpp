@@ -90,7 +90,8 @@ constexpr auto refs = mField<
 #ifdef ADPS0
 
 enum class ADPS: std::uint8_t{
-    _0 = 1 << ADPS0
+    _ = 0
+    , _0 = 1 << ADPS0
     #ifdef ADPS1
     , _1 = 1 << ADPS1
     #endif
