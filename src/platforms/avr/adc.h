@@ -7,7 +7,7 @@
 
 #if defined(ADMUX) && defined(ADCSRA) && defined(ADEN) && defined(ADSC)
 
-#include <inttypes.h>
+#include "../../std/std_types.hpp"
 #include "../../utils/functions.h"
 
 namespace fasthal{
@@ -17,7 +17,7 @@ namespace fasthal{
 	// Mega:           ADMUX: REFS1 REFS0 ADLAR MUX4  MUX3 MUX2 MUX1 MUX0.   ADCSRA: ADEN ADSC ADATE ADIF ADIE ADPS2 ADPS1 ADPS0    ADCSRB: X   ACME X   X     MUX5 ADTS2 ADTS1 ADTS0
     // Others:         ADMUX: REFS1 REFS0 ADLAR X     MUX3 MUX2 MUX1 MUX0.   ADCSRA: ADEN ADSC ADATE ADIF ADIE ADPS2 ADPS1 ADPS0.   ADCSRB: X   ACME X   X     X    ADTS2 ADTS1 ADTS0
 
-    enum class AdcRef:uint8_t{
+    enum class AdcRef: std::uint8_t{
     #if defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)
         Default             = (0 << REFS1) | (0 << REFS0),
         External            = (0 << REFS1) | (1 << REFS0),
@@ -41,7 +41,7 @@ namespace fasthal{
     #endif 
     };
 	
-	enum class AdcPrescaler: uint8_t{
+	enum class AdcPrescaler: std::uint8_t{
 		P2   = (0 << ADPS2) | (0 << ADPS1) | (1 << ADPS0),
 		P4   = (0 << ADPS2) | (1 << ADPS1) | (0 << ADPS0),
 		P8   = (0 << ADPS2) | (1 << ADPS1) | (1 << ADPS0),
@@ -78,21 +78,21 @@ namespace fasthal{
 			disable();
 		}
 	
-		static void select(AdcRef ref, bool is8bit, uint8_t mux){
+		static void select(AdcRef ref, bool is8bit, std::uint8_t adMux){
 			#if defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)
 			// 5 MUX bits and ADLAR IN ADCSRB
-			ADMUX = ((uint8_t)ref) | (mux & 0x1F);
+			ADMUX = ((std::uint8_t)ref) | (adMuxmux & 0x1F);
 			
-			fh_vbi(ADCSRB, ADLAR, is8bit);
+			fh_wbi(ADCSRB, ADLAR, is8bit);
 			#else
 						
 			#if defined(ADCSRB) && defined(MUX5)
 			// the MUX5 bit of ADCSRB selects whether we're reading from channels
 			// 0 to 7 (MUX5 low) or 8 to 15 (MUX5 high).
-			fh_vbi(ADCSRB, MUX5, mux & 0x10)
+			fh_wbi(ADCSRB, MUX5, adMux & 0x10);
 			#endif
 			
-			ADMUX = ((uint8_t)ref) | (is8bit ? (1 << ADLAR) : 0) | (mux & 0x0F);
+			ADMUX = ((std::uint8_t)ref) | (is8bit ? (1 << ADLAR) : 0) | (adMux & 0x0F);
 
 			#endif
 		}	

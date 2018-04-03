@@ -7,8 +7,8 @@
 using namespace fasthal;
 using namespace fasthal::avr;
 
-//constexpr auto testPort1 = vField(pinB4, pinB5, pinB6, pinD0, invert(pinD2), nullBit);
-constexpr auto testPort1 = mField<42>(portB);
+constexpr auto testPort1 = vField(pinB4, pinB5, pinB6, pinD0, invert(pinD2), nullBit);
+//constexpr auto testPort1 = mField<42>(portB);
 //constexpr auto testPort1 = vField(nullBit, nullBit, nullBit, nullBit, pinB4, pinB5, pinB6, nullBit);
 constexpr auto testPort2 = portD;
 //constexpr auto testPort = vField(pinB1, pinB2);
@@ -102,7 +102,7 @@ void test_field_bits(){
 void test_adc_regs(){
     #if actions_ex >= 1
     apply(
-        write(mux, mux_v<MUX::_0>),
+        //write(mux, mux_v<MUX::_0>),
         write(refs, refs_v<REFS::_0 | REFS::_1>),
         set(adps, adps_v<ADPS::_0 | ADPS::_1>),
         set(aden)

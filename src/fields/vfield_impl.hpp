@@ -74,12 +74,14 @@ namespace fasthal{
         template<class TFieldBitsPos>
         using fieldbit_pos_match = brigand::bool_<TFieldBitsPos::position == TFieldBitsPos::field_bit_t::number>;
 
-        template<class... TFieldBits>
+        template<typename TDataType, class... TFieldBits>
         struct vfield_impl
         {
             // calc data type and mask type
             static constexpr auto bits_count = brigand::count<TFieldBits...>::value;
             using datatype_t = bytes_bitmask_type<maskSizeInBytes(bits_count)>;
+            //using datatype_t = TDataType;
+            //using datatype_int_t = brigand::bytes_number_type<sizeof(datatype_t)>;
             using masktype_t = bitmask_type<datatype_t>;
 
             // add position to each fieldbit
@@ -119,6 +121,7 @@ namespace fasthal{
                 using my_serial_pins_split_t = brigand::split_at<my_fieldbits_pos_t, integral_constant<int, my_serial_count>>;
                 using my_serial_pins_t = brigand::at_c<my_serial_pins_split_t, 0>;
                 using my_nonserial_pins_t = brigand::at_c<my_serial_pins_split_t, 1>;
+                
 
                 template<typename TValueType, typename TFieldType, template<typename, class...> class TInversionMask>
                 static inline constexpr void appendValue(TValueType value, TFieldType& result)

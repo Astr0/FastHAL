@@ -13,12 +13,12 @@
 
 namespace fasthal{
     // vfield - static field-like wrapper for FieldBits
-	template<class... TFieldBits>
+	template<typename TDataType, class... TFieldBits>
 	struct vfield
 	{
 		static_assert(brigand::all<brigand::list<TFieldBits...>, brigand::bind<details::is_field_bit, brigand::_1>>::value, "Only field bits can be passed to make vfield");
 	
-		using impl_container_t = details::vfield_impl<TFieldBits...>;
+		using impl_container_t = details::vfield_impl<TDataType, TFieldBits...>;
 		using datatype_t = typename impl_container_t::datatype_t;
 		using impl_t = typename impl_container_t::impl_t;
 
@@ -33,26 +33,32 @@ namespace fasthal{
 		}
 	};
 	namespace details{
-		template<class... TFieldBits>
-		struct is_field_impl<vfield<TFieldBits...>>: std::true_type{};
+		template<typename TDataType, class... TFieldBits>
+		struct is_field_impl<vfield<TDataType, TFieldBits...>>: std::true_type{};
 
-	    template<class... TFieldBits>
-        struct needs_field_actions_impl<vfield<TFieldBits...>>: std::false_type{};
+	    template<typename TDataType, class... TFieldBits>
+        struct needs_field_actions_impl<vfield<TDataType, TFieldBits...>>: std::false_type{};
 
 		template<class TField>
 		struct is_vfield_impl: std::false_type{};
 
-		template<class... TFieldBits>
-		struct is_vfield_impl<vfield<TFieldBits...>>: std::true_type{};		
+		template<typename TDataType, class... TFieldBits>
+		struct is_vfield_impl<vfield<TDataType, TFieldBits...>>: std::true_type{};		
 
 		template<class TField>
 		using enable_if_vfield = std::enable_if_c<is_vfield_impl<std::base_type_t<TField>>::value>;
 	}
 
 	// create vfield
+	template<typename TDataType, class... TBits>
+	constexpr decltype(auto) vField(TBits... bits){
+		return vfield<TDataType, TBits...>{};
+	}
+
 	template<class... TBits>
 	constexpr decltype(auto) vField(TBits... bits){
-		return vfield<TBits...>{};
+		using datatype_t = bytes_bitmask_type<maskSizeInBytes(sizeof...(TBits))>;
+		return vfield<datatype_t, TBits...>{};
 	}
 
 	// type info
