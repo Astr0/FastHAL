@@ -1,4 +1,4 @@
-#define actions_ex 1
+#define actions_ex 3
 
 #include <avr/io.h>
 #include "fasthal.h"
@@ -99,7 +99,7 @@ void test_field_bits(){
 }
 
 int main(){
-    //test_ports();    
+    test_ports();    
     test_field_bits();
     
     return 0;

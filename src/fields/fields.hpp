@@ -5,6 +5,7 @@
 #include "info.hpp"
 #include "nullfield.hpp"
 #include "vfield.hpp"
+#include "mfield.hpp"
 #include "actions.hpp"
 #include "actions_apply.hpp"
 

@@ -8,6 +8,7 @@
 #include "actions.hpp"
 #include "actions_apply.hpp"
 #include "../mp/brigand.hpp"
+#include "../std/std_fake.hpp"
 
 
 namespace fasthal{
@@ -37,6 +38,15 @@ namespace fasthal{
 
 	    template<class... TFieldBits>
         struct needs_field_actions_impl<vfield<TFieldBits...>>: std::false_type{};
+
+		template<class TField>
+		struct is_vfield_impl: std::false_type{};
+
+		template<class... TFieldBits>
+		struct is_vfield_impl<vfield<TFieldBits...>>: std::true_type{};		
+
+		template<class TField>
+		using enable_if_vfield = std::enable_if_c<is_vfield_impl<std::base_type_t<TField>>::value>;
 	}
 
 	// create vfield
@@ -56,56 +66,56 @@ namespace fasthal{
 	}
 
 	// optimized actions 
-	template<class... TFieldBits, 
-		typename TField = vfield<TFieldBits...>,
-		typename TDataType = field_data_type<TField>>
-	constexpr auto write(vfield<TFieldBits...> field, TDataType value) 
+	template<class TField, 		
+		typename TDataType = field_data_type<TField>,
+		details::enable_if_vfield<TField> dummy = nullptr>
+	constexpr auto write(TField field, TDataType value) 
     {
         return TField::impl_t::write(value);
     }
 
-	template<class... TFieldBits, 
-		typename TField = vfield<TFieldBits...>>
-	constexpr auto read(vfield<TFieldBits...> field) 
+	template<class TField, 		
+		details::enable_if_vfield<TField> dummy = nullptr>
+	constexpr auto read(TField field) 
     {
         return TField::impl_t::read();
     }
 
-	template<class... TFieldBits, 
-		typename TField = vfield<TFieldBits...>,
-		typename TMaskType = field_mask_type<TField>>
-	constexpr auto set(vfield<TFieldBits...> field, TMaskType mask) 
+	template<class TField, 		
+		typename TMaskType = field_mask_type<TField>,
+		details::enable_if_vfield<TField> dummy = nullptr>
+	constexpr auto set(TField field, TMaskType mask) 
 	{
 		return TField::impl_t::set(mask);
 	}
 
-	template<class... TFieldBits, 
-		typename TField = vfield<TFieldBits...>,
-		typename TMaskType = field_mask_type<TField>>
-	constexpr auto clear(vfield<TFieldBits...> field, TMaskType mask) 
+	template<class TField, 		
+		typename TMaskType = field_mask_type<TField>,
+		details::enable_if_vfield<TField> dummy = nullptr>
+	constexpr auto clear(TField field, TMaskType mask) 
 	{
 		return TField::impl_t::clear(mask);					
 	}
 
-    template<class... TFieldBits, 
-		typename TField = vfield<TFieldBits...>,
+	template<class TField, 		
 		typename TClearMask = field_mask_type<TField>,
-		typename TSetMask = field_mask_type<TField>>
-	constexpr auto clear_set(vfield<TFieldBits...> field, TClearMask clearMask, TSetMask setMask) 
+		typename TSetMask = field_mask_type<TField>,
+		details::enable_if_vfield<TField> dummy = nullptr>
+	constexpr auto clear_set(TField field, TClearMask clearMask, TSetMask setMask) 
 	{
 		return TField::impl_t::clear_set(clearMask, setMask);
 	}
 
-	template<class... TFieldBits, 
-		typename TField = vfield<TFieldBits...>,
-		typename TMaskType = field_mask_type<TField>>
-	constexpr auto toggle(vfield<TFieldBits...> field, TMaskType mask) 
+	template<class TField, 		
+		typename TMaskType = field_mask_type<TField>,
+		details::enable_if_vfield<TField> dummy = nullptr>
+	constexpr auto toggle(TField field, TMaskType mask) 
 	{
 		return TField::impl_t::toggle(mask);
 	}
 
-    template<class... TFields, class... TFieldBits, typename TField = vfield<TFieldBits...>>
-    constexpr auto get(vfield<TFieldBits...> field, details::field_action_results_t<TFields...> results)
+    template<class TField, class... TFields, details::enable_if_vfield<TField> dummy = nullptr>
+    constexpr auto get(TField field, details::field_action_results_t<TFields...> results)
     {
         return TField::impl_t::read(results);
     }
