@@ -102,11 +102,12 @@ void test_field_bits(){
 void test_adc_regs(){
     #if actions_ex >= 1
     apply(
-        //write(mux, mux_v<MUX::_0>),
+        write(mux, mux_v<MUX::_0>),
         write(refs, refs_v<REFS::_0 | REFS::_1>),
         set(adps, adps_v<ADPS::_0 | ADPS::_1>),
         set(aden)
     );
+    PORTC = static_cast<std::uint8_t>(read_(mux));
     #else
     constexpr auto muxMask = (1 << MUX0) | (1 << MUX1) | (1 << MUX2) | (1 << MUX3);
     constexpr auto refsMask = (1 << REFS0) | (1 << REFS1);

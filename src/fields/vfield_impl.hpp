@@ -79,9 +79,9 @@ namespace fasthal{
         {
             // calc data type and mask type
             static constexpr auto bits_count = brigand::count<TFieldBits...>::value;
-            using datatype_t = bytes_bitmask_type<maskSizeInBytes(bits_count)>;
-            //using datatype_t = TDataType;
-            //using datatype_int_t = brigand::bytes_number_type<sizeof(datatype_t)>;
+            using bit_datatype_t = bytes_bitmask_type<maskSizeInBytes(bits_count)>;
+            using bit_masktype_t = bitmask_type<bit_datatype_t>;
+            using datatype_t = TDataType;
             using masktype_t = bitmask_type<datatype_t>;
 
             // add position to each fieldbit
@@ -98,7 +98,8 @@ namespace fasthal{
                 {
                 }
 
-                static inline constexpr void appendReadValue(datatype_t fieldValue, datatype_t& result)
+                template<typename TFieldValue>
+                static inline constexpr void appendReadValue(TFieldValue fieldValue, bit_datatype_t& result)
                 {                    
                 }
             };
@@ -110,8 +111,9 @@ namespace fasthal{
                 using field_datatype_t = field_data_type<field_t>;
                 using field_masktype_t = field_mask_type<field_t>;
 
+                static constexpr auto datatype_mask = bitmask_types<bit_datatype_t>::bitToMask(TFieldBitPos::position);
+
                 using next_t = fieldbits_iterator<R...>;
-                static constexpr auto datatype_mask = bitmask_types<datatype_t>::bitToMask(TFieldBitPos::position);
                 using my_fieldbits_pos_t = brigand::list<TFieldBitPos, R...>;
                 using my_transparent_fieldbits_pos_t = brigand::filter<my_fieldbits_pos_t, brigand::bind<fieldbit_pos_match, brigand::_1>>;
                 using my_nottransparent_fieldbits_pos_t = brigand::remove_if<my_fieldbits_pos_t, brigand::bind<fieldbit_pos_match, brigand::_1>>;
@@ -159,7 +161,8 @@ namespace fasthal{
                     next_t::template appendValue<TValueType, TFieldType, TInversionMask>(value, result);
                 }
                 
-                static inline constexpr void appendReadValue(field_datatype_t fieldValue, datatype_t& result)
+                template<typename TFieldValue>
+                static inline constexpr void appendReadValue(TFieldValue fieldValue, bit_datatype_t& result)
                 {
                     if (my_transparent_count > 1)
                     {
@@ -213,7 +216,7 @@ namespace fasthal{
                     typename TIterator = brigand::unpack<TIteratorFieldBits, fieldbits_iterator>>                    
                 static constexpr auto appendWriteValue(T value){
                     auto result = field_datatype_t{};
-                    TIterator::template appendValue<datatype_t, field_datatype_t, make_fieldbits_pos_inversion_mask>(value, result);
+                    TIterator::template appendValue<bit_datatype_t, field_datatype_t, make_fieldbits_pos_inversion_mask>(static_cast<bit_datatype_t>(value), result);
                     return result;
                 }
 
@@ -381,7 +384,7 @@ namespace fasthal{
                 }
 
                 template<typename TReadResult>
-                static void read(datatype_t& result, TReadResult read){
+                static void read(bit_datatype_t& result, TReadResult read){
                     auto fieldValue = get(field, read);
 				    brigand::unpack<my_fieldbits_pos_t, fieldbits_iterator>::appendReadValue(fieldValue, result);
                 }
@@ -420,9 +423,9 @@ namespace fasthal{
                 }
                 template<class TReadResult>
                 static datatype_t read(TReadResult read){
-                    auto result = datatype_t {};
+                    auto result = bit_datatype_t{};
                     (field_processor<TFields>::read(result, read), ...);
-                    return result;
+                    return static_cast<datatype_t>(result);
                 }
             };
 
