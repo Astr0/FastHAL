@@ -17,3 +17,5 @@
 * map a lot of useful AVR registers in process
 * convenient begin() for ADC
 * do something great with this library
+
+* we're pretty much on C++17, so we can use if constexpr and auto template parameters where needed
