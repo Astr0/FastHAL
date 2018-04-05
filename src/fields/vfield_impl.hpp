@@ -392,7 +392,7 @@ namespace fasthal{
 
             template<class... TActions>
             static constexpr auto combine_vfield_actions(TActions... actions){
-                return combine_a(actions...);
+                return combine(actions...);
             }
 
             // field_iterator

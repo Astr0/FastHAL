@@ -4,7 +4,7 @@
 #include <avr/io.h>
 #include "registers.hpp"
 
-//#ifdef FH_HAS_ADC
+#ifdef FH_HAS_ADC
 
 #include "../../fields/fields.hpp"
 
@@ -92,10 +92,23 @@ namespace fasthal{
 	constexpr auto disable(details::adc_t adc){
 		return clear(avr::aden);
 	}
+	template<
+		typename TRef = decltype(adc_ref::def),
+		typename TRes = decltype(adc_res::def),
+		typename TAdps = decltype(adc_ps::def)>
+	constexpr auto begin(details::adc_t adc, TRef ref = adc_ref::def, TRes res = adc_res::def, TAdps ps = adc_ps::def){
+		return combine(
+			set_ref(adc, ref),
+			set_res(adc, res),
+			set_ps(adc, ps),
+			enable(adc)			
+		);
+	}
 	constexpr auto start(details::adc_t adc){
 		return set(avr::adsc);
 	}	
-	
+
+
 	template<typename TRef = decltype(adc_ref::def)>
 	void set_ref_(details::adc_t adc, TRef ref = adc_ref::def){
 		apply(set_ref(adc, ref));
@@ -109,8 +122,8 @@ namespace fasthal{
 		apply(set_res(adc, res));
 	}
 	template<typename TMux>
-	constexpr auto select_(details::adc_t adc, TMux mux){
-		return apply(select(adc, mux));
+	void select_(details::adc_t adc, TMux mux){
+		apply(select(adc, mux));
 	}	
 	void enable_(details::adc_t adc){
 		apply(enable(adc));
@@ -118,14 +131,23 @@ namespace fasthal{
 	void disable_(details::adc_t adc){
 		apply(disable(adc));
 	}
-	constexpr auto start_(details::adc_t adc){
-		return apply(start(adc));
+	template<
+		typename TRef = decltype(adc_ref::def),
+		typename TRes = decltype(adc_res::def),
+		typename TAdps = decltype(adc_ps::def)>
+	void begin_(details::adc_t adc, TRef ref = adc_ref::def, TRes res = adc_res::def, TAdps ps = adc_ps::def)
+	{
+		apply(begin(adc, ref, res, ps));
+	}
+
+	void start_(details::adc_t adc){
+		apply(start(adc));
 	}
 	constexpr auto running_(details::adc_t adc){
 		return read_(avr::adsc);
 	}
-	constexpr auto wait_(details::adc_t adc){
-		return wait_lo(avr::adsc);
+	void wait_(details::adc_t adc){
+		wait_lo(avr::adsc);
 	}
 	template<typename TMux>
 	constexpr auto convert_(details::adc_t adc, TMux mux){
@@ -214,6 +236,6 @@ namespace fasthal{
     // };
 }
 
-//#endif // ADC stuff
+#endif // ADC stuff
 
 #endif
