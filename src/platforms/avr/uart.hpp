@@ -41,7 +41,6 @@ namespace fasthal{
     constexpr auto baud_v = integral_constant<std::uint32_t, V>{};
     constexpr auto baud_def = baud_v<115000>;
 
-
     namespace details{
         template<unsigned VNum>
         struct avr_uart_impl{
@@ -67,57 +66,55 @@ namespace fasthal{
         using enable_if_avr_uart = std::enable_if_c<is_avr_uart_impl<std::base_type_t<T>>::value>;
     }
 
-template<unsigned VNum, unsigned VTxSize, unsigned VRxSize>
-constexpr auto makeUart(){
-    static_assert(details::avr_uart_impl<VNum>::available, "UART not available");
-    return details::avr_uart<VNum, VTxSize, VRxSize>{};
-}
+    // template<unsigned VNum, unsigned VTxSize, unsigned VRxSize>
+    // constexpr auto makeUart(){
+    //     static_assert(details::avr_uart_impl<VNum>::available, "UART not available");
+    //     return details::avr_uart<VNum, VTxSize, VRxSize>{};
+    // }
 
-template<class T, 
-    typename TBaud = decltype(baud_def),
-    typename TConfig = decltype(serial_config_v<serial_config::def>),
-    details::enable_if_avr_uart<T> dummy = nullptr>
-constexpr auto begin(T uart, TBaud baud = baud_def, serial_config config = serial_config_v<serial_config::def>){
-    auto config_ = static_cast<std::uint8_t>(config);
-    #if defined(__AVR_ATmega8__)
-    config_ |= 0x80; // select UCSRC register (shared with UBRRH)
-    #endif
+    template<class T, 
+        typename TBaud = decltype(baud_def),
+        typename TConfig = decltype(serial_config_v<serial_config::def>),
+        details::enable_if_avr_uart<T> dummy = nullptr>
+    constexpr auto begin(T uart, TBaud baud = baud_def, serial_config config = serial_config_v<serial_config::def>){
+        auto config_ = static_cast<std::uint8_t>(config);
+        #if defined(__AVR_ATmega8__)
+        config_ |= 0x80; // select UCSRC register (shared with UBRRH)
+        #endif
 
-    // Try u2x mode first
-    auto baud_ = static_cast<std::uint16_t>((F_CPU / 4 / baud - 1) / 2);
+        // Try u2x mode first
+        auto baud_ = static_cast<std::uint16_t>((F_CPU / 4 / baud - 1) / 2);
 
-    // hardcoded exception for 57600 for compatibility with the bootloader
-    // shipped with the Duemilanove and previous boards and the firmware
-    // on the 8U2 on the Uno and Mega 2560. Also, The baud_ cannot
-    // be > 4095, so switch back to non-u2x mode if the baud rate is too
-    // low.
-    constexpr auto no_u2x = ((F_CPU == 16000000UL) && (baud == 57600)) || (baud_ > 4095);
-    
-    if (no_u2x)
-    {
-        baud_ = (F_CPU / 8 / baud - 1) / 2;
+        // hardcoded exception for 57600 for compatibility with the bootloader
+        // shipped with the Duemilanove and previous boards and the firmware
+        // on the 8U2 on the Uno and Mega 2560. Also, The baud_ cannot
+        // be > 4095, so switch back to non-u2x mode if the baud rate is too
+        // low.
+        constexpr auto no_u2x = ((F_CPU == 16000000UL) && (baud == 57600)) || (baud_ > 4095);
+        
+        if (no_u2x)
+        {
+            baud_ = (F_CPU / 8 / baud - 1) / 2;
+        }
+
+        return 0;
+        // return combine(
+        //     // enable u2x
+        //     set(uart::u2x, !no_u2x),
+        //     // assign the baud_, a.k.a. ubrr (USART Baud Rate Register)
+        //     write(uart::ubrr, baud_),
+        //     //set the data bits, parity, and stop bits
+        //     write(uart::ucsrc, config_),
+
+        //     // enable tx
+        //     enable(uart::tx), // todo: use if for written?
+        //     // disable tx ready irq
+        //     disable(uart::irq_txr),
+        //     // enable rx
+        //     enable(uart::rx),
+        //     // enable rx ready irq
+        //     enable(uart::irq_rx)
+        // );
     }
-
-    return 0;
-    // return combine(
-    //     // enable u2x
-    //     set(uart::u2x, !no_u2x),
-    //     // assign the baud_, a.k.a. ubrr (USART Baud Rate Register)
-    //     write(uart::ubrr, baud_),
-    //     //set the data bits, parity, and stop bits
-    //     write(uart::ucsrc, config_),
-
-    //     // enable tx
-    //     enable(uart::tx), // todo: use if for written?
-    //     // disable tx ready irq
-    //     disable(uart::irq_txr),
-    //     // enable rx
-    //     enable(uart::rx),
-    //     // enable rx ready irq
-    //     enable(uart::irq_rx)
-    // );
-}
-
-
 }
 #endif
