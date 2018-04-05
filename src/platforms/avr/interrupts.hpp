@@ -4,20 +4,34 @@
 #include "../../fields/info.hpp"
 #include "../../fields/actions.hpp"
 #include "registers.hpp"
+#include "../../utils/functions.h"
 
-namespace fasthal{
+//#ifdef FH_HAS_IRQ
+
+namespace fasthal{    
+    constexpr auto irq = avr::sreg;
+
+    namespace details{
+        using irq_t = decltype(irq);
+    }
+
     class no_irq{
-        field_data_type<avr::sreg> _sreg;
+        field_data_type<details::irq_t> _irq;
     public:
         inline no_irq()
         {
-            _sreg = read_(avr::sreg);
+            _irq = read_(irq);
             cli();
         }
 
         inline ~no_irq(){
-            write_(avr::sreg, _sreg);
+            write_(irq, _irq);
         }
     };
+
+    // enable/disable actions
+	FH_FIELDBIT_ENABLE_ACTIONS(details::irq_t, irq, avr::sreg_i);
 }
+
+//#endif
 #endif

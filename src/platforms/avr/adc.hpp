@@ -7,6 +7,7 @@
 #ifdef FH_HAS_ADC
 
 #include "../../fields/fields.hpp"
+#include "../../utils/functions.h"
 
 namespace fasthal{
 	//static constexpr auto adc = avr::adc;
@@ -74,24 +75,41 @@ namespace fasthal{
 	constexpr auto set_ref(details::adc_t adc, TRef ref = adc_ref::def){
 		return write(avr::refs, ref);
 	}
+	template<typename TRef = decltype(adc_ref::def)>
+	void set_ref_(details::adc_t adc, TRef ref = adc_ref::def){
+		apply(set_ref(adc, ref));
+	}
+
 	template<typename TAdps = decltype(adc_ps::def)>
 	constexpr auto set_ps(details::adc_t adc, TAdps ps = adc_ps::def){
 		return write(avr::adps, ps);
 	}
+	template<typename TAdps = decltype(adc_ps::def)>
+	void set_ps_(details::adc_t adc, TAdps ps = adc_ps::def){
+		apply(set_ps(adc, ps));
+	}
+
 	template<typename TRes = decltype(adc_res::def)>
 	constexpr auto set_res(details::adc_t adc, TRes res = adc_res::def){
 		return set(avr::adlar, res);
 	}
+	template<typename TRes = decltype(adc_res::def)>
+	void set_res_(details::adc_t adc, TRes res = adc_res::def){
+		apply(set_res(adc, res));
+	}
+
 	template<typename TMux>
 	constexpr auto select(details::adc_t adc, TMux mux){
 		return write(avr::mux, mux);
 	}
-	constexpr auto enable(details::adc_t adc){
-		return set(avr::aden);
-	}
-	constexpr auto disable(details::adc_t adc){
-		return clear(avr::aden);
-	}
+	template<typename TMux>
+	void select_(details::adc_t adc, TMux mux){
+		apply(select(adc, mux));
+	}	
+
+	// enable/disable actions
+	FH_FIELDBIT_ENABLE_ACTIONS(details::adc_t, adc, avr::aden);
+	
 	template<
 		typename TRef = decltype(adc_ref::def),
 		typename TRes = decltype(adc_res::def),
@@ -104,33 +122,6 @@ namespace fasthal{
 			enable(adc)			
 		);
 	}
-	constexpr auto start(details::adc_t adc){
-		return set(avr::adsc);
-	}	
-
-
-	template<typename TRef = decltype(adc_ref::def)>
-	void set_ref_(details::adc_t adc, TRef ref = adc_ref::def){
-		apply(set_ref(adc, ref));
-	}
-	template<typename TAdps = decltype(adc_ps::def)>
-	void set_ps_(details::adc_t adc, TAdps ps = adc_ps::def){
-		apply(set_ps(adc, ps));
-	}
-	template<typename TRes = decltype(adc_res::def)>
-	void set_res_(details::adc_t adc, TRes res = adc_res::def){
-		apply(set_res(adc, res));
-	}
-	template<typename TMux>
-	void select_(details::adc_t adc, TMux mux){
-		apply(select(adc, mux));
-	}	
-	void enable_(details::adc_t adc){
-		apply(enable(adc));
-	}
-	void disable_(details::adc_t adc){
-		apply(disable(adc));
-	}
 	template<
 		typename TRef = decltype(adc_ref::def),
 		typename TRes = decltype(adc_res::def),
@@ -140,9 +131,13 @@ namespace fasthal{
 		apply(begin(adc, ref, res, ps));
 	}
 
+	constexpr auto start(details::adc_t adc){
+		return set(avr::adsc);
+	}	
 	void start_(details::adc_t adc){
 		apply(start(adc));
 	}
+
 	constexpr auto running_(details::adc_t adc){
 		return read_(avr::adsc);
 	}

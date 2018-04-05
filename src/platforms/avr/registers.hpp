@@ -55,6 +55,7 @@ namespace fasthal{
 	namespace avr{
 		#include "registers_impl/gpio.hpp"
 		#include "registers_impl/adc.hpp"
+		#include "registers_impl/interrupts.hpp"
 	}
 }    
 
