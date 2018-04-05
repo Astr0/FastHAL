@@ -9,13 +9,13 @@
 + typed and masked mport?
 + type for vport
 + check/refactor ADC code
++ design something n1ce for interrupts
++ convenient begin() and convert() for ADC
 
+* check/refactor serial code, make streaming using same constexpr interface as pins/ports
 * add value type checks for port/fieldbit/other methods to restict templates and bring some type safety
 * design some kind of HAL (with linking to what pin where and Arduino pin numbering?) so one could select pinMode, do IO, ADC and intterupts? do we need it???
-* design something n1ce for interrupts
-* check/refactor serial code, make streaming using same constexpr interface as pins/ports
 * map a lot of useful AVR registers in process
-* convenient begin() for ADC
 * do something great with this library
 
 * we're pretty much on C++17, so we can use if constexpr and auto template parameters where needed
