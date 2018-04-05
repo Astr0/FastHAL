@@ -1,5 +1,5 @@
 #include "Arduino.h"
-#include "fasthal.h"
+#include "fasthal.hpp"
 
 const auto RxSize = 64;
 const auto TxSize = 64;

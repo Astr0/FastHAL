@@ -1,7 +1,7 @@
 #define actions_ex 1
 
 #include <avr/io.h>
-#include "fasthal.h"
+#include "fasthal.hpp"
 #include "mp/const_list.hpp"
 
 using namespace fasthal;
