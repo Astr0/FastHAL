@@ -68,13 +68,13 @@ namespace fasthal{
 
     
     template<class... TFieldAction>
-    constexpr auto inline combine_a(TFieldAction... actions){
+    constexpr auto inline combine(TFieldAction... actions){
         return mp::flatten_const_list(actions...);
         //return combine_helper<TFieldAction...>::combine(actions...);
     }
 
     template<class TFieldAction>
-    constexpr auto inline combine_a(TFieldAction action){
+    constexpr auto inline combine(TFieldAction action){
         return action;
     }
 

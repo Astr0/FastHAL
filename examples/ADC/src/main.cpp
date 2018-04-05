@@ -20,34 +20,23 @@ int main(void)
 
 	apply(
 	 	//	Adc::begin();
-		// default prescaler
-		set_ps(adc),
-		// and default voltage
-		set_ref(adc, adc_ref::def),		
-		// set desired resoultion
-		set_res(adc, my_adc_res),
-		// select channel
-		select(adc, channel),
-		// enable ADC
-		enable(adc),
-	
+		 // default voltage, desired resolution
+		begin(adc, adc_ref::def, my_adc_res),
 		// LedPin::setMode(PinMode::Output);
 		//makeOutput(led)
 		set(led_ddr) 
 	);
 	
-	while (true){
-		start_(adc);
-		wait_(adc);
-		auto val = read_(adc);
+	while (true){		
+	// 	auto val = TestAdc::read();
+		auto val = convert_(adc, channel);
+	// 	LedPin::set(val < 100);
 		set(led, val < 100);
 	}
 	
 	
     // while (1) 
     // {
-	// 	auto val = TestAdc::read();
-	// 	LedPin::set(val < 100);
     // }
 }
 

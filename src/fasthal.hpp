@@ -9,8 +9,10 @@
 #define FASTHAL_H_
 
 #include "fields/fields.hpp"
+#include "interrupts/interrupts.hpp"
 #include "platforms/platform.hpp"
 #include "utils/utils.hpp"
 #include "dev/devices.h"
+
 
 #endif
