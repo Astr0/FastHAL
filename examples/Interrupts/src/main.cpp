@@ -2,11 +2,9 @@
 
 using namespace fasthal;
 
-#define MY_ISR USART_RX_vect_num
-
 // comment and it won't compile
 template<>
-void fasthal::isr<MY_ISR>(){
+void fasthal::isr<FH_IRQ_RX0>(){
     PORTB = 12;
 }
 
@@ -18,4 +16,4 @@ int main(){
 
     }
 }
-FH_ISR(MY_ISR);
+FH_ISR(FH_IRQ_RX0);
