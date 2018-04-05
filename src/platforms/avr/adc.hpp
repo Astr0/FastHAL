@@ -137,7 +137,6 @@ namespace fasthal{
 	void start_(details::adc_t adc){
 		apply(start(adc));
 	}
-
 	constexpr auto running_(details::adc_t adc){
 		return read_(avr::adsc);
 	}

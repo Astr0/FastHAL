@@ -6,7 +6,7 @@
             "request": "launch",
             "cwd": "${workspaceRoot}",
             "name": "PlatformIO Debugger",
-            "target": "d:/Projects/FastHAL/examples/Uart/.pioenvs/megaatmega2560/firmware.elf",
+            "target": "d:/Projects/FastHAL/examples/Uart/.pioenvs/nanoatmega328/firmware.elf",
             "gdbpath": "C:/Users/astr0/.platformio/penv/Scripts/piodebuggdb",
             "autorun": [ "source .pioinit" ],
             "preLaunchTask": "PlatformIO: Pre-Debug",

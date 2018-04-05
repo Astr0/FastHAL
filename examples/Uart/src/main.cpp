@@ -1,8 +1,7 @@
-#include "Arduino.h"
 #include "fasthal.hpp"
 
-const auto RxSize = 64;
-const auto TxSize = 64;
+constexpr auto RxSize = 64;
+constexpr auto TxSize = 64;
 
 using namespace fasthal;
 

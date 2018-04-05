@@ -7,5 +7,6 @@
 #include "adc.hpp"
 #include "serial.h"
 #include "timers.h"
+#include "uart.hpp"
 
 #endif /* AVR_HAL_H_ */
