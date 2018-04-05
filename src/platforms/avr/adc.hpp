@@ -127,6 +127,15 @@ namespace fasthal{
 	constexpr auto wait_(details::adc_t adc){
 		return wait_lo(avr::adsc);
 	}
+	template<typename TMux>
+	constexpr auto convert_(details::adc_t adc, TMux mux){
+		apply(
+			select(adc, mux), 
+			start(adc)
+		);
+		wait_(adc);
+		return read_(adc);
+	}
 
 
 

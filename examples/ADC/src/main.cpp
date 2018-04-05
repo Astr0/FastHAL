@@ -26,8 +26,8 @@ int main(void)
 		set_ref(adc, adc_ref::def),		
 		// set desired resoultion
 		set_res(adc, my_adc_res),
-		// select channel
-		select(adc, channel),
+		// // select channel
+		// select(adc, channel),
 		// enable ADC
 		enable(adc),
 	
@@ -36,10 +36,8 @@ int main(void)
 		set(led_ddr) 
 	);
 	
-	while (true){
-		start_(adc);
-		wait_(adc);
-		auto val = read_(adc);
+	while (true){		
+		auto val = convert_(adc, channel);
 		set(led, val < 100);
 	}
 	
