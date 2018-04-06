@@ -8,11 +8,12 @@
 
 #include "../../fields/fields.hpp"
 #include "../../utils/functions.h"
+#include "../../std/std_fake.hpp"
 
 namespace fasthal{
 	//static constexpr auto adc = avr::adc;
 	namespace details{
-		using adc_t = decltype(::fasthal::avr::adc);
+		using adc_t = std::base_type_t<decltype(::fasthal::avr::adc)>;
 	}
 
 	struct adc_ref{
@@ -107,8 +108,11 @@ namespace fasthal{
 		apply(select(adc, mux));
 	}	
 
-	// enable/disable actions
-	FH_FIELDBIT_ENABLE_ACTIONS(details::adc_t, adc, avr::aden);
+	// enable/disable ADC
+	namespace details{
+		template<>
+		struct func_fieldbit_impl<adc_t>: func_fieldbit_enable<decltype(avr::aden)>{};
+	}	
 	
 	template<
 		typename TRef = decltype(adc_ref::def),

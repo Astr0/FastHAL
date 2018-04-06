@@ -4,6 +4,7 @@
 #include "info.hpp"
 #include "../std/type_traits.hpp"
 #include "../std/std_types.hpp"
+#include "../std/std_fake.hpp"
 #include "../mp/brigand.hpp"
 #include "../utils/types.hpp"
 #include "actions.hpp"
@@ -34,6 +35,17 @@ namespace fasthal
 
 		template<class TField, unsigned VNumber, bool VInverted>
 		struct is_field_bit<field_bit<TField, VNumber, VInverted>>: std::true_type{};
+
+		template<class TFunc>
+		struct func_fieldbit_impl {};
+
+		template<class TFunc>
+		using func_fieldbit = func_fieldbit_impl<std::base_type_t<TFunc>>;
+
+		template<class TFieldBit>
+		struct func_fieldbit_enable {
+			using enable_t = TFieldBit;
+		};
 	}
 
 	// create field bit
@@ -140,6 +152,24 @@ namespace fasthal
 	constexpr auto wait_hi(field_bit<TField, VNumber, VInverted> fieldBit){
 		while (!read_(fieldBit));
 	}
+
+	template<typename TFunc, typename TValue, typename TFieldBit = typename details::func_fieldbit<TFunc>::enable_t>
+	constexpr auto enable(TFunc func, TValue v) { return set(TFieldBit{}, v); }
+	template<typename TFunc, typename TValue, typename TFieldBit = typename details::func_fieldbit<TFunc>::enable_t>
+	void enable_(TFunc func, TValue v) { apply(enable(func, v)); }
+	
+	template<typename TFunc, typename TFieldBit = typename details::func_fieldbit<TFunc>::enable_t>
+	constexpr auto enable(TFunc func) { return set(TFieldBit{}); }
+	template<typename TFunc, typename TFieldBit = typename details::func_fieldbit<TFunc>::enable_t>
+	void enable_(TFunc func){ apply(enable(func)); }
+	
+	template<typename TFunc, typename TFieldBit = typename details::func_fieldbit<TFunc>::enable_t>
+	constexpr auto disable(TFunc func){ return clear(TFieldBit{}); }
+	template<typename TFunc, typename TFieldBit = typename details::func_fieldbit<TFunc>::enable_t>
+	void disable_(TFunc func){apply(disable(func));}
+	
+	template<typename TFunc, typename TFieldBit = typename details::func_fieldbit<TFunc>::enable_t>
+	constexpr auto enabled_(TFunc func){ return read_(TFieldBit{}); }	
 }
 
 #endif

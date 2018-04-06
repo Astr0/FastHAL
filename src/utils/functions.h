@@ -18,19 +18,6 @@ static decltype(VARNAME)& value(){return VARNAME;}\
 inline constexpr NAME operator|(NAME x, NAME y){ return static_cast<NAME>(static_cast<BASE>(x) | static_cast<BASE>(y)); }\
 inline constexpr NAME operator&(NAME x, NAME y){ return static_cast<NAME>(static_cast<BASE>(x) & static_cast<BASE>(y)); }
 
-#define FH_FIELDBIT_ENABLE_ACTIONS(PARAM_T, PARAM, BIT)\
-template<typename T>\
-constexpr auto enable(PARAM_T PARAM, T v) { return set(BIT, v); }\
-template<typename T>\
-constexpr auto enable_(PARAM_T PARAM, T v) { return apply(enable(BIT, v)); }\
-constexpr auto enable(PARAM_T PARAM) { return set(BIT); }\
-void enable_(PARAM_T PARAM){ apply(enable(PARAM)); }\
-constexpr auto disable(PARAM_T PARAM){ return clear(BIT); }\
-void disable_(PARAM_T PARAM){apply(disable(PARAM));}\
-constexpr auto enabled_(PARAM_T PARAM){ return read_(BIT); }\
-
-
-
 namespace fasthal{
     template<int val>
     int constInt() {return val; }

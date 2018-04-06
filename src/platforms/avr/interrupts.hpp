@@ -5,6 +5,7 @@
 #include "../../fields/actions.hpp"
 #include "registers.hpp"
 #include "../../utils/functions.h"
+#include "../../std/std_fake.hpp"
 
 //#ifdef FH_HAS_IRQ
 
@@ -12,7 +13,7 @@ namespace fasthal{
     constexpr auto irq = avr::sreg;
 
     namespace details{
-        using irq_t = decltype(irq);
+        using irq_t = std::base_type_t<decltype(irq)>;
     }
 
     class no_irq{
@@ -29,8 +30,11 @@ namespace fasthal{
         }
     };
 
-    // enable/disable actions
-	FH_FIELDBIT_ENABLE_ACTIONS(details::irq_t, irq, avr::sreg_i);
+    // enable/disable IRQ
+	namespace details{
+		template<>
+		struct func_fieldbit_impl<details::irq_t>: func_fieldbit_enable<decltype(avr::sreg_i)>{};
+	}	
 
     // enable ISR by declaring __vector_<vector> and forwarding to handler
     #define FH_ISR(vector) ISR(_VECTOR(vector)) { isr<vector>(); }    
