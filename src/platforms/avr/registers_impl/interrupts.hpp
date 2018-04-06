@@ -1,6 +1,6 @@
 #ifdef SREG
 // Interrupts constrol register
-FASTHAL_DECLAREREGISTER_ONLY(sreg, SREG)
+FASTHAL_DECLARE_REGISTER_ONLY(sreg, SREG)
 
 // interrupts enabled flag
 #ifdef SREG_I

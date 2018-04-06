@@ -30,17 +30,16 @@ namespace fasthal{
         }
     };
 
-    // enable/disable IRQ
-	namespace details{
-		template<>
-		struct func_fieldbit_impl<details::irq_t>: func_fieldbit_enable<decltype(avr::sreg_i)>{};
-	}	
-
     // enable ISR by declaring __vector_<vector> and forwarding to handler
     #define FH_ISR(vector) ISR(_VECTOR(vector)) { isr<vector>(); }    
 
     // interrupts normalization...
     #include "interrupts_impl/uart.hpp"
+
+    // enable/disable IRQ
+	namespace details{
+		template<> struct func_fieldbit_impl<details::irq_t>: func_fieldbit_enable<decltype(avr::sreg_i)>{};        
+	}	    
 }
 
 //#endif

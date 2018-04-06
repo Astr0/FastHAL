@@ -36,7 +36,7 @@ namespace fasthal{
 
         struct write_field{
             template<typename T, typename V>
-            static constexpr void execute(T& current, V value){ current = value; }
+            static constexpr void execute(T& current, V value){ current = T{ value }; }
         };
         struct set_field{
             template<typename T, typename V>
@@ -73,7 +73,8 @@ namespace fasthal{
         struct actions_executor
         {
             static constexpr void execute(TValue& value, TAction action){
-                if (TFilter<TAction>::value)
+                // dont even try to build with wrong action types
+                if constexpr(TFilter<TAction>::value)
                     action.execute(value);
             }
         };

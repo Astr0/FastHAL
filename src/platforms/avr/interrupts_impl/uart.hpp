@@ -1,12 +1,12 @@
 // USART0 RX IRQ
 #if defined(USART_RX_vect_num)
-    #define FH_IRQ_RX0 USART_RX_vect_num
+    #define FH_IRQ_RXC0 USART_RX_vect_num
 #elif defined(USART_RXC_vect_num)
-    #define FH_IRQ_RX0 USART_RXC_vect_num
+    #define FH_IRQ_RXC0 USART_RXC_vect_num
 #elif defined(USART0_RX_vect_num)
-    #define FH_IRQ_RX0 USART0_RX_vect_num
+    #define FH_IRQ_RXC0 USART0_RX_vect_num
 #elif defined(UART0_RX_vect_num)
-    #define FH_IRQ_RX0 UART0_RX_vect_num
+    #define FH_IRQ_RXC0 UART0_RX_vect_num
 #endif 
 
 // USART0 TX Buffer empty (TX Ready)
@@ -22,20 +22,20 @@
 
 // USART0 TX Completed
 #if defined(USART_TX_vect_num)
-    #define FH_IRQ_TX0 USART_TX_vect_num
+    #define FH_IRQ_TXC0 USART_TX_vect_num
 #elif defined(USART_TXC_vect_num)
-    #define FH_IRQ_TX0 USART_TXC_vect_num
+    #define FH_IRQ_TXC0 USART_TXC_vect_num
 #elif defined(USART0_TX_vect_num)
-    #define FH_IRQ_TX0 USART0_TX_vect_num
+    #define FH_IRQ_TXC0 USART0_TX_vect_num
 #elif defined(UART0_TX_vect_num)
-    #define FH_IRQ_TX0 UART0_TX_vect_num
+    #define FH_IRQ_TXC0 UART0_TX_vect_num
 #endif 
 
 // USART1 RX IRQ
 #if defined(USART1_RX_vect_num)
-    #define FH_IRQ_RX1 USART1_RX_vect_num
+    #define FH_IRQ_RXC1 USART1_RX_vect_num
 #elif defined(UART1_RX_vect_num)
-    #define FH_IRQ_RX1 UART1_RX_vect_num
+    #define FH_IRQ_RXC1 UART1_RX_vect_num
 #endif 
 
 // USART1 TX Buffer empty (TX Ready)
@@ -47,17 +47,17 @@
 
 // USART1 TX Completed
 #if defined(USART1_TX_vect_num)
-    #define FH_IRQ_TX1 USART1_TX_vect_num
+    #define FH_IRQ_TXC1 USART1_TX_vect_num
 #elif defined(UART1_TX_vect_num)
-    #define FH_IRQ_TX1 UART1_TX_vect_num
+    #define FH_IRQ_TXC1 UART1_TX_vect_num
 #endif 
 
 
 // USART2 RX IRQ
 #if defined(USART2_RX_vect_num)
-    #define FH_IRQ_RX2 USART2_RX_vect_num
+    #define FH_IRQ_RXC2 USART2_RX_vect_num
 #elif defined(UART2_RX_vect_num)
-    #define FH_IRQ_RX2 UART2_RX_vect_num
+    #define FH_IRQ_RXC2 UART2_RX_vect_num
 #endif 
 
 // USART2 TX Buffer empty (TX Ready)
@@ -69,17 +69,17 @@
 
 // USART2 TX Completed
 #if defined(USART2_TX_vect_num)
-    #define FH_IRQ_TX2 USART2_TX_vect_num
+    #define FH_IRQ_TXC2 USART2_TX_vect_num
 #elif defined(UART2_TX_vect_num)
-    #define FH_IRQ_TX2 UART2_TX_vect_num
+    #define FH_IRQ_TXC2 UART2_TX_vect_num
 #endif 
 
 
 // USART3 RX IRQ
 #if defined(USART3_RX_vect_num)
-    #define FH_IRQ_RX3 USART3_RX_vect_num
+    #define FH_IRQ_RXC3 USART3_RX_vect_num
 #elif defined(UART3_RX_vect_num)
-    #define FH_IRQ_RX3 UART3_RX_vect_num
+    #define FH_IRQ_RXC3 UART3_RX_vect_num
 #endif 
 
 // USART3 TX Buffer empty (TX Ready)
@@ -91,7 +91,49 @@
 
 // USART3 TX Completed
 #if defined(USART3_TX_vect_num)
-    #define FH_IRQ_TX3 USART3_TX_vect_num
+    #define FH_IRQ_TXC3 USART3_TX_vect_num
 #elif defined(UART3_TX_vect_num)
-    #define FH_IRQ_TX3 UART3_TX_vect_num
+    #define FH_IRQ_TXC3 UART3_TX_vect_num
 #endif 
+
+// copy bits to irqs
+#ifdef FH_HAS_UART0
+constexpr auto irq_txr0 = avr::udrie0;
+constexpr auto irq_txc0 = avr::txcie0;
+constexpr auto irq_rxc0 = avr::rxcie0;
+namespace details{
+    template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txr0)>>: func_fieldbit_enable<decltype(avr::udrie0)>{};
+    template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txc0)>>: func_fieldbit_enable<decltype(avr::txcie0)>{};
+    template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_rxc0)>>: func_fieldbit_enable<decltype(avr::rxcie0)>{};
+}
+#endif
+#ifdef FH_HAS_UART1
+constexpr auto irq_txr1 = avr::udrie1;
+constexpr auto irq_txc1 = avr::txcie1;
+constexpr auto irq_rxc1 = avr::rxcie1;
+namespace details{
+    template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txr1)>>: func_fieldbit_enable<decltype(avr::udrie1)>{};
+    template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txc1)>>: func_fieldbit_enable<decltype(avr::txcie1)>{};
+    template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_rxc1)>>: func_fieldbit_enable<decltype(avr::rxcie1)>{};
+}
+#endif
+#ifdef FH_HAS_UART2
+constexpr auto irq_txr2 = avr::udrie2;
+constexpr auto irq_txc2 = avr::txcie2;
+constexpr auto irq_rxc2 = avr::rxcie2;
+namespace details{
+    template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txr2)>>: func_fieldbit_enable<decltype(avr::udrie2)>{};
+    template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txc2)>>: func_fieldbit_enable<decltype(avr::txcie2)>{};
+    template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_rxc2)>>: func_fieldbit_enable<decltype(avr::rxcie2)>{};
+}
+#endif
+#ifdef FH_HAS_UART3
+constexpr auto irq_txr3 = avr::udrie3;
+constexpr auto irq_txc3 = avr::txcie3;
+constexpr auto irq_rxc3 = avr::rxcie3;
+namespace details{
+    template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txr3)>>: func_fieldbit_enable<decltype(avr::udrie3)>{};
+    template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txc3)>>: func_fieldbit_enable<decltype(avr::txcie3)>{};
+    template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_rxc3)>>: func_fieldbit_enable<decltype(avr::rxcie3)>{};
+}
+#endif

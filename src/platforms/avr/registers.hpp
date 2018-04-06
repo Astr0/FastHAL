@@ -12,7 +12,7 @@
 #include "../../fields/info.hpp"
 #include "../../fields/mfield.hpp"
 
-#define FASTHAL_DECLAREREGISTER_ONLY( NAME, VAR)\
+#define FASTHAL_DECLARE_REGISTER_ONLY( NAME, VAR)\
 namespace priv{\
 	FH_WRAPVARIABLE(VAR ## _reg, VAR)\
 }\
@@ -56,10 +56,11 @@ namespace fasthal{
 		#include "registers_impl/gpio.hpp"
 		#include "registers_impl/adc.hpp"
 		#include "registers_impl/interrupts.hpp"
+		#include "registers_impl/uart.hpp"
 	}
 }    
 
 #undef FASTHAL_DECLAREREGISTER
-#undef FASTHAL_DECLAREREGISTER_ONLY
+#undef FASTHAL_DECLARE_REGISTER_ONLY
 
 #endif

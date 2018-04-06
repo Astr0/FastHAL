@@ -1,4 +1,4 @@
-#define actions_ex 1
+#define actions_ex 3
 
 #include <avr/io.h>
 #include "fasthal.hpp"
@@ -25,13 +25,13 @@ using value_t = brigand::uint8_t<V>;
 void test_ports(){   
     #if (actions_ex == 3)
     auto v = apply(
-        combine_a(
-            combine_a(
-                write(testPort1, value_t<123>{}),
+        combine(
+            combine(
+                write(ubrr0, integral_constant<uint16_t, 123>{}),
                 clear(testPort2, value_t<77>{}),
                 set(testPort1, value_t<1>{})),
             write(testPort2, PORTC),
-            combine_a(
+            combine(
                 clear(testPort1, value_t<54>{}),
                 toggle(testPort1, value_t<0xF>{})),
             toggle(testPort2, read_(testPort1)),

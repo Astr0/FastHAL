@@ -6,7 +6,10 @@ constexpr auto TxSize = 64;
 using namespace fasthal;
 
 int main(){
-
+    apply(begin(uart0));
+    while (true){
+       
+    }
 }
 
 // #define FH

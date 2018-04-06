@@ -5,6 +5,7 @@
 #include "../../fields/actions.hpp"
 #include "../../std/type_traits.hpp"
 #include "../../std/std_fake.hpp"
+#include "../../mp/const_list.hpp"
 
 namespace fasthal{
     // serial config
@@ -47,74 +48,99 @@ namespace fasthal{
             static constexpr bool available = false;
         };
 
-        template<unsigned VNum, unsigned VTxSize, unsigned VRxSize>
-        struct avr_uart{
+        template<unsigned VNum>
+        struct avr_uart: avr_uart_impl<VNum>{
             using impl_t = avr_uart_impl<VNum>;
             static_assert(impl_t::available, "UART not available");
-
-            static constexpr auto u2x = impl_t::u2x;
-            static constexpr auto ubrr = impl_t::ubrr;
         };
 
         template<class T>
         struct is_avr_uart_impl: std::false_type {};
 
-        template<unsigned VNum, unsigned VTxSize, unsigned VRxSize>
-        struct is_avr_uart_impl<avr_uart<VNum, VTxSize, VRxSize>>: std::true_type {};
+        template<unsigned VNum>
+        struct is_avr_uart_impl<avr_uart<VNum>>: std::true_type {};
 
         template<class T>
         using enable_if_avr_uart = std::enable_if_c<is_avr_uart_impl<std::base_type_t<T>>::value>;
     }
+    #include "uart_impl.hpp"
 
-    // template<unsigned VNum, unsigned VTxSize, unsigned VRxSize>
-    // constexpr auto makeUart(){
-    //     static_assert(details::avr_uart_impl<VNum>::available, "UART not available");
-    //     return details::avr_uart<VNum, VTxSize, VRxSize>{};
-    // }
+    namespace details{
+        template<typename TBaud>
+        constexpr auto calc_uart_baud(TBaud baud){
+            // Try u2x mode first
+            auto baud_ = static_cast<std::uint16_t>((F_CPU / 4 / baud - 1) / 2);
+
+            // hardcoded exception for 57600 for compatibility with the bootloader
+            // shipped with the Duemilanove and previous boards and the firmware
+            // on the 8U2 on the Uno and Mega 2560. Also, The baud_ cannot
+            // be > 4095, so switch back to non-u2x mode if the baud rate is too
+            // low.        
+            auto no_u2x = ((F_CPU == 16000000UL) && (baud == 57600)) || (baud_ > 4095);
+            
+            if (no_u2x)
+            {
+                baud_ = (F_CPU / 8 / baud - 1) / 2;
+            }
+            
+            return mp::make_const_list(baud_, !no_u2x);
+        }
+
+        template<typename TBaud, TBaud VBaud>
+        constexpr auto calc_uart_baud(integral_constant<TBaud, VBaud> baud){
+            constexpr auto result = calc_uart_baud(VBaud);
+            return mp::make_const_list(
+                integral_constant<std::uint16_t, mp::get<0>(result)>{}, 
+                integral_constant<bool, mp::get<1>(result)>{}
+                );
+        }
+
+        template<typename TConfig>
+        constexpr auto calc_uart_config(TConfig config){
+            auto config_ = static_cast<std::uint8_t>(config);
+            #if defined(__AVR_ATmega8__)
+            config_ |= 0x80; // select UCSRC register (shared with UBRRH)
+            #endif
+            return config_;
+        }
+
+        template<typename TConfig, TConfig VConfig>
+        constexpr auto calc_uart_config(integral_constant<TConfig, VConfig> config){
+            constexpr auto config_ = calc_uart_config(VConfig);
+            return integral_constant<std::uint8_t, config_>{};
+        }
+    }
 
     template<class T, 
         typename TBaud = decltype(baud_def),
         typename TConfig = decltype(serial_config_v<serial_config::def>),
         details::enable_if_avr_uart<T> dummy = nullptr>
-    constexpr auto begin(T uart, TBaud baud = baud_def, serial_config config = serial_config_v<serial_config::def>){
-        auto config_ = static_cast<std::uint8_t>(config);
-        #if defined(__AVR_ATmega8__)
-        config_ |= 0x80; // select UCSRC register (shared with UBRRH)
-        #endif
+    constexpr auto begin(T uart, TBaud baud = baud_def, TConfig config = serial_config_v<serial_config::def>){
+        using uart_t = typename T::impl_t;
 
-        // Try u2x mode first
-        auto baud_ = static_cast<std::uint16_t>((F_CPU / 4 / baud - 1) / 2);
-
-        // hardcoded exception for 57600 for compatibility with the bootloader
-        // shipped with the Duemilanove and previous boards and the firmware
-        // on the 8U2 on the Uno and Mega 2560. Also, The baud_ cannot
-        // be > 4095, so switch back to non-u2x mode if the baud rate is too
-        // low.
-        constexpr auto no_u2x = ((F_CPU == 16000000UL) && (baud == 57600)) || (baud_ > 4095);
+        auto calc_ = details::calc_uart_baud(baud);
+        auto baud_ = mp::get<0>(calc_);
+        auto u2x_ = mp::get<1>(calc_);
+        auto config_ = details::calc_uart_config(config);
         
-        if (no_u2x)
-        {
-            baud_ = (F_CPU / 8 / baud - 1) / 2;
-        }
+        return combine(
+            // enable u2x
+            enable(uart_t::u2x, u2x_),
+            // assign the baud_, a.k.a. ubrr (USART Baud Rate Register)
+            write(uart_t::ubrr, baud_),
+            //set the data bits, parity, and stop bits
+            write(uart_t::ucsrc, config_),
 
-        return 0;
-        // return combine(
-        //     // enable u2x
-        //     set(uart::u2x, !no_u2x),
-        //     // assign the baud_, a.k.a. ubrr (USART Baud Rate Register)
-        //     write(uart::ubrr, baud_),
-        //     //set the data bits, parity, and stop bits
-        //     write(uart::ucsrc, config_),
+            // enable tx
+            enable(uart_t::txen), // todo: use if for written?
+            // disable tx ready irq
+            disable(uart_t::irq_txr),
 
-        //     // enable tx
-        //     enable(uart::tx), // todo: use if for written?
-        //     // disable tx ready irq
-        //     disable(uart::irq_txr),
-        //     // enable rx
-        //     enable(uart::rx),
-        //     // enable rx ready irq
-        //     enable(uart::irq_rx)
-        // );
+            // enable rx
+            enable(uart_t::rxen),
+            // enable rx ready irq
+            enable(uart_t::irq_rxc)
+        );
     }
 }
 #endif
