@@ -34,7 +34,7 @@ namespace fasthal{
     #define FH_ISR(vector) ISR(_VECTOR(vector)) { isr<vector>(); }    
 
     // interrupts normalization...
-    #include "interrupts_impl/uart.hpp"
+    #include "interrupts_impl/uart_irq.hpp"
 
     // enable/disable IRQ
 	namespace details{
