@@ -146,8 +146,8 @@ namespace fasthal{
     template<class Uart, unsigned int RxBufferSize>
     class AvrUartRx{
     private:
-        typedef RingBuffer<RxBufferSize> BufferType;
-        typedef typename BufferType::BufferIndex BufferIndex;
+        typedef ring_buffer<RxBufferSize> BufferType;
+        typedef typename BufferType::index_t BufferIndex;
         static BufferType _buffer;
 
     public:
@@ -206,7 +206,7 @@ namespace fasthal{
     private:
         static bool _written;
 
-        typedef RingBuffer<TxBufferSize> BufferType;
+        typedef ring_buffer<TxBufferSize> BufferType;
         typedef typename BufferType::BufferIndex BufferIndex;
         static BufferType _buffer;
     public:

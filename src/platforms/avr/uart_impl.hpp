@@ -4,6 +4,8 @@ template<>\
 struct avr_uart_impl<NUM>{\
     static constexpr bool available = true;\
     static constexpr auto u2x = avr::u2x ## NUM;\
+    static constexpr auto rxc = avr::rxc ## NUM;\
+    static constexpr auto txc = avr::txc ## NUM;\
     static constexpr auto upe = avr::upe ## NUM;\
     static constexpr auto ubrr = avr::ubrr ## NUM;\
     static constexpr auto ucsrc = avr::ucsr ## NUM ## c;\

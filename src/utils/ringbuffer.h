@@ -1,71 +1,70 @@
-#pragma once
-
-#ifndef UTILS_RINGBUFFER_H_
-#define UTILS_RINGBUFFER_H_
+#ifndef FH_UTILS_RINGBUFFER_H_
+#define FH_UTILS_RINGBUFFER_H_
 
 #include "../mp/brigand_ex.hpp"
-#include <inttypes.h>
+#include "../std/std_types.hpp"
 
 namespace fasthal{
-    template<unsigned BufferSize>
-    class RingBuffer{
-    public:
-        using BufferIndex = brigand::number_type<BufferSize>;
+    template<unsigned VBufferSize>
+    class ring_buffer{
+    public:        
+        using index_t = brigand::number_type<VBufferSize>;
+        using data_t = std::uint8_t;
+        static constexpr index_t size = VBufferSize;
     private:
-        using BufferIndex2 = brigand::number_type<BufferSize * 2>;
-        using BufferIndex1 = brigand::number_type<BufferSize + 1>;
+        using index2_t = brigand::number_type<size * 2>;
+        using index1_t = brigand::number_type<size + 1>;
+        
 
-        volatile BufferIndex _head;
-        volatile BufferIndex _tail;
-        unsigned char _buffer[BufferSize];
+        volatile index_t _head;
+        volatile index_t _tail;
+        data_t _buffer[size];
     public:       
-        RingBuffer(): _head(0), _tail(0){
-
-        }
+        ring_buffer(): _head(0), _tail(0){ }
 
         inline void clear(){
             _head = _tail;
         }
 
-        BufferIndex available(){
+        index_t available(){
             // doesn't makes much sense to NoInterrupt here since after no interrupt things may change
             // tail is read second so it will return <= real available
-            return ((BufferIndex2)(BufferSize + _head - _tail)) % BufferSize;
+            return ((index2_t)(size + _head - _tail)) % size;
         }
 
         bool empty(){
             return _head == _tail;
         }
 
-        uint8_t peek(){
+        data_t peek(){
             return _buffer[_tail];
         }
 
-        uint8_t readDirty(){
+        data_t readDirty(){
             uint8_t c = peek();
-            _tail = ((BufferIndex1)(_tail + 1)) % BufferSize;
+            _tail = ((index1_t)(_tail + 1)) % size;
             return c;
         }
 
-        uint8_t read(){
+        data_t read(){
             return empty() ? 0 : readDirty();
         }
 
-        BufferIndex nextIndex(){
-            return ((BufferIndex1)(_head + 1)) % BufferSize;
+        index_t nextIndex(){
+            return ((index1_t)(_head + 1)) % size;
         }
 
-        bool canWriteNext(BufferIndex i){
+        bool canWriteNext(index_t i){
             return i != _tail;
         }
 
-        void writeNext(BufferIndex i, uint8_t c){
+        void writeNext(index_t i, data_t c){
             _buffer[_head] = c;
             _head = i;
         }
 
-        bool tryWrite(uint8_t c){
-            BufferIndex i = nextIndex();
+        bool tryWrite(data_t c){
+            auto i = nextIndex();
             
             // if we should be storing the received character into the location
             // just before the tail (meaning that the head would advance to the
@@ -81,10 +80,10 @@ namespace fasthal{
 
     // not valid template arguments
     template<>
-    class RingBuffer<0>{};
+    class ring_buffer<0>{};
 
     template<>
-    class RingBuffer<1>{};
+    class ring_buffer<1>{};
 }
 
 #endif
