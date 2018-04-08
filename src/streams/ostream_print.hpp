@@ -156,22 +156,22 @@ namespace fasthal{
                     return false;
                 n = -n;
             }
-
+            
             // Round correctly so that print(1.999, 2) prints as "2.00"
-            T rounding = 0.5;
-            for (std::uint8_t i=0; i<digits; ++i)
-                rounding /= 10.0;
-
+            auto rounding = T{ 0.5 };
+            for (std::uint8_t i=0; i < digits; ++i)
+                rounding *= 0.1;
+            
             n += rounding;
 
             // Extract the integer part of the number and print it
-            std::uint32_t int_part = (std::uint32_t)n;
+            auto int_part = static_cast<std::uint32_t>(n);
             if (!print(ostream, int_part))
                 return false;
             n -= (T)int_part;
                 
             // Print the decimal point, but only if there are digits beyond
-            if (digits > 0) {
+            if (digits) {
                 if (!write(ostream, '.'))
                     return false;
             }
@@ -179,12 +179,12 @@ namespace fasthal{
             // Extract digits from the remainder one at a time
             while (digits-- > 0)
             {
-                n *= 10.0;
-                auto toPrint = (std::uint8_t)(n);
+                n *= 10;
+                auto toPrint = static_cast<std::uint8_t>(n) % 10;
                 char printC = '0' + toPrint;
                 if (!write(ostream, printC))
                     return false;
-                n -= toPrint; 
+                //n -= toPrint; 
             } 
             return true;
         }
@@ -202,7 +202,6 @@ namespace fasthal{
     
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
     bool print(T ostream, double n, std::uint8_t digits = 2) {
-        // TODO: Use float print if sizeof(double) == sizeof(float) should reduce code size
         return details::print_float(ostream, n, digits);
     }
 
