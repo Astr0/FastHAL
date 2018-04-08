@@ -98,19 +98,22 @@
 
 // copy bits to irqs
 #ifdef FH_HAS_UART0
-constexpr auto irq_txr0 = avr::udrie0;
-constexpr auto irq_txc0 = avr::txcie0;
-constexpr auto irq_rxc0 = avr::rxcie0;
+constexpr auto irq_txr0 = interrupt<FH_IRQ_TXR0>{};
+constexpr auto irq_txc0 = interrupt<FH_IRQ_TXC0>{};
+constexpr auto irq_rxc0 = interrupt<FH_IRQ_RXC0>{};
 namespace details{
-    template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txr0)>>: func_fieldbit_enable<decltype(avr::udrie0)>{};
+    template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txr0)>>: 
+        func_fieldbit_enable<decltype(avr::udrie0)>,
+        func_fieldbit_ready<decltype(avr::udre0)>
+        {};
     template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txc0)>>: func_fieldbit_enable<decltype(avr::txcie0)>{};
     template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_rxc0)>>: func_fieldbit_enable<decltype(avr::rxcie0)>{};
 }
 #endif
 #ifdef FH_HAS_UART1
-constexpr auto irq_txr1 = avr::udrie1;
-constexpr auto irq_txc1 = avr::txcie1;
-constexpr auto irq_rxc1 = avr::rxcie1;
+constexpr auto irq_txr0 = interrupt<FH_IRQ_TXR1>{};
+constexpr auto irq_txc0 = interrupt<FH_IRQ_TXC1>{};
+constexpr auto irq_rxc0 = interrupt<FH_IRQ_RXC1>{};
 namespace details{
     template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txr1)>>: func_fieldbit_enable<decltype(avr::udrie1)>{};
     template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txc1)>>: func_fieldbit_enable<decltype(avr::txcie1)>{};
@@ -118,9 +121,9 @@ namespace details{
 }
 #endif
 #ifdef FH_HAS_UART2
-constexpr auto irq_txr2 = avr::udrie2;
-constexpr auto irq_txc2 = avr::txcie2;
-constexpr auto irq_rxc2 = avr::rxcie2;
+constexpr auto irq_txr0 = interrupt<FH_IRQ_TXR2>{};
+constexpr auto irq_txc0 = interrupt<FH_IRQ_TXC2>{};
+constexpr auto irq_rxc0 = interrupt<FH_IRQ_RXC2>{};
 namespace details{
     template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txr2)>>: func_fieldbit_enable<decltype(avr::udrie2)>{};
     template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txc2)>>: func_fieldbit_enable<decltype(avr::txcie2)>{};
@@ -128,9 +131,9 @@ namespace details{
 }
 #endif
 #ifdef FH_HAS_UART3
-constexpr auto irq_txr3 = avr::udrie3;
-constexpr auto irq_txc3 = avr::txcie3;
-constexpr auto irq_rxc3 = avr::rxcie3;
+constexpr auto irq_txr0 = interrupt<FH_IRQ_TXR3>{};
+constexpr auto irq_txc0 = interrupt<FH_IRQ_TXC3>{};
+constexpr auto irq_rxc0 = interrupt<FH_IRQ_RXC3>{};
 namespace details{
     template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txr3)>>: func_fieldbit_enable<decltype(avr::udrie3)>{};
     template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txc3)>>: func_fieldbit_enable<decltype(avr::txcie3)>{};

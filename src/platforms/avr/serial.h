@@ -178,7 +178,7 @@ namespace fasthal{
         }
 
         static uint8_t readDirty(){
-            return _buffer.readDirty();
+            return _buffer.read_dirty();
         }
 
         static uint8_t read(){
@@ -191,7 +191,7 @@ namespace fasthal{
             // No Parity error, read byte and store it in the buffer if there is
             // room
             unsigned char c = Uart::rx();
-            _buffer.tryWrite(c);
+            _buffer.try_write(c);
           } else {
             // Parity error, read byte but discard it
             Uart::rx();
@@ -207,7 +207,7 @@ namespace fasthal{
         static bool _written;
 
         typedef ring_buffer<TxBufferSize> BufferType;
-        typedef typename BufferType::BufferIndex BufferIndex;
+        typedef typename BufferType::index_t BufferIndex;
         static BufferType _buffer;
     public:
         static inline void begin(){
@@ -262,18 +262,18 @@ namespace fasthal{
 
                 return true;
             }
-            BufferIndex i = _buffer.nextIndex();
+            BufferIndex i = _buffer.next_i();
 
             // If the output buffer is full, there's nothing for it other than to 
             // wait for the interrupt handler to empty it a bit
-            while (!_buffer.canWriteNext(i)) {
+            while (!_buffer.can_write_i(i)) {
                 if (Uart::shouldRunTxReadyIrq()) {
                     // check if tx ready manually
                     _tx_ready_irq();
                 } 
             }
 
-            _buffer.writeNext(i, c);
+            _buffer.write_i(i, c);
 
             Uart::enableTxReadyIrq();
 
@@ -284,7 +284,7 @@ namespace fasthal{
         {
           // If interrupts are enabled, there must be more data in the output
           // buffer. Send the next byte
-          unsigned char c = _buffer.readDirty();
+          unsigned char c = _buffer.read_dirty();
         
           Uart::tx(c);
         
@@ -298,14 +298,14 @@ namespace fasthal{
     #define FASTHAL_UARTRX(Number, RX_Vect, RxSize) \
         namespace fasthal{\
             typedef ::fasthal::AvrUartRx<::fasthal::Uart ## Number, RxSize> Uart ## Number ## rx;\
-            template<> ::fasthal::RingBuffer<RxSize> Uart ## Number ## rx::_buffer = ::fasthal::RingBuffer<RxSize>();\
+            template<> ::fasthal::ring_buffer<RxSize> Uart ## Number ## rx::_buffer = ::fasthal::ring_buffer<RxSize>();\
             ISR(RX_Vect) { Uart ## Number ## rx::_rx_ready_irq(); }\
         }
 
     #define FASTHAL_UARTTX(Number, UDRE_Vect, TxSize) \
         namespace fasthal{\
             typedef ::fasthal::AvrUartTx<::fasthal::Uart ## Number, TxSize> Uart ## Number ## tx;\
-            template<> ::fasthal::RingBuffer<TxSize> Uart ## Number ## tx::_buffer = ::fasthal::RingBuffer<TxSize>();\
+            template<> ::fasthal::ring_buffer<TxSize> Uart ## Number ## tx::_buffer = ::fasthal::ring_buffer<TxSize>();\
             template<> bool Uart ## Number ## tx::_written = false;\
             ISR(UDRE_Vect) { Uart ## Number ## tx::_tx_ready_irq(); }\
         }

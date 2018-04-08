@@ -30,6 +30,11 @@ namespace fasthal{
         }
     };
 
+    template <unsigned VNum>
+    struct interrupt{
+        static constexpr auto number = VNum;
+    };
+
     // enable ISR by declaring __vector_<vector> and forwarding to handler
     #define FH_ISR(vector) ISR(_VECTOR(vector)) { isr<vector>(); }    
 
@@ -39,7 +44,21 @@ namespace fasthal{
     // enable/disable IRQ
 	namespace details{
 		template<> struct func_fieldbit_impl<details::irq_t>: func_fieldbit_enable<decltype(avr::sreg_i)>{};        
-	}	    
+    }
+
+    // runs irq if it's ready and enabled, but global interrupts disabled
+    template<unsigned VNum>
+    inline void try_irq(interrupt<VNum> i){
+        if (!enabled_(irq) && enabled_(i) && ready_(i))
+            isr<VNum>();
+    }
+
+    // runs irq if it's ready, regarding of enabled state, but global interrupts disabled
+    template<unsigned VNum>
+    inline void try_irq_force(interrupt<VNum> i){
+        if (!enabled_(irq) && ready_(i))
+            isr<VNum>();
+    }
 }
 
 //#endif

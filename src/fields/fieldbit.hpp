@@ -20,13 +20,13 @@ namespace fasthal
 		
 		public:
 		using field_t = TField;
-		static constexpr auto zero_mask = typename mask_types_t::masktype_t{};
+		static constexpr auto inline zero_mask = typename mask_types_t::masktype_t{};
 
-		static constexpr auto number = typename mask_types_t::bitnumer_t { VNumber };
-		static constexpr auto mask = mask_types_t::bitToMask(number);
+		static constexpr auto inline number = typename mask_types_t::bitnumer_t { VNumber };
+		static constexpr auto inline mask = mask_types_t::bitToMask(number);
 		// TODO: check if integral_constant is possible
-		static constexpr auto mask_c = integral_constant<decltype(mask), mask>{};
-		static constexpr auto inverted = VInverted; 
+		static constexpr auto inline mask_c = integral_constant<decltype(mask), mask>{};
+		static constexpr auto inline inverted = VInverted; 
 	};
 
 	namespace details{
@@ -46,11 +46,16 @@ namespace fasthal
 		struct func_fieldbit_enable {
 			using enable_t = TFieldBit;
 		};
+
+		template<class TFieldBit>
+		struct func_fieldbit_ready {
+			using ready_t = TFieldBit;
+		};
 	}
 
 	// create field bit
 	template<unsigned VNumber, class TField, enable_if_field_c<TField> dummy = nullptr>
-	constexpr auto fieldBit(TField field){
+	constexpr auto inline fieldBit(TField field){
 		return field_bit<TField, VNumber, false>{};
 	}
 
@@ -62,29 +67,29 @@ namespace fasthal
 
 	namespace details{
 		template<class TFieldBit>
-		static constexpr auto set_fieldbit(TFieldBit fieldBit, integral_constant<bool, true>){
-			return set(typename TFieldBit::field_t{}, TFieldBit::mask);
+		static constexpr auto inline set_fieldbit(TFieldBit fieldBit, integral_constant<bool, true>){
+			return set(typename TFieldBit::field_t{}, TFieldBit::mask_c);
 		}
 		template<class TFieldBit>
-		static constexpr auto set_fieldbit(TFieldBit fieldBit, integral_constant<bool, false>){
-			return clear(typename TFieldBit::field_t{}, TFieldBit::mask);
+		static constexpr auto inline set_fieldbit(TFieldBit fieldBit, integral_constant<bool, false>){
+			return clear(typename TFieldBit::field_t{}, TFieldBit::mask_c);
 		}
 	}
 	// actions
 	template<class TField, unsigned VNumber, bool VInverted>
-	constexpr auto set(field_bit<TField, VNumber, VInverted> fieldBit){
+	constexpr auto inline set(field_bit<TField, VNumber, VInverted> fieldBit){
 		return details::set_fieldbit(fieldBit, integral_constant<bool, !VInverted>{});
 	}
 
 	template<class TField, unsigned VNumber, bool VInverted>
-	constexpr auto clear(field_bit<TField, VNumber, VInverted> fieldBit){
+	constexpr auto inline clear(field_bit<TField, VNumber, VInverted> fieldBit){
 		return details::set_fieldbit(fieldBit, integral_constant<bool, VInverted>{});
 	}
 
 	template<class TField, unsigned VNumber, bool VInverted>
-	constexpr auto set(field_bit<TField, VNumber, VInverted> fieldBit, bool v){
+	constexpr auto inline set(field_bit<TField, VNumber, VInverted> fieldBit, bool v){
 		using fieldbit_t = field_bit<TField, VNumber, VInverted>;
-		if (VInverted) 
+		if constexpr (VInverted) 
 			v = !v;
 		// shitty, but type of result should be the same...
 		return v 
@@ -93,17 +98,17 @@ namespace fasthal
 	}
 
 	template<class TField, unsigned VNumber, bool VInverted, bool V>
-	constexpr auto set(field_bit<TField, VNumber, VInverted> fieldBit, integral_constant<bool, V> v){
+	constexpr auto inline set(field_bit<TField, VNumber, VInverted> fieldBit, integral_constant<bool, V> v){
 		return details::set_fieldbit(fieldBit, integral_constant<bool, VInverted ? !V : V>{});
 	}
 
 	template<class TField, unsigned VNumber, bool VInverted>
-	constexpr auto toggle(field_bit<TField, VNumber, VInverted> fieldBit){
+	constexpr auto inline toggle(field_bit<TField, VNumber, VInverted> fieldBit){
 		return toggle(TField{}, field_bit<TField, VNumber, VInverted>::mask_c);
 	}
 
 	template<class TField, unsigned VNumber, bool VInverted>
-	constexpr auto read(field_bit<TField, VNumber, VInverted> fieldBit){
+	constexpr auto inline read(field_bit<TField, VNumber, VInverted> fieldBit){
 		return read(TField{});
 	}
 
@@ -119,57 +124,85 @@ namespace fasthal
 
 	// immediate actions
 	template<class TField, unsigned VNumber, bool VInverted>
-	constexpr void set_(field_bit<TField, VNumber, VInverted> fieldBit){
-		apply(set(fieldBit));
+	inline void set_(field_bit<TField, VNumber, VInverted> fieldBit, bool v){
+		if constexpr (VInverted)
+			v = !v;
+		if (v)
+			set_(TField{}, field_bit<TField, VNumber, VInverted>::mask_c);
+		else
+			clear_(TField{}, field_bit<TField, VNumber, VInverted>::mask_c);
+		//apply(set(fieldBit, v));
+	}
+
+	template<class TField, unsigned VNumber, bool VInverted>
+	inline void set_(field_bit<TField, VNumber, VInverted> fieldBit){
+		if constexpr (VInverted)
+			clear_(TField{}, field_bit<TField, VNumber, VInverted>::mask_c);
+		else
+			set_(TField{}, field_bit<TField, VNumber, VInverted>::mask_c);
+		//apply(set(fieldBit));
 	}
 	
 	template<class TField, unsigned VNumber, bool VInverted>
-	constexpr void clear_(field_bit<TField, VNumber, VInverted> fieldBit){
-		apply(clear(fieldBit));
+	inline void clear_(field_bit<TField, VNumber, VInverted> fieldBit){
+		if constexpr (VInverted)
+			set_(TField{}, field_bit<TField, VNumber, VInverted>::mask_c);
+		else
+			clear_(TField{}, field_bit<TField, VNumber, VInverted>::mask_c);
+		//apply(clear(fieldBit));
+	}
+
+
+
+	template<class TField, unsigned VNumber, bool VInverted>
+	inline void toggle_(field_bit<TField, VNumber, VInverted> fieldBit){
+		toggle_(TField{}, field_bit<TField, VNumber, VInverted>::mask_c);
+		//apply(toggle(fieldBit));
 	}
 
 	template<class TField, unsigned VNumber, bool VInverted>
-	constexpr void set_(field_bit<TField, VNumber, VInverted> fieldBit, bool v){
-		apply(set(fieldBit, v));
+	constexpr bool inline read_(field_bit<TField, VNumber, VInverted> fieldBit){
+		bool v = TField::read() & field_bit<TField, VNumber, VInverted>::mask;
+		if constexpr (VInverted)
+			v = !v;
+		return v;
+		//return get(fieldBit, apply(read(fieldBit)));
 	}
 
 	template<class TField, unsigned VNumber, bool VInverted>
-	constexpr void toggle_(field_bit<TField, VNumber, VInverted> fieldBit){
-		apply(toggle(fieldBit));
-	}
-
-	template<class TField, unsigned VNumber, bool VInverted>
-	constexpr auto read_(field_bit<TField, VNumber, VInverted> fieldBit){
-		return get(fieldBit, apply(read(fieldBit)));
-	}
-
-	template<class TField, unsigned VNumber, bool VInverted>
-	constexpr auto wait_lo(field_bit<TField, VNumber, VInverted> fieldBit){
+	constexpr auto inline wait_lo(field_bit<TField, VNumber, VInverted> fieldBit){
 		while (read_(fieldBit));
 	}
 
 	template<class TField, unsigned VNumber, bool VInverted>
-	constexpr auto wait_hi(field_bit<TField, VNumber, VInverted> fieldBit){
+	constexpr auto inline wait_hi(field_bit<TField, VNumber, VInverted> fieldBit){
 		while (!read_(fieldBit));
 	}
 
+	// FUNCS
+	// enable
 	template<typename TFunc, typename TValue, typename TFieldBit = typename details::func_fieldbit<TFunc>::enable_t>
-	constexpr auto enable(TFunc func, TValue v) { return set(TFieldBit{}, v); }
+	constexpr auto inline enable(TFunc func, TValue v) { return set(TFieldBit{}, v); }
 	template<typename TFunc, typename TValue, typename TFieldBit = typename details::func_fieldbit<TFunc>::enable_t>
-	void enable_(TFunc func, TValue v) { apply(enable(func, v)); }
+	inline void enable_(TFunc func, TValue v) { set_(TFieldBit{}, v); }
 	
 	template<typename TFunc, typename TFieldBit = typename details::func_fieldbit<TFunc>::enable_t>
-	constexpr auto enable(TFunc func) { return set(TFieldBit{}); }
+	constexpr auto inline enable(TFunc func) { return set(TFieldBit{}); }
 	template<typename TFunc, typename TFieldBit = typename details::func_fieldbit<TFunc>::enable_t>
-	void enable_(TFunc func){ apply(enable(func)); }
+	inline void enable_(TFunc func){ set_(TFieldBit{}); }
 	
 	template<typename TFunc, typename TFieldBit = typename details::func_fieldbit<TFunc>::enable_t>
-	constexpr auto disable(TFunc func){ return clear(TFieldBit{}); }
+	constexpr auto inline disable(TFunc func){ return clear(TFieldBit{}); }
 	template<typename TFunc, typename TFieldBit = typename details::func_fieldbit<TFunc>::enable_t>
-	void disable_(TFunc func){apply(disable(func));}
+	inline void disable_(TFunc func){clear_(TFieldBit{});}
 	
 	template<typename TFunc, typename TFieldBit = typename details::func_fieldbit<TFunc>::enable_t>
-	constexpr auto enabled_(TFunc func){ return read_(TFieldBit{}); }	
+	constexpr auto inline enabled_(TFunc func){ return read_(TFieldBit{}); }	
+	
+	// ready
+	template<typename TFunc, typename TFieldBit = typename details::func_fieldbit<TFunc>::ready_t>
+	constexpr auto inline ready_(TFunc func){ return read_(TFieldBit{}); }	
+
 }
 
 #endif

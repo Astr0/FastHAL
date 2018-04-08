@@ -22,12 +22,12 @@ namespace fasthal{
 
             template<typename... TSeq>
             struct execute_helper{
-                static constexpr void execute(mp::const_list<TValue...>& action, field_data_type<TField>& current){
+                static constexpr inline void execute(mp::const_list<TValue...>& action, field_data_type<TField>& current){
                     TAction::execute(current, mp::get<TSeq::value>(action)...);
                 }
             };
 
-            constexpr void execute(field_data_type<TField>& current)
+            constexpr void inline execute(field_data_type<TField>& current)
             { 
                 using seq = brigand::make_sequence<brigand::size_t<0>, sizeof...(TValue)>;
                 using executor = brigand::unpack<seq, execute_helper>;
@@ -42,14 +42,14 @@ namespace fasthal{
 
             constexpr field_action(){}
 
-            constexpr void execute(field_data_type<TField>& current)
+            constexpr inline void execute(field_data_type<TField>& current)
             { 
                 TAction::execute(current);
             }
         };
 
         template<class TAction, class TField, typename... TValue>
-        static constexpr auto make_action(TField field, TValue... values){
+        static constexpr inline auto make_action(TField field, TValue... values){
             return field_action<TField, TAction, TValue...>{values...};
         }
 
@@ -83,19 +83,19 @@ namespace fasthal{
     
     // ACTIONS
     template<class TField, typename TDataType = field_data_type<TField>, enable_if_needs_field_actions<TField> dummy = nullptr>
-    constexpr auto write(TField field, const TDataType value) 
+    constexpr auto inline write(TField field, const TDataType value) 
     {
         return details::make_action<details::write_field>(field, value);
     }
 
     template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_needs_field_actions<TField> dummy = nullptr>
-    constexpr auto set(TField field, TMaskType mask) 
+    constexpr auto inline set(TField field, TMaskType mask) 
     {
         return details::make_action<details::set_field>(field, mask);
     }
     
     template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_needs_field_actions<TField> dummy = nullptr>
-    constexpr auto clear(TField field, TMaskType mask) {
+    constexpr auto inline clear(TField field, TMaskType mask) {
         return details::make_action<details::clear_field>(field, mask);
     }
 
@@ -103,22 +103,22 @@ namespace fasthal{
         typename TClearMaskType = field_mask_type<TField>, 
         typename TSetMaskType = field_mask_type<TField>, 
         enable_if_needs_field_actions<TField> dummy = nullptr>
-    constexpr auto clear_set(TField field, TClearMaskType clearMask, TSetMaskType setMask) {
+    constexpr auto inline clear_set(TField field, TClearMaskType clearMask, TSetMaskType setMask) {
         return details::make_action<details::clear_set_field>(field, clearMask, setMask);
     }
 
     template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_needs_field_actions<TField> dummy = nullptr>
-    constexpr auto toggle(TField field, TMaskType mask) {
+    constexpr auto inline toggle(TField field, TMaskType mask) {
         return details::make_action<details::toggle_field>(field, mask);
     }
 
     template<class TField, enable_if_needs_field_actions<TField> dummy = nullptr>
-    constexpr auto read(TField field) {
+    constexpr auto inline read(TField field) {
         return details::make_action<details::read_field>(field);
     }
 
     template<class TField, class... TFields, enable_if_needs_field_actions<TField> dummy = nullptr>
-    constexpr auto get(TField field, details::field_action_results_t<TFields...> results)
+    constexpr auto inline get(TField field, details::field_action_results_t<TFields...> results)
     {
         using fields_t = brigand::list<TFields...>;
         using index_t = brigand::index_of<fields_t, TField>;
@@ -127,38 +127,44 @@ namespace fasthal{
 
     // Immidiate actions
     template<class TField, typename TDataType = field_data_type<TField>, enable_if_field_c<TField> dummy = nullptr>
-    constexpr void write_(TField field, const TDataType value) 
+    void inline write_(TField field, TDataType value) 
     {
-        apply(write(field, value));
+        TField::write(value);
+        //apply(write(field, value));
     }
 
     template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_field_c<TField> dummy = nullptr>
-    constexpr void set_(TField field, TMaskType mask) 
+    void inline set_(TField field, TMaskType mask) 
     {
-        apply(set(field, mask));
+        TField::write(TField::read() | mask);
+        //apply(set(field, mask));
     }
     
     template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_field_c<TField> dummy = nullptr>
-    constexpr void clear_(TField field, TMaskType mask) {
-        apply(clear(field, mask));
+    void inline clear_(TField field, TMaskType mask) {
+        TField::write(TField::read() & ~mask);
+        //apply(clear(field, mask));
     }
 
     template<class TField, 
         typename TClearMaskType = field_mask_type<TField>, 
         typename TSetMaskType = field_mask_type<TField>, 
         enable_if_field_c<TField> dummy = nullptr>
-    constexpr void clear_set_(TField field, TClearMaskType clearMask, TSetMaskType setMask) {
-        apply(clear_set(field, clearMask, setMask));
+    void inline clear_set_(TField field, TClearMaskType clearMask, TSetMaskType setMask) {
+        TField::write((TField::read() & ~clearMask) | setMask);
+        //apply(clear_set(field, clearMask, setMask));
     }
 
     template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_field_c<TField> dummy = nullptr>
-    constexpr void toggle_(TField field, TMaskType mask) {
-        apply(toggle(field, mask));
+    void inline toggle_(TField field, TMaskType mask) {
+        TField::write(TField::read() ^ mask);
+        //apply(toggle(field, mask));
     }
 
     template<class TField, enable_if_field_c<TField> dummy = nullptr>
-    constexpr auto read_(TField field) {
-        return get(field, apply(read(field)));
+    constexpr auto inline read_(TField field) {
+        return TField::read();
+        //return get(field, apply(read(field)));
     }
 }
 

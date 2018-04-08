@@ -10,12 +10,12 @@ namespace fasthal{
         template <unsigned VNumber>
         struct default_isr {
             using not_handler_t = char; //anything, but void
-            static not_handler_t handle();
+            inline static not_handler_t handle();
         };
     }
     
     template<unsigned VNumber>
-    void isr(){
+    inline void isr(){
         static_assert(std::is_same<decltype(details::default_isr<VNumber>::handle()), void>::value, "No default handler for ISR");
         details::default_isr<VNumber>::handle();
     }

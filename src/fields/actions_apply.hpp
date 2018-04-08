@@ -36,27 +36,27 @@ namespace fasthal{
 
         struct write_field{
             template<typename T, typename V>
-            static constexpr void execute(T& current, V value){ current = T{ value }; }
+            static constexpr inline void execute(T& current, V value){ current = T{ value }; }
         };
         struct set_field{
             template<typename T, typename V>
-            static constexpr void execute(T& current, V value){ current |= value; }
+            static constexpr inline void execute(T& current, V value){ current |= value; }
         };
         struct clear_field{
             template<typename T, typename V>
-            static constexpr void execute(T& current, V value){ current &= ~value; }
+            static constexpr inline void execute(T& current, V value){ current &= ~value; }
         };
         struct toggle_field{
             template<typename T, typename V>
-            static constexpr void execute(T& current, V value){ current ^= value; }
+            static constexpr inline void execute(T& current, V value){ current ^= value; }
         };
         struct read_field{
             template<typename T>
-            static constexpr void execute(T& current) { }
+            static constexpr inline void execute(T& current) { }
         };
         struct clear_set_field{
             template<typename T, typename TClear, typename TSet>
-            static constexpr void execute(T& current, TClear clear, TSet set) { 
+            static constexpr inline void execute(T& current, TClear clear, TSet set) { 
                 clear_field::execute(current, clear);
                 set_field::execute(current, set);
             }
@@ -72,7 +72,7 @@ namespace fasthal{
         template<typename TValue, template<class> class TFilter, typename TAction>
         struct actions_executor
         {
-            static constexpr void execute(TValue& value, TAction action){
+            static constexpr inline void execute(TValue& value, TAction action){
                 // dont even try to build with wrong action types
                 if constexpr(TFilter<TAction>::value)
                     action.execute(value);
@@ -85,7 +85,7 @@ namespace fasthal{
             using list_t = field_actions_list_t<TActions...>;
             template<typename... TIndex>
             struct list_exec{
-                static constexpr void execute(TValue& value, list_t tuple){
+                static constexpr inline void execute(TValue& value, list_t tuple){
                     (
                         (actions_executor<TValue, TFilter, brigand::at_c<list_t, TIndex::value>>
                          ::execute(value, mp::get<TIndex::value>(tuple)))
@@ -93,7 +93,7 @@ namespace fasthal{
                 }
             };
 
-            static constexpr void execute(TValue& value, list_t tuple){
+            static constexpr inline void execute(TValue& value, list_t tuple){
                 using indices_t = brigand::make_sequence<
                     brigand::size_t<0>, 
                     brigand::size<list_t>::value>;
@@ -119,7 +119,7 @@ namespace fasthal{
                 static constexpr bool has_modifies = !brigand::all<my_actions_t, brigand::bind<is_action_of_type, brigand::_1, read_field>>::value;
 
                 template<class TAction>
-                static constexpr void execute(field_datatype_t& value, TAction action){
+                static constexpr inline void execute(field_datatype_t& value, TAction action){
                     using executor_t = actions_executor<field_datatype_t, is_my_action, TAction>;
                     executor_t::execute(value, action);
                 }

@@ -48,43 +48,48 @@ namespace fasthal{
         }
 
         data_t read(){
-            return empty() ? 0 : readDirty();
+            return empty() ? 0 : read_dirty();
         }
 
-        index_t nextIndex(){
+        index_t next_i(){
             return ((index1_t)(_head + 1)) % size;
         }
 
-        bool canWriteNext(index_t i){
+        bool can_write_i(index_t i){
             return i != _tail;
         }
 
-        void writeNext(index_t i, data_t c){
+        void write_i(index_t i, data_t c){
             _buffer[_head] = c;
             _head = i;
         }
 
-        bool tryWrite(data_t c){
-            auto i = nextIndex();
-            
+        bool try_write_i(index_t i, data_t c){
             // if we should be storing the received character into the location
             // just before the tail (meaning that the head would advance to the
             // current location of the tail), we're about to overflow the buffer
             // and so we don't write the character or advance the head.
-            if (canWriteNext(i)) {
-                writeNext(i, c);
+            if (can_write_i(i))                
+            {
+                write_i(i, c);
                 return true;
             }
-            return false;
+            return false;            
+        }
+
+        bool try_write(data_t c){
+            return try_write_i(next_i(), c);
         }
     };
 
     // not valid template arguments
     template<>
-    class ring_buffer<0>{};
+    struct ring_buffer<0>{
+        static constexpr std::uint8_t size = 0;
+    };
 
     template<>
-    class ring_buffer<1>{};
+    struct ring_buffer<1>: ring_buffer<0>{};
 }
 
 #endif

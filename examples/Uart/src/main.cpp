@@ -1,15 +1,37 @@
-#define FH_UART0_RX 32
+// #define FH_UART0_RX 32
 #define FH_UART0_TX 32
 
 #include "fasthal.hpp"
+//#include <Arduino.h>
 
 using namespace fasthal;
 
+//FASTHAL_UART0TX(32);
+
 int main(){
-    apply(begin(uart0));
+    // Uart0::begin(9600);
+    // Uart0tx::begin();
+    // //Uart0rx::begin();
+    // while (true){
+    //     for(auto x = 'a'; x <= 'z'; ++x)
+    //         Uart0tx::write(x);
+    //     Uart0tx::write(10);
+    //     Uart0tx::write(13);
+    // }
+
+    apply(begin(uart0, baud_v<9600>));
     while (true){
-       
+        for(auto x = 'a'; x <= 'z'; ++x)
+            write(uart0, x);
+        write(uart0, 10);
+        write(uart0, 13);
     }
+    // Serial.begin(9600);
+    // while (true){
+    //     for(auto x = 'a'; x <= 'z'; ++x)
+    //         Serial.write(x);
+    //     Serial.println();
+    // }
 }
 
 // constexpr auto RxSize = 64;

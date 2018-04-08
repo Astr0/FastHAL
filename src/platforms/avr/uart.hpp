@@ -1,10 +1,12 @@
-#ifndef FH_AVR_UART_H_
-#define FH_AVR_UART_H_
+#ifndef FH_UART_H_
+#define FH_UART_H_
 
 #include "registers.hpp"
+#include "interrupts.hpp"
 #include "../../fields/actions.hpp"
 #include "../../std/type_traits.hpp"
 #include "../../std/std_fake.hpp"
+#include "../../std/std_types.hpp"
 #include "../../mp/const_list.hpp"
 
 namespace fasthal{
@@ -40,33 +42,35 @@ namespace fasthal{
     constexpr auto serial_config_v = integral_constant<serial_config, V>{};
     template<std::uint32_t V>
     constexpr auto baud_v = integral_constant<std::uint32_t, V>{};
-    constexpr auto baud_def = baud_v<115000>;
+    constexpr auto baud_def = baud_v<9600>;
 
     namespace details{
-        template<unsigned VNum, bool tx>
-        struct avr_uart_buf{
+        template<class T, bool tx>
+        struct uart_buf{
             static constexpr auto buffer = ring_buffer<0>{};
         };
 
-        template<unsigned VNum, bool tx>
-        static constexpr auto avr_uart_has_buf = avr_uart_buf<VNum, tx>::buffer::size > 0;
+        template<class T, bool tx>
+        static constexpr auto uart_has_buf = uart_buf<T, tx>::buffer.size > 0;
 
         template<unsigned VNum>
-        struct avr_uart{
+        struct uart{
             static constexpr auto available = false;
             static constexpr auto number = VNum;
         };
-
+        
         template<class T>
-        struct is_avr_uart_impl: std::false_type {};
+        struct is_uart_impl: std::false_type {};
 
         template<unsigned VNum>
-        struct is_avr_uart_impl<avr_uart<VNum>>: std::true_type {};
+        struct is_uart_impl<uart<VNum>>: std::true_type {};
 
         template<class T>
-        using enable_if_avr_uart = std::enable_if_c<is_avr_uart_impl<std::base_type_t<T>>::value>;
+        using enable_if_uart = std::enable_if_c<is_uart_impl<std::base_type_t<T>>::value>;
     }
-    #include "uart_impl.hpp"
+
+    template<class T>
+    using uart_data_type = std::uint8_t;
 
     // ************ CONFIG ************
     namespace details{
@@ -102,7 +106,7 @@ namespace fasthal{
         template<typename TConfig>
         constexpr auto calc_uart_config(TConfig config){
             auto config_ = static_cast<std::uint8_t>(config);
-            #if defined(__AVR_ATmega8__)
+            #if defined(__ATmega8__)
             config_ |= 0x80; // select UCSRC register (shared with UBRRH)
             #endif
             return config_;
@@ -118,7 +122,7 @@ namespace fasthal{
     template<class T, 
         typename TBaud = decltype(baud_def),
         typename TConfig = decltype(serial_config_v<serial_config::def>),
-        details::enable_if_avr_uart<T> dummy = nullptr>
+        details::enable_if_uart<T> dummy = nullptr>
     constexpr auto begin(T uart, TBaud baud = baud_def, TConfig config = serial_config_v<serial_config::def>){
         using uart_t = T;
 
@@ -130,15 +134,16 @@ namespace fasthal{
         auto config_ = details::calc_uart_config(config);
         
         return combine(
-            // enable u2x
-            enable(uart_t::u2x, u2x_),
             // assign the baud_, a.k.a. ubrr (USART Baud Rate Register)
             write(uart_t::ubrr, baud_),
             //set the data bits, parity, and stop bits
             write(uart_t::ucsrc, config_),
 
-            // enable tx
-            enable(uart_t::txen), // todo: use if for written?
+            // enable u2x
+            enable(uart_t::u2x, u2x_),
+
+            // disable tx - we will use it to check if anything written
+            disable(uart_t::txen), 
             // disable tx ready irq
             disable(uart_t::irq_txr),
 
@@ -151,9 +156,76 @@ namespace fasthal{
     }
 
     // ************ TX ************
-    //template<
-    //static bool write
+    namespace details{
+        template<class T>
+        static inline bool uart_tx(uart_data_type<T> c){
+            // write udr
+            write_(T::udr, c);
+            // clear txc by setting
+            set_(T::txc);
+            return true;
+        }
 
+        template<class T>
+        inline static void uart_txr_irq()
+        {
+            static_assert(uart_has_buf<T, true>, "No UART buffer");
+            
+            // If interrupts are enabled, there must be more data in the output
+            // buffer. Send the next byte
+            auto& buffer = uart_buf<T, true>::buffer;
+            auto c = buffer.read_dirty();
+        
+            uart_tx<T>(c);
 
+            if (buffer.empty()) {
+                // Buffer empty, so disable interrupts
+                disable_(T::irq_txr);
+            }
+        }        
+    }
+    static bool _written = false;
+    template<class T, details::enable_if_uart<T> dummy = nullptr>
+    static bool write(T uart, uart_data_type<T> c){
+        using uart_t = T;
+        // enable TX
+        _written = true;
+        //enable_(uart_t::txen);
+
+        if constexpr (details::uart_has_buf<uart_t, true>){
+            // buffered
+            auto& buffer = details::uart_buf<uart_t, true>::buffer;
+            
+            // If the buffer and the data register is empty, just write the byte
+            // to the data register and be done. This shortcut helps
+            // significantly improve the effective datarate at high (>
+            // 500kbit/s) bitrates, where interrupt overhead becomes a slowdown.
+            if (read_(uart_t::udre) && buffer.empty()){
+                // direct write
+                return details::uart_tx<uart_t>(c);
+            }
+
+            // wait for buffer space
+            auto i = buffer.next_i();
+            while (!buffer.try_write_i(i, c)){
+                try_irq_force(uart_t::irq_txr);
+            }
+
+            // enable IRQ if it was disabled in IRQ itself
+            enable_(uart_t::irq_txr);
+
+            return true;
+        } else{            
+            // direct
+            // wait for written
+            wait_hi(uart_t::udre);
+
+            // direct write
+            return details::uart_tx<uart_t>(c);
+        }
+
+    }
+
+    #include "uart_impl.hpp"
 }
 #endif
