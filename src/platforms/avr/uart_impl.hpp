@@ -38,7 +38,12 @@ namespace details{\
 }\
 FH_ISR(FH_IRQ_TXR ## NUM);\
 
-
+#define FH_DECLARE_AVR_UART_RXC(NUM)\
+namespace details{\
+    template<>\
+    struct default_isr<uart<NUM>::irq_rxc.number>{ static inline void handle() { uart_rxc_irq<uart<NUM>>(); } };\
+}\
+FH_ISR(FH_IRQ_RXC ## NUM);\
 
 #ifdef FH_HAS_UART0
 FH_DECLARE_AVR_UART(0);
@@ -50,6 +55,7 @@ FH_DECLARE_AVR_UART_TXR(0);
 
 #if defined(FH_UART0_RX) && (FH_UART0_RX) > 0
 FH_DECLARE_AVR_UART_BUF(0, false, FH_UART0_RX);
+FH_DECLARE_AVR_UART_RXC(0);
 #endif
 #endif
 
@@ -92,5 +98,7 @@ FH_DECLARE_AVR_UART_BUF(3, false, FH_UART3_RX);
 #endif
 #endif
 
+#undef FH_DECLARE_AVR_UART_TXR
+#undef FH_DECLARE_AVR_UART_RXC
 #undef FH_DECLARE_AVR_UART_BUF
 #undef FH_DECLARE_AVR_UART

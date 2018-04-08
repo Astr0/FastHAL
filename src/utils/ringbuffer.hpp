@@ -7,15 +7,13 @@
 // TODO: Fix ringbuffer so 1 bytes is ok (tail and head moves out of range and % later)
 namespace fasthal{
     template<unsigned VBufferSize>
-    class ring_buffer{
-    public:        
+    struct ring_buffer{
         using index_t = brigand::number_type<VBufferSize>;
         using data_t = std::uint8_t;
         static constexpr index_t size = VBufferSize;
     private:
         using index2_t = brigand::number_type<size * 2>;
-        using index1_t = brigand::number_type<size + 1>;
-        
+        using index1_t = brigand::number_type<size + 1>;        
 
         volatile index_t _head;
         volatile index_t _tail;
@@ -89,7 +87,56 @@ namespace fasthal{
     };
 
     template<>
-    struct ring_buffer<1>: ring_buffer<0>{};
+    struct ring_buffer<1>{
+        using index_t = std::uint8_t;
+        using data_t = std::uint8_t;
+        static constexpr std::uint8_t size = 1;
+    private:
+        data_t _data;
+        bool _hasData;
+    public:
+        ring_buffer(): _hasData(false) { }
+
+        inline void clear(){ _hasData = false; }
+
+        index_t available(){ return _hasData ? 1 : 0; }
+
+        bool empty(){ return !_hasData; }
+
+        data_t peek(){ return _data; }
+
+        data_t read_dirty(){ 
+            _hasData = false;
+            return _data; 
+        }
+
+        data_t read(){ return _hasData ? read_dirty() : 0; }
+
+        index_t next_i(){
+            return 0;
+        }
+
+        bool can_write_i(index_t i){
+            return !_hasData;
+        }
+
+        void write_i(index_t i, data_t c){
+            _data = c;
+            _hasData = true;
+        }
+
+        bool try_write(data_t c){
+            if (_hasData)
+                return false;
+            _data = c;
+            _hasData = true;
+            return true;
+        }
+
+        bool try_write_i(index_t i, data_t c){
+            return try_write(c);
+        }        
+    };
 }
 
 #endif

@@ -6,7 +6,6 @@
 #include "interrupts.hpp"
 #include "registers.hpp"
 #include "adc.hpp"
-#include "serial.h"
 #include "timers.h"
 #include "uart.hpp"
 

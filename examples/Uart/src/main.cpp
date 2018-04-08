@@ -1,35 +1,25 @@
-// #define FH_UART0_RX 32
-//#define FH_UART0_TX 32
+//#define FH_UART0_RX 1
+//#define FH_UART0_TX 1
 
 #include "fasthal.hpp"
 //#include <Arduino.h>
 
 using namespace fasthal;
 
-//FASTHAL_UART0TX(32);
-
 int main(){
-    // Uart0::begin(9600);
-    // Uart0tx::begin();
-    // //Uart0rx::begin();
-    // disable_(irq);
-    // while (true){
-    //     for(auto x = 'a'; x <= 'z'; ++x)
-    //         Uart0tx::write(x);
-    //     Uart0tx::write(10);
-    //     Uart0tx::write(13);
-    //     Uart0tx::flush();
-    // }
-    
-
     enable_(irq);
+    begin_(uart0, baud_v<9600>);
     while (true){
-        apply(begin(uart0, baud_v<9600>));
-        for(auto x = 'a'; x <= 'z'; ++x)
-            write(uart0, x);
-        write(uart0, 10);
-        write(uart0, 13);
-        end_(uart0);
+        if (available(uart0)){
+            auto v = read_dirty(uart0);
+            write(uart0, v);
+        }
+        
+        // for(auto x = 'a'; x <= 'z'; ++x)
+        //     write(uart0, x);
+        // write(uart0, 10);
+        // write(uart0, 13);
+        // end_(uart0);
         //flush(uart0);
     }
 
