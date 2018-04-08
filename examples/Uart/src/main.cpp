@@ -1,7 +1,7 @@
-#include "fasthal.hpp"
+#define FH_UART0_RX 32
+#define FH_UART0_TX 32
 
-constexpr auto RxSize = 64;
-constexpr auto TxSize = 64;
+#include "fasthal.hpp"
 
 using namespace fasthal;
 
@@ -12,6 +12,8 @@ int main(){
     }
 }
 
+// constexpr auto RxSize = 64;
+// constexpr auto TxSize = 64;
 // #define FH
 // //#define OS
 // //#define S1

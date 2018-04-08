@@ -43,15 +43,18 @@ namespace fasthal{
     constexpr auto baud_def = baud_v<115000>;
 
     namespace details{
-        template<unsigned VNum>
-        struct avr_uart_impl{
-            static constexpr bool available = false;
+        template<unsigned VNum, bool tx>
+        struct avr_uart_buf{
+            static constexpr auto buffer = ring_buffer<0>{};
         };
 
+        template<unsigned VNum, bool tx>
+        static constexpr auto avr_uart_has_buf = avr_uart_buf<VNum, tx>::buffer::size > 0;
+
         template<unsigned VNum>
-        struct avr_uart: avr_uart_impl<VNum>{
-            using impl_t = avr_uart_impl<VNum>;
-            static_assert(impl_t::available, "UART not available");
+        struct avr_uart{
+            static constexpr auto available = false;
+            static constexpr auto number = VNum;
         };
 
         template<class T>
@@ -65,6 +68,7 @@ namespace fasthal{
     }
     #include "uart_impl.hpp"
 
+    // ************ CONFIG ************
     namespace details{
         template<typename TBaud>
         constexpr auto calc_uart_baud(TBaud baud){
@@ -116,7 +120,9 @@ namespace fasthal{
         typename TConfig = decltype(serial_config_v<serial_config::def>),
         details::enable_if_avr_uart<T> dummy = nullptr>
     constexpr auto begin(T uart, TBaud baud = baud_def, TConfig config = serial_config_v<serial_config::def>){
-        using uart_t = typename T::impl_t;
+        using uart_t = T;
+
+        static_assert(uart_t::available, "UART not available");
 
         auto calc_ = details::calc_uart_baud(baud);
         auto baud_ = mp::get<0>(calc_);
@@ -139,8 +145,15 @@ namespace fasthal{
             // enable rx
             enable(uart_t::rxen),
             // enable rx ready irq
+            // TODO: If there's RX buffer
             enable(uart_t::irq_rxc)
         );
     }
+
+    // ************ TX ************
+    //template<
+    //static bool write
+
+
 }
 #endif

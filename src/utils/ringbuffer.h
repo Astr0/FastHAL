@@ -4,6 +4,7 @@
 #include "../mp/brigand_ex.hpp"
 #include "../std/std_types.hpp"
 
+// TODO: Fix ringbuffer so 1 bytes is ok (tail and head moves out of range and % later)
 namespace fasthal{
     template<unsigned VBufferSize>
     class ring_buffer{
@@ -40,7 +41,7 @@ namespace fasthal{
             return _buffer[_tail];
         }
 
-        data_t readDirty(){
+        data_t read_dirty(){
             uint8_t c = peek();
             _tail = ((index1_t)(_tail + 1)) % size;
             return c;
