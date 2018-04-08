@@ -72,7 +72,7 @@ namespace fasthal{
     template<class T>
     using uart_data_type = std::uint8_t;
 
-    // ************ CONFIG ************
+    // ************ BEGIN ************
     namespace details{
         template<typename TBaud>
         constexpr auto calc_uart_baud(TBaud baud){
@@ -254,6 +254,24 @@ namespace fasthal{
             wait_hi(uart_t::txc);
         }
     }
+
+    // ************************* END **************************
+    template<class T, details::enable_if_uart<T> dummy = nullptr>
+    inline constexpr auto end(T uart, bool doFlush = true){
+        using uart_t = T;
+        if (doFlush)
+            flush(uart);
+        // TODO: Clear RX buffer
+        return combine(
+            disable(uart_t::rxen),
+            disable(uart_t::irq_rxc),
+            disable(uart_t::txen),
+            disable(uart_t::irq_txr)
+        );
+    }
+
+    template<class T, details::enable_if_uart<T> dummy = nullptr>
+    inline void end_(T uart, bool doFlush = true){ apply(end(uart, doFlush)); }
 
     #include "uart_impl.hpp"
 }

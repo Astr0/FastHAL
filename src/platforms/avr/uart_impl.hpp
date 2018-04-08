@@ -58,6 +58,7 @@ FH_DECLARE_AVR_UART(1);
 
 #if defined(FH_UART1_TX) && (FH_UART1_TX) > 0
 FH_DECLARE_AVR_UART_BUF(1, true, FH_UART1_TX);
+FH_DECLARE_AVR_UART_TXR(1);
 #endif
 
 #if defined(FH_UART1_RX) && (FH_UART1_RX) > 0
@@ -70,6 +71,7 @@ FH_DECLARE_AVR_UART(2);
 
 #if defined(FH_UART2_TX) && (FH_UART2_TX) > 0
 FH_DECLARE_AVR_UART_BUF(2, true, FH_UART2_TX);
+FH_DECLARE_AVR_UART_TXR(2);
 #endif
 
 #if defined(FH_UART2_RX) && (FH_UART2_RX) > 0
@@ -82,6 +84,7 @@ FH_DECLARE_AVR_UART(3);
 
 #if defined(FH_UART3_TX) && (FH_UART3_TX) > 0
 FH_DECLARE_AVR_UART_BUF(3, true, FH_UART3_TX);
+FH_DECLARE_AVR_UART_TXR(3);
 #endif
 
 #if defined(FH_UART3_RX) && (FH_UART3_RX) > 0

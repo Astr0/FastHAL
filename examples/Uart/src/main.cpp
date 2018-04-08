@@ -22,13 +22,15 @@ int main(){
     // }
     
 
-    apply(begin(uart0, baud_v<9600>), disable(irq));
+    enable_(irq);
     while (true){
+        apply(begin(uart0, baud_v<9600>));
         for(auto x = 'a'; x <= 'z'; ++x)
             write(uart0, x);
         write(uart0, 10);
         write(uart0, 13);
-        flush(uart0);
+        end_(uart0);
+        //flush(uart0);
     }
 
     // Serial.begin(9600);
