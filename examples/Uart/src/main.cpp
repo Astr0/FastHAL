@@ -1,5 +1,5 @@
 // #define FH_UART0_RX 32
-#define FH_UART0_TX 32
+//#define FH_UART0_TX 32
 
 #include "fasthal.hpp"
 //#include <Arduino.h>
@@ -12,20 +12,25 @@ int main(){
     // Uart0::begin(9600);
     // Uart0tx::begin();
     // //Uart0rx::begin();
+    // disable_(irq);
     // while (true){
     //     for(auto x = 'a'; x <= 'z'; ++x)
     //         Uart0tx::write(x);
     //     Uart0tx::write(10);
     //     Uart0tx::write(13);
+    //     Uart0tx::flush();
     // }
+    
 
-    apply(begin(uart0, baud_v<9600>));
+    apply(begin(uart0, baud_v<9600>), disable(irq));
     while (true){
         for(auto x = 'a'; x <= 'z'; ++x)
             write(uart0, x);
         write(uart0, 10);
         write(uart0, 13);
+        flush(uart0);
     }
+
     // Serial.begin(9600);
     // while (true){
     //     for(auto x = 'a'; x <= 'z'; ++x)

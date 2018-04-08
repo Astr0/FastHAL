@@ -142,8 +142,12 @@ namespace fasthal{
             // enable u2x
             enable(uart_t::u2x, u2x_),
 
+            #ifdef FH_UART_FLUSH_SAFE
             // disable tx - we will use it to check if anything written
             disable(uart_t::txen), 
+            #else
+            enable(uart_t::txen), 
+            #endif
             // disable tx ready irq
             disable(uart_t::irq_txr),
 
@@ -158,7 +162,7 @@ namespace fasthal{
     // ************ TX ************
     namespace details{
         template<class T>
-        static inline bool uart_tx(uart_data_type<T> c){
+        inline bool uart_tx(uart_data_type<T> c){
             // write udr
             write_(T::udr, c);
             // clear txc by setting
@@ -167,7 +171,7 @@ namespace fasthal{
         }
 
         template<class T>
-        inline static void uart_txr_irq()
+        inline void uart_txr_irq()
         {
             static_assert(uart_has_buf<T, true>, "No UART buffer");
             
@@ -184,13 +188,15 @@ namespace fasthal{
             }
         }        
     }
-    static bool _written = false;
+
     template<class T, details::enable_if_uart<T> dummy = nullptr>
-    static bool write(T uart, uart_data_type<T> c){
+    bool write(T uart, uart_data_type<T> c){
         using uart_t = T;
+
+        #ifdef FH_UART_FLUSH_SAFE
         // enable TX
-        _written = true;
-        //enable_(uart_t::txen);
+        enable_(uart_t::txen);
+        #endif
 
         if constexpr (details::uart_has_buf<uart_t, true>){
             // buffered
@@ -224,6 +230,29 @@ namespace fasthal{
             return details::uart_tx<uart_t>(c);
         }
 
+    }
+
+    template<class T, details::enable_if_uart<T> dummy = nullptr>
+    inline void flush(T uart){
+        using uart_t = T;
+        #ifdef FH_UART_FLUSH_SAFE
+        // If we have never written a byte, no need to flush. This special
+        // case is needed since there is no way to force the TXC (transmit
+        // complete) bit to 1 during initialization
+        if (!enabled_(uart_t::txen))
+            return;
+        #endif
+
+        if constexpr(details::uart_has_buf<uart_t, true>) {
+            // buffered mode
+            // write data buffer empty interrupt enabled (we have data in write buffer)
+            // or transmission not complete (no data in write buffer, but it's not actually transmitted)
+            while (enabled_(uart_t::irq_txr) || read_(uart_t::txc))
+                try_irq_force(uart_t::irq_txr);
+        } else{
+            // wait for TX completed
+            wait_hi(uart_t::txc);
+        }
     }
 
     #include "uart_impl.hpp"
