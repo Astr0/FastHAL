@@ -75,8 +75,7 @@ namespace fasthal{
         using enable_if_uart = std::enable_if_c<is_uart_impl<std::base_type_t<T>>::value>;
     }
 
-    template<class T>
-    using uart_data_type = std::uint8_t;
+    using uart_datatype_t = std::uint8_t;
 
     // ************ BEGIN ************
     namespace details{
@@ -175,7 +174,7 @@ namespace fasthal{
     // ************ TX ************
     namespace details{
         template<class T>
-        inline bool uart_tx(uart_data_type<T> c){
+        inline bool uart_tx(uart_datatype_t c){
             // write udr
             write_(T::udr, c);
             // clear txc by setting
@@ -203,7 +202,7 @@ namespace fasthal{
     }
 
     template<class T, details::enable_if_uart<T> dummy = nullptr>
-    bool write(T uart, uart_data_type<T> c){
+    bool write(T uart, uart_datatype_t c){
         using uart_t = T;
 
         #ifdef FH_UART_FLUSH_SAFE
@@ -288,7 +287,7 @@ namespace fasthal{
     }
 
     template<class T, details::enable_if_uart<T> dummy = nullptr>
-    constexpr uart_data_type<T> read(T uart) {
+    constexpr uart_datatype_t read(T uart) {
         if constexpr (details::uart_has_buf<T, false>){
             // buffered - return value
             return details::uart_buf<T, false>::buffer.read();
@@ -299,7 +298,7 @@ namespace fasthal{
     }
 
     template<class T, details::enable_if_uart<T> dummy = nullptr>
-    constexpr uart_data_type<T> read_dirty(T uart) {
+    constexpr uart_datatype_t read_dirty(T uart) {
         if constexpr (details::uart_has_buf<T, false>){
             // buffered - return value
             return details::uart_buf<T, false>::buffer.read_dirty();

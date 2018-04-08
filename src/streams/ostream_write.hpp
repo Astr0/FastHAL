@@ -1,16 +1,16 @@
-#ifndef FH_STREAM_WRITE_H_
-#define FH_STREAM_WRITE_H_
+#ifndef FH_OSTREAM_WRITE_H_
+#define FH_OSTREAM_WRITE_H_
 
 #include "stream.hpp"
 #include "../std/std_types.hpp"
 #include "../utils/functions.h"
 
 namespace fasthal{
-    // // int8
-    // template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    // bool write(T ostream, std::int8_t n) {
-    //     return write(ostream, static_cast<std::uint8_t>(n));
-    // }
+    // int8
+    template<class T, details::enable_if_ostream<T> dummy = nullptr>
+    bool write(T ostream, char n) {
+        return write(ostream, static_cast<std::uint8_t>(n));
+    }
 
     // bytes
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
@@ -22,21 +22,29 @@ namespace fasthal{
         return true;
     }
 
+    namespace details{
+        template<class T, details::enable_if_ostream<T> dummy = nullptr>
+        bool write_data_only(T ostream, const char* text) {
+            char c;
+            while ((c = *text++) != '\0'){
+                if (!write(ostream, c))
+                    return false;
+            }
+            return true;
+        }
+    }
+
     //cstring
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
     bool write(T ostream, const char* text) {
-        char c;
-        while ((c = *text++) != '\0'){
-            if (!write(ostream, c))
-                return false;
-        }
-        return write(ostream, char{});
+        details::write_data_only(ostream, text);
+        return write(ostream, char{0});
     }
 
     // uint16
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
     bool write(T ostream, std::uint16_t n) {
-        auto c = alias_cast<std::uint8_t*>(&n);
+        auto c = reinterpret_cast <std::uint8_t*>(&n);
         return 
             write(ostream, *c) && 
             write(ostream, *(c + 1));
@@ -51,7 +59,7 @@ namespace fasthal{
     // uint32
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
     bool write(T ostream, std::uint32_t n) {
-        auto c = alias_cast<std::uint8_t*>(&n);
+        auto c = reinterpret_cast<std::uint8_t*>(&n);
         return 
             write(ostream, *c) && 
             write(ostream, *(c + 1)) &&
@@ -79,7 +87,8 @@ namespace fasthal{
         if constexpr (sizeof(double) == sizeof(std::uint32_t)){
             return write(ostream, alias_cast<std::uint32_t>(n));
         } else if constexpr(sizeof(double) == 2 * sizeof(std::uint32_t)){
-            return write(ostream, *alias_cast<std::uint32_t*>(&n)) && write(ostream, *alias_cast<std::uint32_t*>(&n + sizeof(std::uint32_t))); 
+            auto c = reinterpret_cast<std::uint32_t*>(&n);
+            return write(ostream, *c) && write(ostream, *(c + 1)); 
         } else{
             static_assert(true, "Strange sizeof(double)");
         }
