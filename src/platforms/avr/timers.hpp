@@ -171,7 +171,7 @@ namespace fasthal{
 
         template<unsigned VNum>
         struct timer{
-            static constexpr bool available = false;
+            static constexpr auto available = false;
         };
     }
 }

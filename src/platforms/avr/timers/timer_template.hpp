@@ -9,53 +9,80 @@
 #define FH_HAS_TIMER@
 
 // *************** Registers
+// counter
 FH_DECLARE_REGISTER_ONLY(tcnt@, TCNT@)
 
+// control - general
 #if defined(TCCR@)
 FH_DECLARE_REGISTER_ONLY(tccr@, TCCR@)		
 #endif
 
+// control A
 #if defined(TCCR@A)
 FH_DECLARE_REGISTER_ONLY(tccr@a, TCCR@A)
 #endif
 
+// control B
 #if defined(TCCR@B)
 FH_DECLARE_REGISTER_ONLY(tccr@b, TCCR@B)
 #endif
 
+// control C
 #if defined(TCCR@C)
 FH_DECLARE_REGISTER_ONLY(tccr@c, TCCR@C)
 #endif
 
+// interrupt mask
 #if defined(TIMSK@)
 FH_DECLARE_REGISTER_ONLY(timsk@, TIMSK@)
 #else
 FH_DECLARE_REGISTER_ONLY(timsk@, TIMSK)
 #endif
 
+// interrupt flags
 #if defined(TIFR@)
 FH_DECLARE_REGISTER_ONLY(tifr@, TIFR@)
 #else
 FH_DECLARE_REGISTER_ONLY(tifr@, TIFR)
 #endif
 
+// output compare A
 #if defined(OCR@A)
+#define FH_HAS_TIMER@_OCA
 FH_DECLARE_REGISTER_ONLY(ocr@a, OCR@A)
 #elif defined(OCR@)
+#define FH_HAS_TIMER@_OCA
 FH_DECLARE_REGISTER_ONLY(ocr@a, OCR@)		
 #endif
 
+// output compare B
 #if defined(OCR@B)
+#define FH_HAS_TIMER@_OCB
 FH_DECLARE_REGISTER_ONLY(ocr@b, OCR@B)
 #endif
 
+// output compare C
 #if defined(OCR@C)
+#define FH_HAS_TIMER@_OCC
 FH_DECLARE_REGISTER_ONLY(ocr@b, OCR@C)
 #endif
 
+// input capture
 #if defined(ICR@)
+#define FH_HAS_TIMER@_IC
 FH_DECLARE_REGISTER_ONLY(icr@, ICR@)
 #endif
+
+// ********************* bits
+// input capture noise canceling
+#if defined(ICNC@)
+static constexpr auto icnc@ = fieldBit<ICNC@>(tccr@b);
+#endif 
+// input capture edge select
+#if defined(ICES@)
+static constexpr auto ices@ = fieldBit<ICES@>(tccr@b);
+#endif
+
 
 // ********************* Interrupts
 // -------------interrupts - enable
@@ -110,8 +137,7 @@ static constexpr auto ocf@c = fieldBit<OCF@C>(tifr@);
 static constexpr auto icf@ = fieldBit<ICF@>(tifr@);
 #endif
 
-// enums
-
+// ******************************** ENUMS
 // Clock Source
 #if (@ == 0 && !defined(__AVR_ATmega128__)) || (@ == 1) || (@ == 2 && defined(__AVR_ATmega128__))
 using timer@_cs = timer_csext;
@@ -131,145 +157,151 @@ using timer@_wgm = timer_wgm1;
 #endif
 #endif
 
-// Compare mode A
-#if defined(COM@0) && defined(COM@1)
-#define FH_COM@A0 COM@0
-#define FH_COM@A1 COM@1
-#elif defined(COM@A0) && defined(COM@A1)
-#define FH_COM@A0 COM@A0
-#define FH_COM@A1 COM@A1
-#endif
 
-#if defined(FOC@A)
-#define FH_FOC@A FOC@A
-#elif defined(FOC@)
-#define FH_FOC@A FOC@
-#endif
 
-#if defined(FH_COM@A0) && defined(FH_COM@A1)
-FH_DECLARE_TIMER_COM_ENUM(Timer@ComA, FH_COM@A0, FH_COM@A1);
-#endif
+// ******************************* Sepcialization
+template<>
+struct timer<@>{
+	static constexpr auto available = true;
+	
+	static constexpr auto tcnt = tcnt@;
+	static constexpr auto toie = toie@;
+	static constexpr auto tov = tov@;
 
-// compare mode B
-#if defined(COM@B0) && defined(COM@B1)
-FH_DECLARE_TIMER_COM_ENUM(Timer@ComB, COM@B0, COM@B1);
-#endif
+	// clock source
+	using cs_t = timer@_cs;
 
-// compare mode C
-#if defined(COM@C0) && defined(COM@C1)
-FH_DECLARE_TIMER_COM_ENUM(Timer@ComC, COM@C0, COM@C1);
-#endif
-
-namespace priv
-	// CS Reg
+	// clock source register
+	static constexpr auto csr = mField<(1 << CS@2) | (1 << CS@1) | (1 << CS@0) ,cs_t>(
 	#if defined(TCCR@B)
-	typedef TCCRBReg@ TCCRCsReg@;
+	tccr@b
 	#else
-	typedef TCCRReg@ TCCRCsReg@;
-	#endif		
+	tccr@
+	#endif
+	);
 
-	// WGM0/1 Regs
-	#if defined(WGM@0) && defined(WGM@1)
+	// waveform generation
+	#ifdef FH_TIMER@_WGM
+	using wgm_t = timer@_wgm;
+	
+	static constexpr auto wgmr = vField<wgm_t>(
 	#if defined(WGM@2)
-	typedef TCCRAReg@ TCCRWgm0Reg@;
-	typedef TCCRBReg@ TCCRWgm1Reg@;
+		fieldBit<WGM@0>(tccr@a)
+		, fieldBit<WGM@1>(tccr@a)
+		, fieldBit<WGM@2>(tccr@b)
+		#if defined(WGM@3)
+		, fieldBit<WGM@3>(tccr@b)
+		#endif
 	#else
-	typedef TCCRReg@ TCCRWgmReg@;
+		fieldBit<WGM@0>(tccr@)
+		, fieldBit<WGM@1>(tccr@)
 	#endif
+	);
+
 	#endif
-	
-	// IC Regs
-	#if defined(ICNC@) && defined(ICES@)
-	typedef TCCRBReg@ TCCRIcReg@;
+
+	// input capture
+	#ifdef FH_TIMER@_IC
+	static constexpr auto icr = icr@;
+	static constexpr auto icnc = icnc@;
+	static constexpr auto ices = ices@;
 	#endif
-	
+};
+
+
+namespace priv {	
 	// COM regs
 	#if defined(TCCR@A)
-	typedef TCCRAReg@ TCCRComAReg@;
-	typedef TCCRAReg@ TCCRComBReg@;
-	typedef TCCRAReg@ TCCRComCReg@;
+	static constexpr auto tccr@_oc = tccr@a;
 	#elif defined(TCCR@)
-	typedef TCCRReg@ TCCRComAReg@;
+	static constexpr auto tccr@_oc = tccr@;
 	#endif		
 
 	// FOC regs
 	#if defined(TCCR@C)
-	
-	typedef TCCRCReg@ TCCRFocAReg@;
-	typedef TCCRCReg@ TCCRFocBReg@;
-	typedef TCCRCReg@ TCCRFocCReg@;
-	
-	#elif defined(FH_TIMER0) || defined(FH_TIMER2)
+	static constexpr auto tccr@_foc = tccr@c;
+	#elif (@ == 0) || (@ == 2)
 	// TCCRB or TCCR
 	#if defined(TCCR@B)
-	typedef TCCRBReg@ TCCRFocAReg@;
-	typedef TCCRBReg@ TCCRFocBReg@;
+	static constexpr auto tccr@_foc = tccr@b;
 	#elif defined(TCCR@)
-	typedef TCCRReg@ TCCRFocAReg@;
-	typedef TCCRReg@ TCCRFocBReg@;
-	#endif
-	
-	#elif defined(FH_TIMER1)
-	
+	static constexpr auto tccr@_foc = tccr@;
+	#endif	
+	#elif (@ == 1)	
 	// Mega8/32 have it TCCR1A
-	typedef TCCRAReg@ TCCRFocAReg@;
-	typedef TCCRAReg@ TCCRFocBReg@;
-	
+	static constexpr auto tccr@_foc = tccr@a;
 	#endif
 }
 
+#ifdef FH_TIMER@_OCA;
+template<>
+struct timer_oc<@, 0>{
+	static constexpr auto available = true;	
 
-// The big timer
-struct Timer@:
-	public AvrTimerCS<priv::TCCRCsReg@, Timer@Cs, Timer@CsMask, priv::TCNTReg@>
-	, public InterruptControl<priv::TIMSKReg@, Timer@I>
-	, public InterruptFlags<priv::TIFRReg@, Timer@F>
-	
-	#if defined(WGM@0) && defined(WGM@1)
-	// has WGM. 
-	#if defined(WGM@2)
-	, public AvrTimerWGM2<priv::TCCRWgm0Reg@, priv::TCCRWgm1Reg@, Timer@Wgm, Timer@WgmMask0, Timer@WgmMask1>
+	static constexpr auto comr = vField<timer_com>(
+	#if defined(COM@0) && defined(COM@1)
+		fieldBit<COM@0>(priv::tccr@_oc),
+		fieldBit<COM@1>(priv::tccr@_oc)
 	#else
-	, public AvrTimerWGM<priv::TCCRWgmReg@, Timer@Wgm, Timer@WgmMask>
+		fieldBit<COM@A0>(priv::tccr@_oc),
+		fieldBit<COM@A1>(priv::tccr@_oc)
 	#endif
+	);
+
+	static constexpr auto ocr = ocr@a;
+	static constexpr auto ocie = ocie@a;
+	static constexpr auto ocf = ocf@a;
+
+
+	#if defined(FOC@A)
+	static constexpr auto foc = fieldBit<FOC@A>(tccr@_foc);
+	#elif defined(FOC@)
+	static constexpr auto foc = fieldBit<FOC@>(tccr@_foc);
 	#endif
-	
-	#if defined(ICNC@) && defined(ICES@)
-	, public AvrTimerIc<priv::TCCRIcReg@, ICNC@, ICES@, priv::ICRReg@>
-	#endif
-	
-	#if defined(FH_COM@A0) && defined(FH_COM@A1)
-	// has A
-	, public AvrTimerOcA<priv::TCCRComAReg@, Timer@ComA, Timer@ComAMask, priv::OCRAReg@>
-	#endif
-	#if defined(FH_FOC@A)
-	// can force A
-	, public AvrTimerForceOcA<priv::TCCRFocAReg@, FH_FOC@A>
-	#endif
-	
-	#if defined(COM@B0) && defined(COM@B1)
-	// has B
-	, public AvrTimerOcB<priv::TCCRComBReg@, Timer@ComB, Timer@ComBMask, priv::OCRBReg@>
-	#endif
-	#if defined(FOC@B)
-	// can force B
-	, public AvrTimerForceOcB<priv::TCCRFocBReg@, FOC@B>
-	#endif
-	
-	#if defined(COM@C0) && defined(COM@C1)
-	// has C
-	, public AvrTimerOcC<priv::TCCRComCReg@, Timer@ComC, Timer@ComCMask, priv::OCRCReg@>
-	#endif
-	#if defined(FOC@C)
-	// can force C
-	, public AvrTimerForceOcC<priv::TCCRFocCReg@, FOC@C>
-	#endif
-{
 };
+#endif
+
+#ifdef FH_TIMER@_OCB;
+template<>
+struct timer_oc<@, 1>{
+	static constexpr auto available = true;	
+
+	static constexpr auto comr = vField<timer_com>(
+		fieldBit<COM@B0>(priv::tccr@_oc),
+		fieldBit<COM@B1>(priv::tccr@_oc)
+	);
+
+	static constexpr auto ocr = ocr@b;
+	static constexpr auto ocie = ocie@b;
+	static constexpr auto ocf = ocf@b;
+
+	#if defined(FOC@B)
+	static constexpr auto foc = fieldBit<FOC@B>(tccr@_foc);
+	#endif
+};
+#endif
+
+#ifdef FH_TIMER@_OCC;
+template<>
+struct timer_oc<@, 2>{
+	static constexpr auto available = true;	
+
+	static constexpr auto comr = vField<timer_com>(
+		fieldBit<COM@C0>(priv::tccr@_oc),
+		fieldBit<COM@C1>(priv::tccr@_oc)
+	);
+
+	static constexpr auto ocr = ocr@c;
+	static constexpr auto ocie = ocie@c;
+	static constexpr auto ocf = ocf@c;
+
+	#if defined(FOC@C)
+	static constexpr auto foc = fieldBit<FOC@C>(tccr@_foc);
+	#endif
+};
+#endif
 
 
 #endif // defined TCCR
-
-#undef FH_TIMER@
 
 #endif /* TIMER0_H_ */
