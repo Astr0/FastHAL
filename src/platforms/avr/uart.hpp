@@ -9,6 +9,7 @@
 #include "../../std/std_types.hpp"
 #include "../../mp/const_list.hpp"
 #include "../../utils/ringbuffer.hpp"
+#include "../../streams/stream.hpp"
 
 namespace fasthal{
     // serial config
@@ -65,6 +66,10 @@ namespace fasthal{
 
         template<unsigned VNum>
         struct is_uart_impl<uart<VNum>>: std::true_type {};
+
+        // uart is ostream
+        template<unsigned VNum>
+        struct is_ostream_impl<uart<VNum>>: std::true_type {};
 
         template<class T>
         using enable_if_uart = std::enable_if_c<is_uart_impl<std::base_type_t<T>>::value>;

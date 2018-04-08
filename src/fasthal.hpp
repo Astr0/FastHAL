@@ -11,6 +11,7 @@
 #include "fields/fields.hpp"
 #include "interrupts/interrupts.hpp"
 #include "platforms/platform.hpp"
+#include "streams/streams.hpp"
 #include "utils/utils.hpp"
 #include "dev/devices.h"
 

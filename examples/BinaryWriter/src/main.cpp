@@ -1,83 +1,70 @@
-#ifndef F_CPU
-#define F_CPU 16000000UL
+#define UART1
+//#include <Arduino.h>
+
+#define RX_SIZE 64
+#define TX_SIZE 64
+
+#define FH_UART0_RX RX_SIZE
+#define FH_UART0_TX TX_SIZE
+
+#ifdef UART1
+#define FH_UART1_RX RX_SIZE
+#define FH_UART1_TX TX_SIZE
 #endif
 
-//#define OS
-//#define S1
-#include "Arduino.h"
-
-#include "fasthal.h"
-
-const auto RxSize = 64;
-const auto TxSize = 64;
+#include "fasthal.hpp"
 
 using namespace fasthal;
-
-
-FASTHAL_UART0(RxSize, TxSize);
-#ifdef S1
-FASTHAL_UART1(RxSize, TxSize);
-#endif
-
-void setup(){
-    Adc::begin();
-    Uart0::begin(9600);
-    Uart0tx::begin();
-    Uart0rx::begin();
-    #ifdef S1
-    Uart1::begin(115000);
-    Uart1tx::begin();
-    Uart1rx::begin();
-    #endif
-}
-
-#ifdef OS
-auto Uart0os = MakeOutStream<Uart0tx>();
-auto Uart0tw = MakeBinaryWriter(Uart0os);
-#ifdef S1
-auto Uart1os = MakeOutStream<Uart1tx>();
-auto Uart1tw = MakeBinaryWriter(Uart1os);
-#endif
-
-#else
-
-auto Uart0tw = MakeBinaryWriter<Uart0tx>();
-#ifdef S1
-auto Uart1tw = MakeBinaryWriter<Uart1tx>();
-#endif
-
-#endif
+using namespace fasthal::avr;
 
 template<typename T>
-void test(T& writer, uint8_t read){
-    writer.write("Hello from Arduino:");
-    writer.write(read);
-    writer.write("uint32_t: ");
-    writer.write((uint32_t)read);
-    writer.write("float: ");
-    writer.write((float)read);
-    writer.write("double: ");
-    writer.write((double)read);
+void testWrite(T writer, uint8_t read){
+    write(writer, "Hello from Arduino:");
+    write(writer, read);
+    write(writer, "uint32_t: ");
+    write(writer, (uint32_t)read);
+    write(writer, "float: ");
+    write(writer, (float)read);
+    write(writer, "double: ");
+    write(writer, (double)read);
 }
 
-typedef AdcChannel<AdcRef::Default, false, 0> AdcA0;
+// template<typename T>
+// void testWrite2(T writer, uint8_t read){
+//     writer.write("Hello from Arduino:");
+//     writer.write(read);
+//     writer.write("uint32_t: ");
+//     writer.write((uint32_t)read);
+//     writer.write("float: ");
+//     writer.write((float)read);
+//     writer.write("double: ");
+//     writer.write((double)read);
+// }
 
-void loop(){
-    auto read = AdcA0::read();
-    
-    test(Uart0tw, read);
-    #ifdef S1
-    test(Uart1tw, read);
-    #endif
-    
-    // Time::delayMs(1000);
-}
-
+// template<class TUart>
+// struct Test2Adapter{
+//     static bool write(std::uint8_t b){
+//         return fasthal::write(TUart{}, b);
+//     }
+// };
 
 int main(){
-	setup();
-	while (1){
-		loop();
+	apply(
+        enable(irq),
+        begin(uart0)
+        #ifdef UART1
+        , begin(uart1, baud_v<115000>)
+        #endif
+    );    
+    //begin_(uart1, baud_v<115000>);
+    //auto bw = BinaryWriter{Test2Adapter<decltype(uart0)>{}};
+	while (true){
+        auto read = read_(portC);
+        
+        testWrite(uart0, read);
+        //testWrite2(bw, read);
+        #ifdef UART1
+        testWrite(uart1, read);
+        #endif
 	}
-	return 0;
 }

@@ -3,6 +3,7 @@
 #ifndef UTILS_FUNCTIONS_H_
 #define UTILS_FUNCTIONS_H_
 
+// TODO: remove
 #define fh_cbi(reg, bit) (reg &= ~(1 << bit))
 #define fh_sbi(reg, bit) (reg |= (1 << bit))
 #define fh_wbi(reg, bit, v) (v ? fh_sbi(reg, bit) : fh_cbi(reg, bit)) 
@@ -22,22 +23,25 @@ namespace fasthal{
     template<int val>
     int constInt() {return val; }
 
-    template<typename T, typename F>
-    struct alias_cast_t
-    {
-        union
+    namespace details{
+        template<typename T, typename F>
+        struct alias_cast_impl
         {
-            F raw;
-            T data;
+            constexpr alias_cast_impl(F __raw): raw(__raw) { }
+            union
+            {
+                F raw;
+                T data;
+            };
         };
-    };
+    }
     
     template<typename T, typename F>
-    T alias_cast(F raw_data)
+    constexpr inline T alias_cast(F raw_data)
     {
         static_assert(sizeof(T) == sizeof(F), "Cannot cast types of different sizes");
-        alias_cast_t<T, F> ac;
-        ac.raw = raw_data;
+        auto ac = details::alias_cast_impl<T, F>{raw_data};
+        //ac.raw = raw_data;
         return ac.data;
     }
 }
