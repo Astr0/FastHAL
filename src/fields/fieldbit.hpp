@@ -51,6 +51,16 @@ namespace fasthal
 		struct func_fieldbit_ready {
 			using ready_t = TFieldBit;
 		};
+
+		template<class TFieldBit>
+		struct func_fieldbit_reset {
+			using reset_t = TFieldBit;
+		};
+
+		template<class TFieldBit>
+		struct func_fieldbit_ready_reset:
+			func_fieldbit_ready<TFieldBit>,
+			func_fieldbit_reset<TFieldBit>{};
 	}
 
 	// create field bit
@@ -203,6 +213,12 @@ namespace fasthal
 	template<typename TFunc, typename TFieldBit = typename details::func_fieldbit<TFunc>::ready_t>
 	constexpr auto inline ready_(TFunc func){ return read_(TFieldBit{}); }	
 
+	// reset
+	template<typename TFunc, typename TFieldBit = typename details::func_fieldbit<TFunc>::reset_t>
+	constexpr auto inline reset(TFunc func){ return set(TFieldBit{}); }	
+
+	template<typename TFunc, typename TFieldBit = typename details::func_fieldbit<TFunc>::reset_t>
+	inline void reset_(TFunc func){ set_(TFieldBit{}); }	
 }
 
 #endif

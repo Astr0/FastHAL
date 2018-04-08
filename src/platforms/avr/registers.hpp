@@ -15,14 +15,14 @@
 namespace priv{\
 	FH_WRAPVARIABLE(VAR ## _reg, VAR)\
 }\
-static constexpr auto NAME = details::avr_register<priv::VAR ## _reg>{};\
+static constexpr auto NAME = ::fasthal::avr::details::avr_register<priv::VAR ## _reg>{};\
 
 
 #define FH_DECLARE_REGISTER( NAME, VAR)\
 namespace priv{\
 	FH_WRAPVARIABLE(VAR ## _reg, VAR)\
 }\
-static constexpr auto NAME = details::avr_register<priv::VAR ## _reg>{};\
+static constexpr auto NAME = ::fasthal::avr::details::avr_register<priv::VAR ## _reg>{};\
 static constexpr auto NAME ## 0 = fieldBit<0>(NAME);\
 static constexpr auto NAME ## 1 = fieldBit<1>(NAME);\
 static constexpr auto NAME ## 2 = fieldBit<2>(NAME);\

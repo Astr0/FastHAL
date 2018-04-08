@@ -95,18 +95,23 @@
 // Same as timer1 on most AVR
 
 #include "registers.hpp"
+#include "interrupts.hpp"
+#include "../../fields/fieldbit.hpp"
 #include "../../std/std_types.hpp"
 
 namespace fasthal{
-    namespace avr{
-        // compare
-        enum class timer_com: std::uint8_t{
-            none   = 0b00,
-            toggle = 0b01,
-            clear  = 0b10,
-            set    = 0b11
-        };
+    // compare
+    enum class timer_oc: std::uint8_t{
+        none   = 0b00,
+        toggle = 0b01,
+        clear  = 0b10,
+        set    = 0b11
+    };
 
+    template<timer_oc V>
+    static constexpr auto timer_oc_v = integral_constant<timer_oc, V>{};
+
+    namespace details{
         // clock source
         enum class timer_csext: std::uint8_t{
             _       = 0b000,
@@ -132,48 +137,60 @@ namespace fasthal{
 
         // wave generation mode
         enum class timer_wgm3: std::uint8_t{
-            Normal     = 0b0000,
-            PwmPc8     = 0b0001,
-            PwmPc9     = 0b0010,
-            PwmPc10    = 0b0011,
-            CtcA       = 0b0100,
-            PwmFast8   = 0b0101,
-            PwmFast9   = 0b0110,
-            PwmFast10  = 0b0111,
-            PwmPcFcI   = 0b1000,
-            PwmPcFcA   = 0b1001,
-            PwmPcI     = 0b1010,
-            PwmPcA     = 0b1011,
-            CtcI       = 0b1100,
-            //Reserved = 0b0101,
-            PwmFastI   = 0b1110,
-            PwmFastA   = 0b1111
+            normal      = 0b0000,
+            pwm_pc8     = 0b0001,
+            pwm_pc9     = 0b0010,
+            pwm_pc10    = 0b0011,
+            ctc_a       = 0b0100,
+            pwm_fast8   = 0b0101,
+            pwm_fast9   = 0b0110,
+            pwm_fast10  = 0b0111,
+            pwm_pcfci   = 0b1000,
+            pwm_pcfca   = 0b1001,
+            pwm_pci     = 0b1010,
+            pwm_pca     = 0b1011,
+            ctc_i       = 0b1100,
+            //reserved  = 0b0101,
+            pwm_fasti   = 0b1110,
+            pwm_fasta   = 0b1111
         };
 
         enum class timer_wgm2: std::uint8_t{
-            Normal     = 0b000,
-            PwmPcMax   = 0b001,
-            CtcA       = 0b010,
-            PwmFastMax = 0b011,
-            /*Reserved = 0b100,*/
-            PwmPcA     = 0b101,
-            /*Reserved = 0b110,*/
-            PwmFastA   = 0b111
+            normal      = 0b000,
+            pwm_pcmax   = 0b001,
+            ctc_a       = 0b010,
+            pwm_fastmax = 0b011,
+            /*reserved  = 0b100,*/
+            pwm_pca     = 0b101,
+            /*reserved  = 0b110,*/
+            pwm_fasta   = 0b111
         };
 
         enum class timer_wgm1: uint8_t{
-            Normal     = 0b00,
-            PwmPcMax   = 0b01,
-            CtcA       = 0b10,
-            PwmFastMax = 0b11
+            normal      = 0b00,
+            pwm_pcmax   = 0b01,
+            ctc_a       = 0b10,
+            pwm_fastmax = 0b11
         };
 
-
         template<unsigned VNum>
-        struct timer{
+        struct timer_impl{
+            static constexpr auto available = false;
+        };
+
+        
+        template<unsigned VNum, unsigned VComp>
+        struct timer_oc_impl{
             static constexpr auto available = false;
         };
     }
+
+    #include "timers/timer0.hpp"
+    #include "timers/timer1.hpp"
+    #include "timers/timer2.hpp"
+    #include "timers/timer3.hpp"
+    #include "timers/timer4.hpp"
+    #include "timers/timer5.hpp"
 }
 
 #endif

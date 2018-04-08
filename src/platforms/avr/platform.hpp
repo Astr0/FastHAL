@@ -5,7 +5,7 @@
 #include "interrupts.hpp"
 #include "registers.hpp"
 #include "adc.hpp"
-//#include "timers.h"
+#include "timers.hpp"
 #include "uart.hpp"
 
 #endif /* AVR_HAL_H_ */

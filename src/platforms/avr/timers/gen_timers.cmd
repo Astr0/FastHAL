@@ -1,0 +1,6 @@
+powershell -Command "(gc timer_template.hpp) -replace '@', '0' | Out-File -encoding UTF8 timer0.hpp"
+powershell -Command "(gc timer_template.hpp) -replace '@', '1' | Out-File -encoding UTF8 timer1.hpp"
+powershell -Command "(gc timer_template.hpp) -replace '@', '2' | Out-File -encoding UTF8 timer2.hpp"
+powershell -Command "(gc timer_template.hpp) -replace '@', '3' | Out-File -encoding UTF8 timer3.hpp"
+powershell -Command "(gc timer_template.hpp) -replace '@', '4' | Out-File -encoding UTF8 timer4.hpp"
+powershell -Command "(gc timer_template.hpp) -replace '@', '5' | Out-File -encoding UTF8 timer5.hpp"
