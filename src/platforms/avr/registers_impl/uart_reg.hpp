@@ -3,13 +3,13 @@
 // UCSRC: URSEL UMSEL UPM1  UPM0 USBS UCSZ1 UCS0 UCPOL
 
 #define FH_DECLARE_UART_REGISTERS(NAME, CODE)\
-    FASTHAL_DECLARE_REGISTER_ONLY(ubrr ## NAME, UBRR ## CODE)\
-	FASTHAL_DECLARE_REGISTER_ONLY(ubrr ## NAME ## h, UBRR ## CODE ## H)\
-	FASTHAL_DECLARE_REGISTER_ONLY(ubrr ## NAME ## l, UBRR ## CODE ## L)\
-	FASTHAL_DECLARE_REGISTER_ONLY(ucsr ## NAME ## a, UCSR ## CODE ## A)\
-	FASTHAL_DECLARE_REGISTER_ONLY(ucsr ## NAME ## b, UCSR ## CODE ## B)\
-	FASTHAL_DECLARE_REGISTER_ONLY(ucsr ## NAME ## c, UCSR ## CODE ## C)\
-	FASTHAL_DECLARE_REGISTER_ONLY(udr ## NAME, UDR ## CODE)\
+    FH_DECLARE_REGISTER_ONLY(ubrr ## NAME, UBRR ## CODE)\
+	FH_DECLARE_REGISTER_ONLY(ubrr ## NAME ## h, UBRR ## CODE ## H)\
+	FH_DECLARE_REGISTER_ONLY(ubrr ## NAME ## l, UBRR ## CODE ## L)\
+	FH_DECLARE_REGISTER_ONLY(ucsr ## NAME ## a, UCSR ## CODE ## A)\
+	FH_DECLARE_REGISTER_ONLY(ucsr ## NAME ## b, UCSR ## CODE ## B)\
+	FH_DECLARE_REGISTER_ONLY(ucsr ## NAME ## c, UCSR ## CODE ## C)\
+	FH_DECLARE_REGISTER_ONLY(udr ## NAME, UDR ## CODE)\
 	constexpr auto rxc ## NAME = fieldBit<RXC ## CODE>(ucsr ## NAME ## a);\
 	constexpr auto txc ## NAME = fieldBit<TXC ## CODE>(ucsr ## NAME ## a);\
 	constexpr auto udre ## NAME = fieldBit<UDRE ## CODE>(ucsr ## NAME ## a);\

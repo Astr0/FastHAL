@@ -11,14 +11,14 @@
 #include "../../fields/info.hpp"
 #include "../../fields/mfield.hpp"
 
-#define FASTHAL_DECLARE_REGISTER_ONLY( NAME, VAR)\
+#define FH_DECLARE_REGISTER_ONLY( NAME, VAR)\
 namespace priv{\
 	FH_WRAPVARIABLE(VAR ## _reg, VAR)\
 }\
 static constexpr auto NAME = details::avr_register<priv::VAR ## _reg>{};\
 
 
-#define FASTHAL_DECLAREREGISTER( NAME, VAR)\
+#define FH_DECLARE_REGISTER( NAME, VAR)\
 namespace priv{\
 	FH_WRAPVARIABLE(VAR ## _reg, VAR)\
 }\
@@ -59,7 +59,7 @@ namespace fasthal{
 	}
 }    
 
-#undef FASTHAL_DECLAREREGISTER
-#undef FASTHAL_DECLARE_REGISTER_ONLY
+//#undef FASTHAL_DECLAREREGISTER
+//#undef FASTHAL_DECLARE_REGISTER_ONLY
 
 #endif

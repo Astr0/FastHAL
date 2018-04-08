@@ -6,6 +6,5 @@
 #include "types.hpp"
 #include "time.h"
 #include "functions.h"
-#include "stream.h"
  
 #endif
