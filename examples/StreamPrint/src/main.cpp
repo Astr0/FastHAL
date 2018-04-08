@@ -25,8 +25,8 @@ void testPrint(T writer, uint8_t read){
     println(writer, (uint32_t)read);
     print(writer, "float: ");
     println(writer, (float)read);
-    //print(writer, "double: ");
-    //println(writer, (double)read);
+    print(writer, "double: ");
+    println(writer, (double)read);
 }
 
 // template<typename T>

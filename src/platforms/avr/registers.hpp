@@ -5,7 +5,6 @@
 #ifndef FH_AVR_REGISTERS_H_
 #define FH_AVR_REGISTERS_H_
 
-#include "interrupts.h"
 #include <avr/io.h>
 #include "../../utils/functions.h"
 #include "../../std/std_fake.hpp"

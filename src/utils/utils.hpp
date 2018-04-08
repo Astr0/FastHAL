@@ -7,6 +7,5 @@
 #include "time.h"
 #include "functions.h"
 #include "stream.h"
-#include "textwriter.h"
  
 #endif

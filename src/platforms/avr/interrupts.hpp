@@ -6,7 +6,7 @@
 #include "registers.hpp"
 #include "../../utils/functions.h"
 #include "../../std/std_fake.hpp"
-
+#include <avr/interrupt.h>
 //#ifdef FH_HAS_IRQ
 
 namespace fasthal{    
