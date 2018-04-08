@@ -8,5 +8,6 @@
 #include "mfield.hpp"
 #include "actions.hpp"
 #include "actions_apply.hpp"
+#include "gpio.hpp"
 
 #endif

@@ -14,6 +14,9 @@ namespace fasthal{
 
     namespace details{
         using irq_t = std::base_type_t<decltype(irq)>;
+
+        // enable/disable IRQ
+		template<> struct func_fieldbit_impl<details::irq_t>: func_fieldbit_enable<decltype(avr::sreg_i)>{};        
     }
 
     class no_irq{
@@ -40,11 +43,6 @@ namespace fasthal{
 
     // interrupts normalization...
     #include "interrupts_impl/uart_irq.hpp"
-
-    // enable/disable IRQ
-	namespace details{
-		template<> struct func_fieldbit_impl<details::irq_t>: func_fieldbit_enable<decltype(avr::sreg_i)>{};        
-    }
 
     // runs irq if it's ready and enabled, but global interrupts disabled
     template<unsigned VNum>

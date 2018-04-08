@@ -7,5 +7,6 @@
 #include "adc.hpp"
 #include "timers.hpp"
 #include "uart.hpp"
+#include "gpio.hpp"
 
 #endif /* AVR_HAL_H_ */

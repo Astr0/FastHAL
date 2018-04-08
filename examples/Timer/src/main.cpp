@@ -1,10 +1,8 @@
 #include "fasthal.hpp"
 
 using namespace fasthal;
-using namespace fasthal::avr;
 
-static constexpr auto ledPin = portB5;
-static constexpr auto ledPin_ = ddrB5;
+static constexpr auto ledPin = pinB5;
 
 void test_timer0(){
 	apply(
@@ -64,7 +62,7 @@ void test_timer2(){
 
 
 int main(){
-	set_(ledPin_);
+	makeOutput_(ledPin);
 	test_timer0();
 	test_timer1();
 	test_timer2();
