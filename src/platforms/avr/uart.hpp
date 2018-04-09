@@ -174,12 +174,11 @@ namespace fasthal{
     // ************ TX ************
     namespace details{
         template<class T>
-        inline bool uart_tx(uart_datatype_t c){
+        inline void uart_tx(uart_datatype_t c){
             // write udr
             write_(T::udr, c);
             // clear txc by setting
             set_(T::txc);
-            return true;
         }
 
         template<class T>
@@ -202,7 +201,7 @@ namespace fasthal{
     }
 
     template<class T, details::enable_if_uart<T> dummy = nullptr>
-    bool write(T uart, uart_datatype_t c){
+    void write(T uart, uart_datatype_t c){
         using uart_t = T;
 
         #ifdef FH_UART_FLUSH_SAFE
@@ -220,7 +219,8 @@ namespace fasthal{
             // 500kbit/s) bitrates, where interrupt overhead becomes a slowdown.
             if (read_(uart_t::udre) && buffer.empty()){
                 // direct write
-                return details::uart_tx<uart_t>(c);
+                details::uart_tx<uart_t>(c);
+                return;
             }
 
             // wait for buffer space
@@ -231,15 +231,13 @@ namespace fasthal{
 
             // enable IRQ if it was disabled in IRQ itself
             enable_(uart_t::irq_txr);
-
-            return true;
         } else{            
             // direct
             // wait for written
             wait_hi(uart_t::udre);
 
             // direct write
-            return details::uart_tx<uart_t>(c);
+            details::uart_tx<uart_t>(c);
         }
 
     }
