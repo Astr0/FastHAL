@@ -6,16 +6,16 @@
 
 namespace fasthal{
     namespace details{
-        template<class Tpin, class Tport, class Tddr> 
+        template<unsigned VReg, unsigned VNumber> 
         struct avr_pin: 
-            gpio_input_bit<Tpin>,
-            gpio_output_bit<Tport>
+            gpio_input_bit<decltype(fieldBit<VNumber>(::fasthal::avr::gpio_registers<VReg>::pin))>,
+            gpio_output_bit<decltype(fieldBit<VNumber>(::fasthal::avr::gpio_registers<VReg>::port))>
         {
-            using ddr_t = Tddr;
+            using ddr_t = decltype(fieldBit<VNumber>(::fasthal::avr::gpio_registers<VReg>::ddr));
         };
 
-        template<class Tpin, class Tport, class Tddr> 
-        struct func_fieldbit_impl<avr_pin<Tpin, Tport, Tddr>>: avr_pin<Tpin, Tport, Tddr>{};
+        template<unsigned VReg, unsigned VNumber> 
+        struct func_fieldbit_impl<avr_pin<VReg, VNumber>>: avr_pin<VReg, VNumber>{};
     }
 
     template<class T, 

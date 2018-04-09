@@ -44,6 +44,9 @@ namespace fasthal{
 				inline static datatype_t read() {return TAccess::value();}
 			};	
 		}
+
+		template<unsigned VNum>
+		struct gpio_registers{};
 	}
 
 	namespace details{

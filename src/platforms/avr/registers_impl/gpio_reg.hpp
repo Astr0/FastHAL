@@ -1,40 +1,46 @@
-#define FH_DECLARE_PORT(CODE)\
+#define FH_DECLARE_PORT(CODE, NUM)\
 FH_DECLARE_REGISTER(port ## CODE, PORT ## CODE)\
 FH_DECLARE_REGISTER(pin ## CODE, PIN ## CODE)\
-FH_DECLARE_REGISTER(ddr ## CODE, DDR ## CODE)
+FH_DECLARE_REGISTER(ddr ## CODE, DDR ## CODE)\
+template<>\
+struct gpio_registers<NUM>{\
+    static constexpr auto port = port ## CODE;\
+    static constexpr auto pin = pin ## CODE;\
+    static constexpr auto ddr = ddr ## CODE;\
+};\
 
 #ifdef PORTA
-FH_DECLARE_PORT(A)
+FH_DECLARE_PORT(A, 1)
 #endif
 #ifdef PORTB
-FH_DECLARE_PORT(B)
+FH_DECLARE_PORT(B, 2)
 #endif
 #ifdef PORTC
-FH_DECLARE_PORT(C)
+FH_DECLARE_PORT(C, 3)
 #endif
 #ifdef PORTD
-FH_DECLARE_PORT(D)
+FH_DECLARE_PORT(D, 4)
 #endif
 #ifdef PORTE
-FH_DECLARE_PORT(E)
+FH_DECLARE_PORT(E, 5)
 #endif
 #ifdef PORTF
-FH_DECLARE_PORT(F)
+FH_DECLARE_PORT(F, 6)
 #endif
 #ifdef PORTG
-FH_DECLARE_PORT(G)
+FH_DECLARE_PORT(G, 7)
 #endif
 #ifdef PORTH
-FH_DECLARE_PORT(H)
+FH_DECLARE_PORT(H, 8)
 #endif
 #ifdef PORTJ
-FH_DECLARE_PORT(J)
+FH_DECLARE_PORT(J, 9)
 #endif
 #ifdef PORTK
-FH_DECLARE_PORT(K)
+FH_DECLARE_PORT(K, 10)
 #endif
 #ifdef PORTL
-FH_DECLARE_PORT(L)
+FH_DECLARE_PORT(L, 11)
 #endif
 
 #undef FH_DECLARE_PORT
