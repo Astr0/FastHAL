@@ -163,26 +163,26 @@ constexpr std::uint8_t ino_pin_num[] = {
 };
 
 constexpr std::uint8_t ino_timer_oc_num[] = {
-	(0 * 3 + 0), /* 0 - port D */ // Swapped With D6
-	(1 * 3 + 0),      // Swapped with D9
-	(1 * 3 + 1),      // Swapped with D10
-	(2 * 3 + 0),      // Swapped with D11
-	0, // Swapped with D12
-	0, // Swapped with D13
-	0, // Swapped with D0
-	0,
-	0, /* 8 - port B */
-	0, // Swapped with D1
-	0, // Swapped with D2
-	(2 * 3 + 1),      // Swapped with D3
-	0, // Swapped with D4
-	(0 * 3 + 1),      // Swapped with D5
-	0, /* 14 - port C */
-	0,
-	0,
-	0,
-	0,
-	0,
+	(0'0), /* 0 - port D */ // Swapped With D6
+	(1'0),      // Swapped with D9
+	(1'1),      // Swapped with D10
+	(2'0),      // Swapped with D11
+	255, // Swapped with D12
+	255, // Swapped with D13
+	255, // Swapped with D0
+	255,
+	255, /* 8 - port B */
+	255, // Swapped with D1
+	255, // Swapped with D2
+	(2'1),      // Swapped with D3
+	255, // Swapped with D4
+	(0'1),      // Swapped with D5
+	255, /* 14 - port C */
+	255,
+	255,
+	255,
+	255,
+	255,
 };
 
 #endif  // ARDUINO_MAIN

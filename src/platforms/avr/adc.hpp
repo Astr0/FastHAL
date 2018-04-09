@@ -157,6 +157,15 @@ namespace fasthal{
 		wait_(adc);
 		return read_(adc);
 	}
+	template<typename TMux>
+	constexpr auto convert8_(details::adc_t adc, TMux mux){
+		apply(
+			select(adc, mux), 
+			start(adc)
+		);
+		wait_(adc);
+		return read_(avr::adch);
+	}
 
 	namespace details{
 		template<typename TMux>
@@ -177,6 +186,11 @@ namespace fasthal{
 	template<typename T, typename TMux = typename details::func_fieldbit<T>::mux_t>
 	constexpr auto convert_(T adMux){
 		return convert_(details::adc_t{}, TMux{});
+	}
+
+	template<typename T, typename TMux = typename details::func_fieldbit<T>::mux_t>
+	constexpr auto convert8_(T adMux){
+		return convert8_(details::adc_t{}, TMux{});
 	}
 }
 

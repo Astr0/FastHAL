@@ -280,64 +280,64 @@ constexpr std::uint8_t ino_pin_num[] = {
 };
 
 constexpr std::uint8_t ino_timer_oc_num[] = {
-    0, // PD2 - D0  - RX1
-    0, // PD3 - D1  - TX1
+    255, // PD2 - D0  - RX1
+    255, // PD3 - D1  - TX1
 
-    0, // PB2 - D2  - MOSI 
-    (1 * 3 + 2),      // PB7 - D3  -
+    255, // PB2 - D2  - MOSI 
+    (1'2),      // PB7 - D3  -
 
-    0, // PD7 - D4  -
+    255, // PD7 - D4  -
 
-    (1 * 3 + 1),      // PB6 - D5  -
-    (1 * 3 + 0),      // PB5 - D6  -
+    (1'1),      // PB6 - D5  -
+    (1'0),      // PB5 - D6  -
 
-    0, // PD6 - D7  -
-    0, // PD5 - D8  -
-    0, // PD4 - D9  -
+    255, // PD6 - D7  -
+    255, // PD5 - D8  -
+    255, // PD4 - D9  -
 
-    0, // PB0 - D10 - SS
-    (2 * 3 + 0),      // PB4 - D11 -
-    0, // PB3 - D12 - MISO
-    0, // PB1 - D13 - LED13  -  SCK
+    255, // PB0 - D10 - SS
+    (2'0),      // PB4 - D11 -
+    255, // PB3 - D12 - MISO
+    255, // PB1 - D13 - LED13  -  SCK
 
-    (0 * 3 + 1),      // PD0 - D14 - SCL
-    (2 * 3 + 1),      // PD1 - D15 - SDA
+    (0'1),      // PD0 - D14 - SCL
+    (2'1),      // PD1 - D15 - SDA
 
-    0, // PE7 - D16 - SW_N
-    0, // PE6 - D17 - SW_E
-    0, // PE5 - D18 - SW_S
-    0, // PE4 - D19 - SW_W
-    0, // PE3 - D20 - LCD_BL
-    0, // PE2 - D21 - LCD_E
-    0, // PE1 - D22 - LCD_RW
-    0, // PE0 - D23 - LCD_RS
+    255, // PE7 - D16 - SW_N
+    255, // PE6 - D17 - SW_E
+    255, // PE5 - D18 - SW_S
+    255, // PE4 - D19 - SW_W
+    255, // PE3 - D20 - LCD_BL
+    255, // PE2 - D21 - LCD_E
+    255, // PE1 - D22 - LCD_RW
+    255, // PE0 - D23 - LCD_RS
 
-    0, // PF7 - D24 - A0
-    0, // PF6 - D25 - A1
-    0, // PF5 - D26 - A2
-    0, // PF4 - D27 - A3
-    0, // PF3 - D28 - A4
-    0, // PF2 - D29 - A5
-    0, // PF1 - D30 - A6
-    0, // PF0 - D31 - A7
+    255, // PF7 - D24 - A0
+    255, // PF6 - D25 - A1
+    255, // PF5 - D26 - A2
+    255, // PF4 - D27 - A3
+    255, // PF3 - D28 - A4
+    255, // PF2 - D29 - A5
+    255, // PF1 - D30 - A6
+    255, // PF0 - D31 - A7
 
-    0, // PA0 - D32 - LED0   - LCD_DB0
-    0, // PA1 - D33 - LED1   - LCD_DB1
-    0, // PA2 - D34 - LED2   - LCD_DB2
-    0, // PA3 - D35 - LED3   - LCD_DB3
-    0, // PA4 - D36 - LED4   - LCD_DB4
-    0, // PA5 - D37 - LED5   - LCD_DB5
-    0, // PA6 - D38 - LED6   - LCD_DB6
-    0, // PA7 - D39 - LED7   - LCD_DB7
+    255, // PA0 - D32 - LED0   - LCD_DB0
+    255, // PA1 - D33 - LED1   - LCD_DB1
+    255, // PA2 - D34 - LED2   - LCD_DB2
+    255, // PA3 - D35 - LED3   - LCD_DB3
+    255, // PA4 - D36 - LED4   - LCD_DB4
+    255, // PA5 - D37 - LED5   - LCD_DB5
+    255, // PA6 - D38 - LED6   - LCD_DB6
+    255, // PA7 - D39 - LED7   - LCD_DB7
 
-    0, // PC0 - D40 - SERVO_1
-    0, // PC1 - D41 - SERVO_2
-    0, // PC2 - D42 - 4A
-    0, // PC3 - D43 - 2A
-    (3 * 3 + 2), // PC4 - D44 - 3A
-    (3 * 3 + 1), // PC5 - D45 - 1A
-    (3 * 3 + 0), // PC6 - D46 - BUZZER
-    0, // PC7 - D47 - SW_C
+    255, // PC0 - D40 - SERVO_1
+    255, // PC1 - D41 - SERVO_2
+    255, // PC2 - D42 - 4A
+    255, // PC3 - D43 - 2A
+    (3'2), // PC4 - D44 - 3A
+    (3'1), // PC5 - D45 - 1A
+    (3'0), // PC6 - D46 - BUZZER
+    255, // PC7 - D47 - SW_C
 
 };
 

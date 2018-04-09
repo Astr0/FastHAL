@@ -24,7 +24,7 @@ namespace FastDuino.Parser
                 GenerateDir(subdir);
         }
 
-        private static void Main(string[] args)
+        private static void Main()
         {
             GenerateDir(".");
 

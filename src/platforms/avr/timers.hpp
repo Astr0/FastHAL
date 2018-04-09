@@ -97,6 +97,7 @@
 #include "registers.hpp"
 #include "interrupts.hpp"
 #include "../../fields/fieldbit.hpp"
+#include "../../fields/func_fieldbit.hpp"
 #include "../../std/std_types.hpp"
 
 namespace fasthal{
@@ -121,7 +122,8 @@ namespace fasthal{
             _256    = 0b100,
             _1024   = 0b101,
             _fall   = 0b110,
-            _rise   = 0b111
+            _rise   = 0b111,
+            def     = _64
         };
         
         enum class timer_cs: std::uint8_t{
@@ -132,7 +134,8 @@ namespace fasthal{
             _64     = 0b100,
             _128    = 0b101,
             _256    = 0b110,
-            _1024   = 0b111
+            _1024   = 0b111,
+            def    = 64
         };
 
         // wave generation mode
@@ -152,7 +155,10 @@ namespace fasthal{
             ctc_i       = 0b1100,
             //reserved  = 0b0101,
             pwm_fasti   = 0b1110,
-            pwm_fasta   = 0b1111
+            pwm_fasta   = 0b1111,
+            pwm_pcdef   = pwm_pc8,
+            pwm_fastdef = pwm_fast8,
+            pwm_def     = pwm_pcdef
         };
 
         enum class timer_wgm2: std::uint8_t{
@@ -163,14 +169,20 @@ namespace fasthal{
             /*reserved  = 0b100,*/
             pwm_pca     = 0b101,
             /*reserved  = 0b110,*/
-            pwm_fasta   = 0b111
+            pwm_fasta   = 0b111,
+            pwm_pcdef   = pwm_pcmax,
+            pwm_fastdef = pwm_fastmax,
+            pwm_def     = pwm_pcdef
         };
 
         enum class timer_wgm1: uint8_t{
             normal      = 0b00,
             pwm_pcmax   = 0b01,
             ctc_a       = 0b10,
-            pwm_fastmax = 0b11
+            pwm_fastmax = 0b11,
+            pwm_pcdef   = pwm_pcmax,
+            pwm_fastdef = pwm_fastmax,            
+            pwm_def     = pwm_pcdef
         };
 
         template<unsigned VNum>
@@ -191,6 +203,94 @@ namespace fasthal{
     #include "timers/timer3.hpp"
     #include "timers/timer4.hpp"
     #include "timers/timer5.hpp"
+
+    template<unsigned VNum, 
+        typename TTimer = details::timer_impl<VNum>,
+        typename Tcs = integral_constant<typename TTimer::cs_t, TTimer::cs_t::def>, 
+        typename Twgm = integral_constant<typename TTimer::wgm_t, TTimer::wgm_t::pwm_def>>
+    inline constexpr auto begin(details::timer_impl<VNum> timer, 
+        Tcs cs = integral_constant<typename TTimer::cs_t, TTimer::cs_t::def>{}, 
+        Twgm wgm = integral_constant<typename TTimer::wgm_t, TTimer::wgm_t::pwm_def>{}){
+        return combine(
+            write(timer.cs, cs),
+            write(timer.wgm, wgm)
+        );
+    }
+
+    // template<unsigned VNum, typename Tcs, typename Twgm, typename TTimer = details::timer_impl<VNum>>
+    // inline constexpr auto begin(details::timer_impl<VNum> timer, 
+    //     Tcs cs = integral_constant<TTimer::cs_t, TTimer::cs_t::def>{}, 
+    //     Twgm = integral_constant<TTimer::wgm_t, TTimer::wgm_t::pwm_def>{}){
+    //     return combine(
+    //         write(timer.cs, cs),
+    //         write(timer.wgm, wgm)
+    //     );
+    // }
+
+    // from OC to timer
+    template<unsigned VNum, unsigned VComp>
+    inline constexpr auto timer(details::timer_oc_impl<VNum, VComp> oc){
+        return details::timer_impl<VNum>{};
+    }
+
+    // pwm, apply mode
+    template<unsigned VNum, unsigned VComp, typename TVal>
+    inline constexpr auto pwm(details::timer_oc_impl<VNum, VComp> oc, TVal val){        
+        return combine(
+            write(oc.comr, timer_oc_v<timer_oc::clear>),
+            write(oc.ocr, val)
+        );
+    }
+    template<unsigned VNum, unsigned VComp>
+    inline constexpr auto nopwm(details::timer_oc_impl<VNum, VComp> oc)
+    {
+        return write(oc.comr, timer_oc_v<timer_oc::none>);
+    }
+
+    // pwm immediate
+    template<unsigned VNum, unsigned VComp, typename TVal>
+    inline void pwm_(details::timer_oc_impl<VNum, VComp> oc, TVal val){
+        write_(oc.comr, timer_oc_v<timer_oc::clear>),
+        write_(oc.ocr, val);
+    }
+    template<unsigned VNum, unsigned VComp>
+    inline void nopwm_(details::timer_oc_impl<VNum, VComp> oc)
+    {
+        write_(oc.comr, timer_oc_v<timer_oc::none>);
+    }
+
+    namespace details{
+        template<class TOC>
+        struct func_fieldbit_pwn{
+            using toc_t = TOC;
+        };
+    }
+
+    // from OC to timer
+    template<class T, typename TOC = typename details::func_fieldbit<T>::toc_t>
+    inline constexpr auto timer(T func){
+        return timer(TOC{});
+    }
+
+    // pwm, apply mode
+    template<class T, typename TVal, typename TOC = typename details::func_fieldbit<T>::toc_t>
+    inline constexpr auto pwm(T func, TVal val){
+        return pwm(TOC{}, val);
+    }
+    template<class T, typename TOC = typename details::func_fieldbit<T>::toc_t>
+    inline constexpr auto nopwm(T func){
+        return nopwm(TOC{});
+    }
+
+    // pwm immediate
+    template<class T, typename TVal, typename TOC = typename details::func_fieldbit<T>::toc_t>
+    inline void pwm_(T func, TVal val){
+        pwm_(TOC{}, val);
+    }
+    template<class T, typename TOC = typename details::func_fieldbit<T>::toc_t>
+    inline void nopwm_(T func){
+        nopwm_(TOC{});
+    }
 }
 
 #endif

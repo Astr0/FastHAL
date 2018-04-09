@@ -24,7 +24,7 @@ namespace fasthal{
             return fasthal::duino::ino_pin_num[VNum];
         }
 
-        static constexpr uint8_t ino_no_mux = 255;
+        static constexpr auto ino_no_mux = 255;
 
         template<unsigned VNum>
         static constexpr auto get_ino_mux(){
@@ -51,6 +51,14 @@ namespace fasthal{
         }
 
         template<unsigned VNum>
+        static constexpr auto get_ino_timeroc(){
+            static_assert(VNum < std::array_size(fasthal::duino::ino_timer_oc_num), "Pin out of range");
+            return fasthal::duino::ino_timer_oc_num[VNum];
+        }
+
+        static constexpr auto ino_no_timeroc = 255;        
+
+        template<unsigned VNum>
         struct ino_pin:
             // inherit avr stuff
             avr_pin<get_ino_port_num<VNum>(), get_ino_pin_num<VNum>()>
@@ -63,7 +71,10 @@ namespace fasthal{
             func_fieldbit_impl<avr_pin<get_ino_port_num<VNum>(), get_ino_pin_num<VNum>()>>                
             , std::conditional<get_ino_mux<VNum>() != ino_no_mux
                 , func_fieldbit_adc<decltype(::fasthal::avr::mux_v<get_ino_mux<VNum>()>)>
-                , std::empty_t>::type
+                , std::empty_t<0>>::type
+            , std::conditional<get_ino_timeroc<VNum>() != ino_no_timeroc
+                , func_fieldbit_pwn<timer_oc_impl<get_ino_timeroc<VNum>() / 10, get_ino_timeroc<VNum>() % 10>>
+                , std::empty_t<1>>::type
         {};
     }
 

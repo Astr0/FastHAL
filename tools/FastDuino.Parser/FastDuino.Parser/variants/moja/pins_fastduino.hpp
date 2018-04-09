@@ -165,41 +165,41 @@ constexpr std::uint8_t ino_pin_num[] = {
 };
 
 constexpr std::uint8_t ino_timer_oc_num[] = {
-	0, /* 0 - port D */
-	0,
-	0,
+	255, /* 0 - port D */
+	255,
+	255,
 	// on the ATmega168, digital pin 3 has hardware pwm
 #if defined(__AVR_ATmega8__)
-	0,
+	255,
 #else
-	(2 * 3 + 1),
+	(2'1),
 #endif
-	0,
+	255,
 	// on the ATmega168, digital pins 5 and 6 have hardware pwm
 #if defined(__AVR_ATmega8__)
-	0,
-	0,
+	255,
+	255,
 #else
-	(0 * 3 + 1),
-	(0 * 3 + 0),
+	(0'1),
+	(0'0),
 #endif
-	0,
-	0, /* 8 - port B */
-	(1 * 3 + 0),
-	(1 * 3 + 1),
+	255,
+	255, /* 8 - port B */
+	(1'0),
+	(1'1),
 #if defined(__AVR_ATmega8__)
-	(2 * 3 + 0),
+	(2'0),
 #else
-	(2 * 3 + 0),
+	(2'0),
 #endif
-	0,
-	0,
-	0,
-	0, /* 14 - port C */
-	0,
-	0,
-	0,
-	0,
+	255,
+	255,
+	255,
+	255, /* 14 - port C */
+	255,
+	255,
+	255,
+	255,
 };
 
 #endif

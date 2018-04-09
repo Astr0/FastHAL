@@ -152,23 +152,23 @@ constexpr std::uint8_t ino_pin_num[] = {
 };
 
 constexpr std::uint8_t ino_timer_oc_num[] = {
-	0, // D0
-	0, // D1
-	(0 * 3 + 0),      // D2	PWM
-	0, // D3
-	0, // D4
-	(1 * 3 + 0),      // D5	PWM
-	(1 * 3 + 1),      // D6	PWM
-	(2 * 3 + 0),      // D7	PWM
-	0, // D8
-	0, // D9
-	0, // A0
-	0, // A1
-	0, // A2
-	0, // A3
-	0, // A4
-	0, // A5
-	0, // CC_INTERRUPT
+	255, // D0
+	255, // D1
+	(0'0),      // D2	PWM
+	255, // D3
+	255, // D4
+	(1'0),      // D5	PWM
+	(1'1),      // D6	PWM
+	(2'0),      // D7	PWM
+	255, // D8
+	255, // D9
+	255, // A0
+	255, // A1
+	255, // A2
+	255, // A3
+	255, // A4
+	255, // A5
+	255, // CC_INTERRUPT
 };
 
 #endif  // ARDUINO_MAIN

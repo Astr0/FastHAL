@@ -32,14 +32,14 @@
 
         private static string GetTimerNum(int timer, int oc)
         {
-            return $"({timer} * 3 + {oc})";
+            return $"({timer}'{oc})";
         }
 
         private static string ReplaceTimers(string arg)
         {
             arg = arg
                 .Replace("digital_pin_to_timer_PGM", "ino_timer_oc_num")
-                .Replace("NOT_ON_TIMER", "0");
+                .Replace("NOT_ON_TIMER", "255");
             for (var timer = 0; timer < 6; timer++)
             {
                 for (var oc = 0; oc < 3; oc++)
