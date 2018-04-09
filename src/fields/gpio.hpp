@@ -48,7 +48,6 @@ namespace fasthal{
 	}
 
 	// immediate actions
-
 	template<typename TFunc, typename TFieldBit = typename details::func_fieldbit<TFunc>::gpout_t>
 	inline void set_(TFunc func){
 		 set_(TFieldBit{});

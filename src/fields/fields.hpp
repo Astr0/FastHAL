@@ -2,6 +2,7 @@
 #define FH_FIELDS_H_
 
 #include "fieldbit.hpp"
+#include "fieldbit_funcs.hpp"
 #include "info.hpp"
 #include "nullfield.hpp"
 #include "vfield.hpp"
