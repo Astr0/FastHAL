@@ -33,48 +33,48 @@
 #define CALUNIUM
 #define CALUNIUM_VARIANT stripboard
 
-#define NUM_DIGITAL_PINS            32
-#define NUM_ANALOG_INPUTS           8
+#define FH_NUM_DIGITAL_PINS            32
+#define FH_NUM_ANALOG_INPUTS           8
 #define analogInputToDigitalPin(p)  ((p < 8) ? (p) + 24 : -1)
 
 #ifdef __cplusplus
 extern "C"{
 #endif
-extern constexpr std::uint8_t digital_pin_to_pcint[NUM_DIGITAL_PINS];
-extern constexpr std::uint16_t __pcmsk[];
-extern constexpr std::uint8_t ino_timer_oc_num[NUM_DIGITAL_PINS];
+extern constexpr uint8_t digital_pin_to_pcint[FH_NUM_DIGITAL_PINS];
+extern constexpr uint16_t __pcmsk[];
+extern constexpr std::uint8_t ino_timer_oc_num[FH_NUM_DIGITAL_PINS];
 #ifdef __cplusplus
 }
 #endif
 
-#define ifpin(p,what,ifnot)	    (((p) >= 0 && (p) < NUM_DIGITAL_PINS) ? (what) : (ifnot))
+#define ifpin(p,what,ifnot)	    (((p) >= 0 && (p) < FH_NUM_DIGITAL_PINS) ? (what) : (ifnot))
 #define digitalPinHasPWM(p)         ifpin(p,(digital_pin_to_timer_PGM + (p)) != NOT_ON_TIMER,1==0)
 
 #define digitalPinToAnalogPin(p)    ( (p) >= 24 && (p) <= 31 ? (p) - 24 : -1 )
-#define analogPinToChannel(p)	    ( (p) < NUM_ANALOG_INPUTS ? NUM_ANALOG_INPUTS - 1 - (p) : -1 )
+#define analogPinToChannel(p)	    ( (p) < FH_NUM_ANALOG_INPUTS ? FH_NUM_ANALOG_INPUTS - 1 - (p) : -1 )
 
-static constexpr std::uint8_t SS   = 10;
-static constexpr std::uint8_t MOSI = 11;
-static constexpr std::uint8_t MISO = 12;
-static constexpr std::uint8_t SCK  = 13;
+static constexpr uint8_t SS   = 10;
+static constexpr uint8_t MOSI = 11;
+static constexpr uint8_t MISO = 12;
+static constexpr uint8_t SCK  = 13;
 
-static constexpr std::uint8_t SDA = 20;
-static constexpr std::uint8_t SCL = 21;
-static constexpr std::uint8_t LED_BUILTIN = 13;
+static constexpr uint8_t SDA = 20;
+static constexpr uint8_t SCL = 21;
+static constexpr uint8_t LED_BUILTIN = 13;
 
-static constexpr std::uint8_t A0 = 24;
-static constexpr std::uint8_t A1 = 25;
-static constexpr std::uint8_t A2 = 26;
-static constexpr std::uint8_t A3 = 27;
-static constexpr std::uint8_t A4 = 28;
-static constexpr std::uint8_t A5 = 29;
-static constexpr std::uint8_t A6 = 30;
-static constexpr std::uint8_t A7 = 31;
+static constexpr uint8_t A0 = 24;
+static constexpr uint8_t A1 = 25;
+static constexpr uint8_t A2 = 26;
+static constexpr uint8_t A3 = 27;
+static constexpr uint8_t A4 = 28;
+static constexpr uint8_t A5 = 29;
+static constexpr uint8_t A6 = 30;
+static constexpr uint8_t A7 = 31;
 
 #ifdef PCICR
 #define digitalPinToPCICR(p)    ( \
     ((p) >= 0 && (p) <= 31) ? (&PCICR) : \
-    ((std::uint8_t *)0) \
+    ((uint8_t *)0) \
 )
 #define digitalPinToPCICRbit(p) ( \
     ((p)== 0) ? 3 : \
@@ -145,7 +145,7 @@ static constexpr std::uint8_t A7 = 31;
     ((p)==29) ? (&PCMSK0) : \
     ((p)==30) ? (&PCMSK0) : \
     ((p)==31) ? (&PCMSK0) : \
-    ((std::uint8_t *)0) \
+    ((uint8_t *)0) \
 )
 #define digitalPinToPCMSKbit(p) ( \
     ((p)== 0) ? 0 : \
@@ -185,9 +185,9 @@ static constexpr std::uint8_t A7 = 31;
 
 #else
 /* no PCINT (mega32) */
-#define digitalPinToPCICR(p)    ((std::uint8_t *)0)
+#define digitalPinToPCICR(p)    ((uint8_t *)0)
 #define digitalPinToPCICRbit(p) 0
-#define digitalPinToPCMSK(p)    ((std::uint8_t *)0)
+#define digitalPinToPCMSK(p)    ((uint8_t *)0)
 #define digitalPinToPCMSKbit(p) 0
 #endif /* PCICR */
 
@@ -198,7 +198,7 @@ static constexpr std::uint8_t A7 = 31;
 #define PC 3
 #define PD 4
 
-constexpr std::uint8_t digital_pin_to_pcint[NUM_DIGITAL_PINS] =
+constexpr uint8_t digital_pin_to_pcint[FH_NUM_DIGITAL_PINS] =
 {
   24, // D0 PD0
   25, // D1 PD1
@@ -234,12 +234,12 @@ constexpr std::uint8_t digital_pin_to_pcint[NUM_DIGITAL_PINS] =
   0, // D31 PA0
 };
 
-constexpr std::uint16_t __pcmsk[] = 
+constexpr uint16_t __pcmsk[] = 
 {
-  (std::uint16_t)&PCMSK0, 
-  (std::uint16_t)&PCMSK1, 
-  (std::uint16_t)&PCMSK2, 
-  (std::uint16_t)&PCMSK3
+  (uint16_t)&PCMSK0, 
+  (uint16_t)&PCMSK1, 
+  (uint16_t)&PCMSK2, 
+  (uint16_t)&PCMSK3
 };
 
 // these arrays map port names (e.g. port B) to the
@@ -251,7 +251,7 @@ constexpr std::uint16_t __pcmsk[] =
 
 
 
-constexpr std::uint8_t ino_port_num[NUM_DIGITAL_PINS] =
+constexpr std::uint8_t ino_port_num[FH_NUM_DIGITAL_PINS] =
 {
   4, // D0
   4, // D1
@@ -287,7 +287,7 @@ constexpr std::uint8_t ino_port_num[NUM_DIGITAL_PINS] =
   1, // D31
 };
 
-constexpr std::uint8_t ino_pin_num[NUM_DIGITAL_PINS] =
+constexpr std::uint8_t ino_pin_num[FH_NUM_DIGITAL_PINS] =
 {
   0, // D0 PD0
   1, // D1 PD1
@@ -323,7 +323,7 @@ constexpr std::uint8_t ino_pin_num[NUM_DIGITAL_PINS] =
   0, // D31 PA0
 };
 
-constexpr std::uint8_t digital_pin_to_timer_PGM[NUM_DIGITAL_PINS] =
+constexpr uint8_t digital_pin_to_timer_PGM[FH_NUM_DIGITAL_PINS] =
 {
   NOT_ON_TIMER, // D0 PD0
   NOT_ON_TIMER, // D1 PD1

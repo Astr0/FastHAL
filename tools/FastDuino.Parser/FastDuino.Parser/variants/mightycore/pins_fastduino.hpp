@@ -43,11 +43,11 @@ PCINT7-0: D31-24   : bit 0
 */
 
 #define STANDARD_PINOUT
-#define NUM_DIGITAL_PINS            32
-#define NUM_ANALOG_INPUTS           8
+#define FH_NUM_DIGITAL_PINS            32
+#define FH_NUM_ANALOG_INPUTS           8
 #define EXTERNAL_NUM_INTERRUPTS     3
-#define analogInputToDigitalPin(p)  ((p < NUM_ANALOG_INPUTS) ? (p) + 24 : -1)
-#define analogPinToChannel(p)       ((p) < NUM_ANALOG_INPUTS ? (p) : (p) >= 24 ? (p) - 24 : -1)
+#define analogInputToDigitalPin(p)  ((p < FH_NUM_ANALOG_INPUTS) ? (p) + 24 : -1)
+#define analogPinToChannel(p)       ((p) < FH_NUM_ANALOG_INPUTS ? (p) : (p) >= 24 ? (p) - 24 : -1)
 #define digitalPinToInterrupt(p)    ((p) == 2 ? 2 : ((p) == 10 ? 0 : ((p) == 11 ? 1 : NOT_AN_INTERRUPT)))
 
 #if defined(__AVR_ATmega8535__) || defined(__AVR_ATmega16__) || defined(__AVR_ATmega32__)
@@ -63,31 +63,31 @@ defined(__AVR_ATmega644P__)
 #endif
 
 
-static constexpr std::uint8_t LED = 0;
+static constexpr uint8_t LED = 0;
 #define LED_BUILTIN 0
 
-static constexpr std::uint8_t SS   = 4;
-static constexpr std::uint8_t MOSI = 5;
-static constexpr std::uint8_t MISO = 6;
-static constexpr std::uint8_t SCK  = 7;
+static constexpr uint8_t SS   = 4;
+static constexpr uint8_t MOSI = 5;
+static constexpr uint8_t MISO = 6;
+static constexpr uint8_t SCK  = 7;
 
-static constexpr std::uint8_t SDA = 17;
-static constexpr std::uint8_t SCL = 16;
+static constexpr uint8_t SDA = 17;
+static constexpr uint8_t SCL = 16;
 
-static constexpr std::uint8_t A0 = 24;
-static constexpr std::uint8_t A1 = 25;
-static constexpr std::uint8_t A2 = 26;
-static constexpr std::uint8_t A3 = 27;
-static constexpr std::uint8_t A4 = 28;
-static constexpr std::uint8_t A5 = 29;
-static constexpr std::uint8_t A6 = 30;
-static constexpr std::uint8_t A7 = 31;
+static constexpr uint8_t A0 = 24;
+static constexpr uint8_t A1 = 25;
+static constexpr uint8_t A2 = 26;
+static constexpr uint8_t A3 = 27;
+static constexpr uint8_t A4 = 28;
+static constexpr uint8_t A5 = 29;
+static constexpr uint8_t A6 = 30;
+static constexpr uint8_t A7 = 31;
 
 
 #if defined(__AVR_ATmega164A__) || defined(__AVR_ATmega164P__) || defined(__AVR_ATmega324A__) || \
 defined(__AVR_ATmega324P__) || defined(__AVR_ATmega324PA__) || defined(__AVR_ATmega644__) || \
 defined(__AVR_ATmega644P__) || defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__)
-#define digitalPinToPCICR(p)    (((p) >= 0 && (p) < NUM_DIGITAL_PINS) ? (&PCICR) : ((std::uint8_t *)0))
+#define digitalPinToPCICR(p)    (((p) >= 0 && (p) < FH_NUM_DIGITAL_PINS) ? (&PCICR) : ((uint8_t *)0))
 #define digitalPinToPCICRbit(p) ( (p) <= 7 ? 1 : (p) <= 15 ? 3 : (p) <= 23 ? 2 : 0 )
 #define digitalPinToPCMSK(p)    ( (p) <= 7 ? &PCMSK1 : (p) <= 15 ? &PCMSK3 : (p) <= 23 ? &PCMSK2 : &PCMSK0 )
 #define digitalPinToPCMSKbit(p) ((p) % 8)
@@ -243,7 +243,7 @@ constexpr std::uint8_t ino_timer_oc_num[] =
 #elif defined(__AVR_ATmega164A__) || defined(__AVR_ATmega164P__) || defined(__AVR_ATmega324A__) || \
 defined(__AVR_ATmega324P__) || defined(__AVR_ATmega324PA__) || defined(__AVR_ATmega644__) || \
 defined(__AVR_ATmega644P__)
-constexpr std::uint8_t digital_pin_to_timer_PGM[] =
+constexpr uint8_t digital_pin_to_timer_PGM[] =
 {
 	NOT_ON_TIMER, 	/* D0  - PB0 */
 	NOT_ON_TIMER, 	/* D1  - PB1 */
@@ -280,7 +280,7 @@ constexpr std::uint8_t digital_pin_to_timer_PGM[] =
 };
 
 #elif defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__)
-constexpr std::uint8_t digital_pin_to_timer_PGM[] =
+constexpr uint8_t digital_pin_to_timer_PGM[] =
 {
 	NOT_ON_TIMER, 	/* D0  - PB0 */
 	NOT_ON_TIMER, 	/* D1  - PB1 */

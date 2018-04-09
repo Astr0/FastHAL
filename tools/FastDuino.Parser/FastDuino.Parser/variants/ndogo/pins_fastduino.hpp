@@ -38,43 +38,43 @@
  * PD0..PD7, PB0..PB7, PC0..PC7, PA0..PA7
  */
 
-#define NUM_DIGITAL_PINS            32
-#define NUM_ANALOG_INPUTS           8
+#define FH_NUM_DIGITAL_PINS            32
+#define FH_NUM_ANALOG_INPUTS           8
 
-#define analogInputToDigitalPin(p)  ((p < NUM_ANALOG_INPUTS) ? (p) + 24 : -1)
+#define analogInputToDigitalPin(p)  ((p < FH_NUM_ANALOG_INPUTS) ? (p) + 24 : -1)
 
 // TODO, Verify this
 #define digitalPinHasPWM(p)         ((p) == 3 || (p) == 4 || (p) == 6 || (p) == 7 || (p) == 12 || (p) == 13 || (p) == 14 || (p) == 15)
 
-static constexpr std::uint8_t SS   = 12;
-static constexpr std::uint8_t MOSI = 13;
-static constexpr std::uint8_t MISO = 14;
-static constexpr std::uint8_t SCK  = 15;
+static constexpr uint8_t SS   = 12;
+static constexpr uint8_t MOSI = 13;
+static constexpr uint8_t MISO = 14;
+static constexpr uint8_t SCK  = 15;
 
-static constexpr std::uint8_t SDA = 17;
-static constexpr std::uint8_t SCL = 16;
+static constexpr uint8_t SDA = 17;
+static constexpr uint8_t SCL = 16;
 
-static constexpr std::uint8_t SIM800PWRKEY = 18;
-static constexpr std::uint8_t SIM800STATUS = 19;
-static constexpr std::uint8_t SIM800DTR    = 20;
-static constexpr std::uint8_t SIM800RI     = 21;
-static constexpr std::uint8_t SIM800VBAT   = 23;         // Switches the VBAT on (=HIGH) or off (=LOW) for the SIM800
+static constexpr uint8_t SIM800PWRKEY = 18;
+static constexpr uint8_t SIM800STATUS = 19;
+static constexpr uint8_t SIM800DTR    = 20;
+static constexpr uint8_t SIM800RI     = 21;
+static constexpr uint8_t SIM800VBAT   = 23;         // Switches the VBAT on (=HIGH) or off (=LOW) for the SIM800
 
-static constexpr std::uint8_t LED2 = 8;                  // Green
-static constexpr std::uint8_t LED1 = 9;                  // Red
+static constexpr uint8_t LED2 = 8;                  // Green
+static constexpr uint8_t LED1 = 9;                  // Red
 
-static constexpr std::uint8_t BATVOLTPIN = 24;           // A0
+static constexpr uint8_t BATVOLTPIN = 24;           // A0
 #define BATVOLT_R1      47                      // in fact 4.7M
 #define BATVOLT_R2      100                     // in fact 10M
 
-static constexpr std::uint8_t A0 = 24;
-static constexpr std::uint8_t A1 = 25;
-static constexpr std::uint8_t A2 = 26;
-static constexpr std::uint8_t A3 = 27;
-static constexpr std::uint8_t A4 = 28;
-static constexpr std::uint8_t A5 = 29;
-static constexpr std::uint8_t A6 = 30;
-static constexpr std::uint8_t A7 = 31;
+static constexpr uint8_t A0 = 24;
+static constexpr uint8_t A1 = 25;
+static constexpr uint8_t A2 = 26;
+static constexpr uint8_t A3 = 27;
+static constexpr uint8_t A4 = 28;
+static constexpr uint8_t A5 = 29;
+static constexpr uint8_t A6 = 30;
+static constexpr uint8_t A7 = 31;
 
 /*
    PCINT31-24: D7-0   : bit 3
@@ -83,7 +83,7 @@ static constexpr std::uint8_t A7 = 31;
    PCINT7-0:   D31-24 : bit 0 (also A0..A7)
 */
 
-#define digitalPinToPCICR(p)    (((p) >= 0 && (p) < NUM_DIGITAL_PINS) ? (&PCICR) : ((std::uint8_t *)0))
+#define digitalPinToPCICR(p)    (((p) >= 0 && (p) < FH_NUM_DIGITAL_PINS) ? (&PCICR) : ((uint8_t *)0))
 #define digitalPinToPCICRbit(p) (((p) <= 7) ? 3         : (((p) <= 15) ? 1         : (((p) <= 23) ? 2         : 0)))
 #define digitalPinToPCMSK(p)    (((p) <= 7) ? (&PCMSK3) : (((p) <= 15) ? (&PCMSK1) : (((p) <= 23) ? (&PCMSK2) : (&PCMSK0))))
 #define digitalPinToPCMSKbit(p) ((p) % 8)

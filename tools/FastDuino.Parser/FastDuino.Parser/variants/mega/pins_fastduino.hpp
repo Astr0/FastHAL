@@ -26,8 +26,8 @@
 
 
 
-#define NUM_DIGITAL_PINS            70
-#define NUM_ANALOG_INPUTS           16
+#define FH_NUM_DIGITAL_PINS            70
+#define FH_NUM_ANALOG_INPUTS           16
 #define analogInputToDigitalPin(p)  ((p < 16) ? (p) + 54 : -1)
 #define digitalPinHasPWM(p)         (((p) >= 2 && (p) <= 13) || ((p) >= 44 && (p)<= 46))
 
@@ -36,16 +36,16 @@
 #define PIN_SPI_MISO  (50)
 #define PIN_SPI_SCK   (52)
 
-static constexpr std::uint8_t SS   = PIN_SPI_SS;
-static constexpr std::uint8_t MOSI = PIN_SPI_MOSI;
-static constexpr std::uint8_t MISO = PIN_SPI_MISO;
-static constexpr std::uint8_t SCK  = PIN_SPI_SCK;
+static constexpr uint8_t SS   = PIN_SPI_SS;
+static constexpr uint8_t MOSI = PIN_SPI_MOSI;
+static constexpr uint8_t MISO = PIN_SPI_MISO;
+static constexpr uint8_t SCK  = PIN_SPI_SCK;
 
 #define PIN_WIRE_SDA        (20)
 #define PIN_WIRE_SCL        (21)
 
-static constexpr std::uint8_t SDA = PIN_WIRE_SDA;
-static constexpr std::uint8_t SCL = PIN_WIRE_SCL;
+static constexpr uint8_t SDA = PIN_WIRE_SDA;
+static constexpr uint8_t SCL = PIN_WIRE_SCL;
 
 #define LED_BUILTIN 13
 
@@ -66,22 +66,22 @@ static constexpr std::uint8_t SCL = PIN_WIRE_SCL;
 #define PIN_A14  (68)
 #define PIN_A15  (69)
 
-static constexpr std::uint8_t A0 = PIN_A0;
-static constexpr std::uint8_t A1 = PIN_A1;
-static constexpr std::uint8_t A2 = PIN_A2;
-static constexpr std::uint8_t A3 = PIN_A3;
-static constexpr std::uint8_t A4 = PIN_A4;
-static constexpr std::uint8_t A5 = PIN_A5;
-static constexpr std::uint8_t A6 = PIN_A6;
-static constexpr std::uint8_t A7 = PIN_A7;
-static constexpr std::uint8_t A8 = PIN_A8;
-static constexpr std::uint8_t A9 = PIN_A9;
-static constexpr std::uint8_t A10 = PIN_A10;
-static constexpr std::uint8_t A11 = PIN_A11;
-static constexpr std::uint8_t A12 = PIN_A12;
-static constexpr std::uint8_t A13 = PIN_A13;
-static constexpr std::uint8_t A14 = PIN_A14;
-static constexpr std::uint8_t A15 = PIN_A15;
+static constexpr uint8_t A0 = PIN_A0;
+static constexpr uint8_t A1 = PIN_A1;
+static constexpr uint8_t A2 = PIN_A2;
+static constexpr uint8_t A3 = PIN_A3;
+static constexpr uint8_t A4 = PIN_A4;
+static constexpr uint8_t A5 = PIN_A5;
+static constexpr uint8_t A6 = PIN_A6;
+static constexpr uint8_t A7 = PIN_A7;
+static constexpr uint8_t A8 = PIN_A8;
+static constexpr uint8_t A9 = PIN_A9;
+static constexpr uint8_t A10 = PIN_A10;
+static constexpr uint8_t A11 = PIN_A11;
+static constexpr uint8_t A12 = PIN_A12;
+static constexpr uint8_t A13 = PIN_A13;
+static constexpr uint8_t A14 = PIN_A14;
+static constexpr uint8_t A15 = PIN_A15;
 
 // A majority of the pins are NOT PCINTs, SO BE WARNED (i.e. you cannot use them as receive pins)
 // Only pins available for RECEIVE (TRANSMIT can be on any pin):
@@ -90,7 +90,7 @@ static constexpr std::uint8_t A15 = PIN_A15;
 
 #define digitalPinToPCICR(p)    ( (((p) >= 10) && ((p) <= 13)) || \
                                   (((p) >= 50) && ((p) <= 53)) || \
-                                  (((p) >= 62) && ((p) <= 69)) ? (&PCICR) : ((std::uint8_t *)0) )
+                                  (((p) >= 62) && ((p) <= 69)) ? (&PCICR) : ((uint8_t *)0) )
 
 #define digitalPinToPCICRbit(p) ( (((p) >= 10) && ((p) <= 13)) || (((p) >= 50) && ((p) <= 53)) ? 0 : \
                                 ( (((p) >= 62) && ((p) <= 69)) ? 2 : \
@@ -98,7 +98,7 @@ static constexpr std::uint8_t A15 = PIN_A15;
 
 #define digitalPinToPCMSK(p)    ( (((p) >= 10) && ((p) <= 13)) || (((p) >= 50) && ((p) <= 53)) ? (&PCMSK0) : \
                                 ( (((p) >= 62) && ((p) <= 69)) ? (&PCMSK2) : \
-                                ((std::uint8_t *)0) ) )
+                                ((uint8_t *)0) ) )
 
 #define digitalPinToPCMSKbit(p) ( (((p) >= 10) && ((p) <= 13)) ? ((p) - 6) : \
                                 ( ((p) == 50) ? 3 : \

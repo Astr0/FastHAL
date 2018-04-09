@@ -19,6 +19,9 @@ static decltype(VARNAME)& value(){return VARNAME;}\
 inline constexpr NAME operator|(NAME x, NAME y){ return static_cast<NAME>(static_cast<BASE>(x) | static_cast<BASE>(y)); }\
 inline constexpr NAME operator&(NAME x, NAME y){ return static_cast<NAME>(static_cast<BASE>(x) & static_cast<BASE>(y)); }
 
+#define FH_JOIN_(x, y) x ## y
+#define FH_JOIN(x, y) FH_JOIN_(x, y)
+
 namespace fasthal{
     template<int val>
     int constInt() {return val; }

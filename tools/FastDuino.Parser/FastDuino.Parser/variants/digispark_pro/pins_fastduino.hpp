@@ -36,8 +36,8 @@
 
 
 
-#define NUM_DIGITAL_PINS            14
-#define NUM_ANALOG_INPUTS           10
+#define FH_NUM_DIGITAL_PINS            14
+#define FH_NUM_ANALOG_INPUTS           10
 #define analogInputToDigitalPin(p)  ((p == 3) ? 23 : (p == 5) ? 21 : (p < 13 && p > 5) ? p+14 : (p ==13) ? 24 : -1)
 
 #define digitalPinHasPWM(p)         ((p) == 0 || (p) == 1)
@@ -47,20 +47,20 @@
 #define MISO 8
 #define SCK  11
 
-static constexpr std::uint8_t SDA = 0;
-static constexpr std::uint8_t SCL = 2;
+static constexpr uint8_t SDA = 0;
+static constexpr uint8_t SCL = 2;
 
 //Ax constexprants cannot be used for digitalRead/digitalWrite/analogWrite functions, only analogRead().
-static constexpr std::uint8_t A3 = NUM_DIGITAL_PINS+9;
-static constexpr std::uint8_t A5 = NUM_DIGITAL_PINS+7;
-static constexpr std::uint8_t A6 = NUM_DIGITAL_PINS+0;
-static constexpr std::uint8_t A7 = NUM_DIGITAL_PINS+1;
-static constexpr std::uint8_t A8 = NUM_DIGITAL_PINS+2;
-static constexpr std::uint8_t A9 = NUM_DIGITAL_PINS+3;
-static constexpr std::uint8_t A10 = NUM_DIGITAL_PINS+4;
-static constexpr std::uint8_t A11 = NUM_DIGITAL_PINS+5;
-static constexpr std::uint8_t A12 = NUM_DIGITAL_PINS+6;
-static constexpr std::uint8_t A13 = NUM_DIGITAL_PINS+10;
+static constexpr uint8_t A3 = FH_NUM_DIGITAL_PINS+9;
+static constexpr uint8_t A5 = FH_NUM_DIGITAL_PINS+7;
+static constexpr uint8_t A6 = FH_NUM_DIGITAL_PINS+0;
+static constexpr uint8_t A7 = FH_NUM_DIGITAL_PINS+1;
+static constexpr uint8_t A8 = FH_NUM_DIGITAL_PINS+2;
+static constexpr uint8_t A9 = FH_NUM_DIGITAL_PINS+3;
+static constexpr uint8_t A10 = FH_NUM_DIGITAL_PINS+4;
+static constexpr uint8_t A11 = FH_NUM_DIGITAL_PINS+5;
+static constexpr uint8_t A12 = FH_NUM_DIGITAL_PINS+6;
+static constexpr uint8_t A13 = FH_NUM_DIGITAL_PINS+10;
 
 
 

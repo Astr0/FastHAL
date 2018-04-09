@@ -116,7 +116,7 @@ namespace fasthal{
         // clock source
         enum class timer_csext: std::uint8_t{
             _       = 0b000,
-            _0      = 0b001,
+            _1      = 0b001,
             _8      = 0b010,
             _64     = 0b011,
             _256    = 0b100,
@@ -128,7 +128,7 @@ namespace fasthal{
         
         enum class timer_cs: std::uint8_t{
             _       = 0b000,
-            _0      = 0b001,
+            _1      = 0b001,
             _8      = 0b010,
             _32     = 0b011,
             _64     = 0b100,
@@ -197,6 +197,34 @@ namespace fasthal{
         };
     }
 
+    static constexpr std::uint16_t timer_cs_value(details::timer_cs cs){
+        using cs_t = details::timer_cs;
+        switch (cs){
+            //case cs_t::_        : return 0;
+            case cs_t::_1      : return 1U;
+            case cs_t::_8      : return 8U;
+            case cs_t::_32     : return 32U;
+            case cs_t::_64     : return 64U;
+            case cs_t::_128    : return 128U;
+            case cs_t::_256    : return 256U;
+            case cs_t::_1024   : return 1024U;
+            default            : return 0U;
+        };
+    }
+    static constexpr std::uint16_t timer_cs_value(details::timer_csext cs){
+        using cs_t = details::timer_csext;
+        switch (cs){
+            //case cs_t::_        : return 0;
+            case cs_t::_1      : return 1U;
+            case cs_t::_8      : return 8U;
+            case cs_t::_64     : return 64U;
+            case cs_t::_256    : return 256U;
+            case cs_t::_1024   : return 1024U;
+            default            : return 0U;
+        };
+    }
+
+
     #include "timers/timer0.hpp"
     #include "timers/timer1.hpp"
     #include "timers/timer2.hpp"
@@ -215,6 +243,16 @@ namespace fasthal{
             write(timer.cs, cs),
             write(timer.wgm, wgm)
         );
+    }
+
+    template<unsigned VNum, 
+        typename TTimer = details::timer_impl<VNum>,
+        typename Tcs = integral_constant<typename TTimer::cs_t, TTimer::cs_t::def>, 
+        typename Twgm = integral_constant<typename TTimer::wgm_t, TTimer::wgm_t::pwm_def>>
+    inline void begin_(details::timer_impl<VNum> timer, 
+        Tcs cs = integral_constant<typename TTimer::cs_t, TTimer::cs_t::def>{}, 
+        Twgm wgm = integral_constant<typename TTimer::wgm_t, TTimer::wgm_t::pwm_def>{}){
+            apply(begin(timer, cs, wgm));
     }
 
     // template<unsigned VNum, typename Tcs, typename Twgm, typename TTimer = details::timer_impl<VNum>>

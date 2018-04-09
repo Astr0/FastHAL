@@ -37,39 +37,39 @@
  * PD0..PD7, PB0..PB7, PC0..PC7, PA0..PA7
  */
 
-#define NUM_DIGITAL_PINS            32
-#define NUM_ANALOG_INPUTS           8
+#define FH_NUM_DIGITAL_PINS            32
+#define FH_NUM_ANALOG_INPUTS           8
 
-#define analogInputToDigitalPin(p)  ((p < NUM_ANALOG_INPUTS) ? (p) + 24 : -1)
+#define analogInputToDigitalPin(p)  ((p < FH_NUM_ANALOG_INPUTS) ? (p) + 24 : -1)
 #define analogPinToChannel(p)       (((p) == A0) ? 3 : ((p) == A1) ? 2 : ((p) == A2) ? 1 : ((p) == A3) ? 0 : ((p) == A4) ? 5 : ((p) == A5) ? 6 : ((p) == A6) ? 4 : ((p) == A7) ? 7 : 0);
 
 #define digitalPinHasPWM(p)         ((p) == 2 || (p) == 3 || (p) == 4 || (p) == 5 || (p) == 10 || (p) == 12 || (p) == 13 || (p) == 16)
 
-static constexpr std::uint8_t SS   = 10;
-static constexpr std::uint8_t MOSI = 11;
-static constexpr std::uint8_t MISO = 12;
-static constexpr std::uint8_t SCK  = 13;
+static constexpr uint8_t SS   = 10;
+static constexpr uint8_t MOSI = 11;
+static constexpr uint8_t MISO = 12;
+static constexpr uint8_t SCK  = 13;
 
-static constexpr std::uint8_t SDA = 22;
-static constexpr std::uint8_t SCL = 21;
+static constexpr uint8_t SDA = 22;
+static constexpr uint8_t SCL = 21;
 
-static constexpr std::uint8_t LED_RED   = 16;
-static constexpr std::uint8_t LED_GREEN = 17;
-static constexpr std::uint8_t LED_BLUE  = 18;
+static constexpr uint8_t LED_RED   = 16;
+static constexpr uint8_t LED_GREEN = 17;
+static constexpr uint8_t LED_BLUE  = 18;
 
-static constexpr std::uint8_t BAT_VOLT   = 30;           // A6
+static constexpr uint8_t BAT_VOLT   = 30;           // A6
 #define BATVOLT_R1                47            // in fact 4.7M
 #define BATVOLT_R2               100            // in fact 10M
 
-static constexpr std::uint8_t RTC_INTERRUPT = 31;        // A7
+static constexpr uint8_t RTC_INTERRUPT = 31;        // A7
 
-static constexpr std::uint8_t A0 = 24;
-static constexpr std::uint8_t A1 = 25;
-static constexpr std::uint8_t A2 = 26;
-static constexpr std::uint8_t A3 = 27;
-static constexpr std::uint8_t A4 = 28;
-static constexpr std::uint8_t A5 = 29;
-static constexpr std::uint8_t A6 = 30;
+static constexpr uint8_t A0 = 24;
+static constexpr uint8_t A1 = 25;
+static constexpr uint8_t A2 = 26;
+static constexpr uint8_t A3 = 27;
+static constexpr uint8_t A4 = 28;
+static constexpr uint8_t A5 = 29;
+static constexpr uint8_t A6 = 30;
 static constexpr std::uint8_t A7 = 31;
 
 /*
@@ -79,7 +79,7 @@ static constexpr std::uint8_t A7 = 31;
    3INT7-0:   D31-24 : bit 0 (also A0..A7)
 */
 
-#define digitalPinTo3ICR(p)    (((p) >= 0 && (p) < NUM_DIGITAL_PINS) ? (&3ICR) : ((std::uint8_t *)0))
+#define digitalPinTo3ICR(p)    (((p) >= 0 && (p) < FH_NUM_DIGITAL_PINS) ? (&3ICR) : ((std::uint8_t *)0))
 #define digitalPinTo3ICRbit(p) ((&(ino_port_num[p])) - 1) // 3ICRbit = Port Index (1, 2, 3, 4) - 1
 
 #define digitalPinTo3MSK(p)    (pgm_read_word(&(port_to_3MSK_7M[(&(ino_port_num[p]))])))
@@ -102,16 +102,16 @@ static constexpr std::uint8_t A7 = 31;
 
 
 
-constexpr std::uint16_t port_to_3MSK_7M[] =
+constexpr uint16_t port_to_3MSK_7M[] =
 {
   NOT_A_PORT,
-  (std::uint16_t) &3MSK0,
-  (std::uint16_t) &3MSK1,
-  (std::uint16_t) &3MSK2,
-  (std::uint16_t) &3MSK3,
+  (uint16_t) &3MSK0,
+  (uint16_t) &3MSK1,
+  (uint16_t) &3MSK2,
+  (uint16_t) &3MSK3,
 };
 
-constexpr std::uint8_t digital_pin_to_port_PGM[] =
+constexpr uint8_t digital_pin_to_port_PGM[] =
 {
   PD, /* 0 */
   PD,
@@ -147,7 +147,7 @@ constexpr std::uint8_t digital_pin_to_port_PGM[] =
   PA  /* 31 */
 };
 
-constexpr std::uint8_t digital_pin_to_port_pin_PGM[] =
+constexpr uint8_t digital_pin_to_port_pin_PGM[] =
 {
   0, /* 0 */
   1,

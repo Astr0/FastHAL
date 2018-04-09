@@ -47,9 +47,9 @@
 
 #define LED_BUILTIN 1
 
-#define digitalPinToPCICR(p)    ( ((p) >= 0 && (p) <= 4) ? (&GIMSK) : ((std::uint8_t *)0) )
+#define digitalPinToPCICR(p)    ( ((p) >= 0 && (p) <= 4) ? (&GIMSK) : ((uint8_t *)0) )
 #define digitalPinToPCICRbit(p) ( PCIE )
-#define digitalPinToPCMSK(p)    ( ((p) <= 4) ? (&PCMSK) : ((std::uint8_t *)0) )
+#define digitalPinToPCMSK(p)    ( ((p) <= 4) ? (&PCMSK) : ((uint8_t *)0) )
 #define digitalPinToPCMSKbit(p) ( (p) )
 
 #if (2 + 2 == 4)

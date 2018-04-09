@@ -34,8 +34,8 @@
 
 #define TUNED_OSCCAL_VALUE                        OSCCAL
 
-#define NUM_DIGITAL_PINS            17
-#define NUM_ANALOG_INPUTS           8
+#define FH_NUM_DIGITAL_PINS            17
+#define FH_NUM_ANALOG_INPUTS           8
 #define analogInputToDigitalPin(p)  ((p < 8) ? (p) + 17 : -1)
 
 #define digitalPinHasPWM(p)         ((p) == 9 || (p) == 10)
@@ -73,27 +73,27 @@
 
 //#define ANALOG_PINS_SEPARATE
 
-static constexpr std::uint8_t SS   = 10;
-static constexpr std::uint8_t MOSI = 11;
-static constexpr std::uint8_t MISO = 12;
-static constexpr std::uint8_t SCK  = 13;
+static constexpr uint8_t SS   = 10;
+static constexpr uint8_t MOSI = 11;
+static constexpr uint8_t MISO = 12;
+static constexpr uint8_t SCK  = 13;
 
-static constexpr std::uint8_t SDA = 21;
-static constexpr std::uint8_t SCL = 22;
-static constexpr std::uint8_t LED_BUILTIN = 13;
+static constexpr uint8_t SDA = 21;
+static constexpr uint8_t SCL = 22;
+static constexpr uint8_t LED_BUILTIN = 13;
 
-static constexpr std::uint8_t A0 = 0x80 | 0;
-static constexpr std::uint8_t A1 = 0x80 | 1;
-static constexpr std::uint8_t A2 = 0x80 | 2;
-static constexpr std::uint8_t A3 = 0x80 | 3;
-static constexpr std::uint8_t A4 = 0x80 | 4;
-static constexpr std::uint8_t A5 = 0x80 | 5;
-static constexpr std::uint8_t A6 = 0x80 | 6;
-static constexpr std::uint8_t A7 = 0x80 | 7;
+static constexpr uint8_t A0 = 0x80 | 0;
+static constexpr uint8_t A1 = 0x80 | 1;
+static constexpr uint8_t A2 = 0x80 | 2;
+static constexpr uint8_t A3 = 0x80 | 3;
+static constexpr uint8_t A4 = 0x80 | 4;
+static constexpr uint8_t A5 = 0x80 | 5;
+static constexpr uint8_t A6 = 0x80 | 6;
+static constexpr uint8_t A7 = 0x80 | 7;
 
-#define digitalPinToPCICR(p)    (((p) >= 0 && (p) <= 26) ? (&PCICR) : ((std::uint8_t *)0))
+#define digitalPinToPCICR(p)    (((p) >= 0 && (p) <= 26) ? (&PCICR) : ((uint8_t *)0))
 #define digitalPinToPCICRbit(p) (((p) <= 7) ? 2 : (((p) <= 15) ? 0 : (((p) <= 22) ? 1 : 3)))
-#define digitalPinToPCMSK(p)    (((p) <= 7) ? (&PCMSK2) : (((p) <= 15) ? (&PCMSK0) : (((p) <= 22) ? (&PCMSK1) : (((p) <= 26) ? (&PCMSK3) : ((std::uint8_t *)0)))))
+#define digitalPinToPCMSK(p)    (((p) <= 7) ? (&PCMSK2) : (((p) <= 15) ? (&PCMSK0) : (((p) <= 22) ? (&PCMSK1) : (((p) <= 26) ? (&PCMSK3) : ((uint8_t *)0)))))
 #define digitalPinToPCMSKbit(p) (((p) <= 15) ? ((p) & 0x7) : (((p) == 16) ? (7) : (((p) <= 22) ? ((p) - 17) : ((p) - 23))))
 
 

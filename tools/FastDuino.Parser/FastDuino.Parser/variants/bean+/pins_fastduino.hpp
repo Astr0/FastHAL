@@ -28,36 +28,36 @@
 
 
 
-#define NUM_DIGITAL_PINS            10
-#define NUM_ANALOG_INPUTS           6
-#define analogInputToDigitalPin(p)  ((p < NUM_DIGITAL_PINS) ? (p) + NUM_DIGITAL_PINS : -1)
+#define FH_NUM_DIGITAL_PINS            10
+#define FH_NUM_ANALOG_INPUTS           6
+#define analogInputToDigitalPin(p)  ((p < FH_NUM_DIGITAL_PINS) ? (p) + FH_NUM_DIGITAL_PINS : -1)
 
 #define digitalPinHasPWM(p)         ((p) == 2 || (p) == 5 || (p) == 6 || (p) == 7)
 
 #define IS_BEAN (0)
 
-static constexpr std::uint8_t SS   = 6;
-static constexpr std::uint8_t MOSI = 7;
-static constexpr std::uint8_t MISO = 8;
-static constexpr std::uint8_t SCK  = 9;
+static constexpr uint8_t SS   = 6;
+static constexpr uint8_t MOSI = 7;
+static constexpr uint8_t MISO = 8;
+static constexpr uint8_t SCK  = 9;
 
-static constexpr std::uint8_t SDA = 14;
-static constexpr std::uint8_t SCL = 15;
-//static constexpr std::uint8_t LED_BUILTIN = 13;
+static constexpr uint8_t SDA = 14;
+static constexpr uint8_t SCL = 15;
+//static constexpr uint8_t LED_BUILTIN = 13;
 
-static constexpr std::uint8_t A0 = 10;
-static constexpr std::uint8_t A1 = 11;
-static constexpr std::uint8_t A2 = 12;
-static constexpr std::uint8_t A3 = 13;
-static constexpr std::uint8_t A4 = 14;
-static constexpr std::uint8_t A5 = 15;
+static constexpr uint8_t A0 = 10;
+static constexpr uint8_t A1 = 11;
+static constexpr uint8_t A2 = 12;
+static constexpr uint8_t A3 = 13;
+static constexpr uint8_t A4 = 14;
+static constexpr uint8_t A5 = 15;
 
-static constexpr std::uint8_t CC_INTERRUPT_PIN = 16;
+static constexpr uint8_t CC_INTERRUPT_PIN = 16;
 
 // TODO - I don't know what this stuff is
-#define digitalPinToPCICR(p)    (((p) >= 0 && (p) <= 21) ? (&PCICR) : ((std::uint8_t *)0))
+#define digitalPinToPCICR(p)    (((p) >= 0 && (p) <= 21) ? (&PCICR) : ((uint8_t *)0))
 #define digitalPinToPCICRbit(p) (((p) <= 7) ? 2 : (((p) <= 13) ? 0 : 1))
-#define digitalPinToPCMSK(p)    (((p) <= 7) ? (&PCMSK2) : (((p) <= 13) ? (&PCMSK0) : (((p) <= 21) ? (&PCMSK1) : ((std::uint8_t *)0))))
+#define digitalPinToPCMSK(p)    (((p) <= 7) ? (&PCMSK2) : (((p) <= 13) ? (&PCMSK0) : (((p) <= 21) ? (&PCMSK1) : ((uint8_t *)0))))
 #define digitalPinToPCMSKbit(p) (((p) <= 7) ? (p) : (((p) <= 13) ? ((p) - 8) : ((p) - 14)))
 
 #if (2 + 2 == 4)

@@ -32,8 +32,8 @@
 
 
 
-#define NUM_DIGITAL_PINS            16
-#define NUM_ANALOG_INPUTS           64
+#define FH_NUM_DIGITAL_PINS            16
+#define FH_NUM_ANALOG_INPUTS           64
 #define analogInputToDigitalPin(p)  ((p < 3) ? (p): (((p) >= 3 && (p) <= 6) ? ((p) + 7) : (((p) >= 7 && (p) <= 9) ? (12 - (p)) : -1)))
 
 #define digitalPinHasPWM(p)          ((p) == 4 || (p) == 6 || (p) == 8)
@@ -67,21 +67,21 @@
 #  define USI_START_COND_INT USISIF
 #endif
 
-static constexpr std::uint8_t SDA = 0;
-static constexpr std::uint8_t SCL = 2;
+static constexpr uint8_t SDA = 0;
+static constexpr uint8_t SCL = 2;
 
 //Ax constexprants cannot be used for digitalRead/digitalWrite/analogWrite functions, only analogRead().
-static constexpr std::uint8_t A0 = 0x80 | 0;
-static constexpr std::uint8_t A1 = 0x80 | 1;
-static constexpr std::uint8_t A2 = 0x80 | 2;
-static constexpr std::uint8_t A3 = 0x80 | 3;
-static constexpr std::uint8_t A4 = 0x80 | 4;
-static constexpr std::uint8_t A5 = 0x80 | 5;
-static constexpr std::uint8_t A6 = 0x80 | 6;
-static constexpr std::uint8_t A7 = 0x80 | 7;
-static constexpr std::uint8_t A8 = 0x80 | 8;
-static constexpr std::uint8_t A9 = 0x80 | 9;
-static constexpr std::uint8_t A10 = 0x80 | 10;
+static constexpr uint8_t A0 = 0x80 | 0;
+static constexpr uint8_t A1 = 0x80 | 1;
+static constexpr uint8_t A2 = 0x80 | 2;
+static constexpr uint8_t A3 = 0x80 | 3;
+static constexpr uint8_t A4 = 0x80 | 4;
+static constexpr uint8_t A5 = 0x80 | 5;
+static constexpr uint8_t A6 = 0x80 | 6;
+static constexpr uint8_t A7 = 0x80 | 7;
+static constexpr uint8_t A8 = 0x80 | 8;
+static constexpr uint8_t A9 = 0x80 | 9;
+static constexpr uint8_t A10 = 0x80 | 10;
 
 #define PIN_A0  (0)
 #define PIN_A1  ( 1)
@@ -155,9 +155,9 @@ static constexpr std::uint8_t A10 = 0x80 | 10;
 
 
 
-#define digitalPinToPCICR(p)    (((p) >= 0 && (p) <= 15) ? (&GIMSK) : ((std::uint8_t *)NULL))
+#define digitalPinToPCICR(p)    (((p) >= 0 && (p) <= 15) ? (&GIMSK) : ((uint8_t *)NULL))
 #define digitalPinToPCICRbit(p) (((p) >= 6 && (p) <= 9) ? 4 : 5)
-#define digitalPinToPCMSK(p)    ((((p) >= 0 && (p) <= 2) || ((p) >= 10 && (p) <= 14)) ? (&PCMSK0) : ((((p) >= 3 && (p) <= 9) || ((p) == 15)) ? (&PCMSK1) : ((std::uint8_t *)NULL)))
+#define digitalPinToPCMSK(p)    ((((p) >= 0 && (p) <= 2) || ((p) >= 10 && (p) <= 14)) ? (&PCMSK0) : ((((p) >= 3 && (p) <= 9) || ((p) == 15)) ? (&PCMSK1) : ((uint8_t *)NULL)))
 #define digitalPinToPCMSKbit(p) (((p) >= 0 && (p) <= 2) ? (p) :(((p) >= 10 && (p) <= 13) ? ((p) - 6) : (((p) == 14) ? (3) : (((p) >= 3 && (p) <= 9) ? (9 - (p)) : (7)))))
 
 

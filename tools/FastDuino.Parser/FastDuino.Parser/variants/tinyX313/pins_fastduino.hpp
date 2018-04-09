@@ -11,8 +11,8 @@
 
 
 
-#define NUM_DIGITAL_PINS            18
-#define NUM_ANALOG_INPUTS           0
+#define FH_NUM_DIGITAL_PINS            18
+#define FH_NUM_ANALOG_INPUTS           0
 #define analogInputToDigitalPin(p)  -1
 
 #define digitalPinHasPWM(p)         ((p) == 7 || (p) == 11 || (p) == 12 || (p) == 13)
@@ -46,8 +46,8 @@
 #  define USI_START_COND_INT USISIF
 #endif
 
-static constexpr std::uint8_t SDA = 14;
-static constexpr std::uint8_t SCL = 16;
+static constexpr uint8_t SDA = 14;
+static constexpr uint8_t SCL = 16;
 
 //----------------------------------------------------------
 //----------------------------------------------------------
@@ -94,9 +94,9 @@ static constexpr std::uint8_t SCL = 16;
 //----------------------------------------------------------
 
 
-#define digitalPinToPCICR(p)    (((p) >= 9 && (p) <= 16) ? (&GIMSK) : ((std::uint8_t *)NULL))
+#define digitalPinToPCICR(p)    (((p) >= 9 && (p) <= 16) ? (&GIMSK) : ((uint8_t *)NULL))
 #define digitalPinToPCICRbit(p) (5)
-#define digitalPinToPCMSK(p)    (((p) >= 9 && (p) <= 16) ? (&PCMSK) : ((std::uint8_t *)NULL))
+#define digitalPinToPCMSK(p)    (((p) >= 9 && (p) <= 16) ? (&PCMSK) : ((uint8_t *)NULL))
 #define digitalPinToPCMSKbit(p) ((p) - 9)
 
 

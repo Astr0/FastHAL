@@ -31,36 +31,36 @@ void boardInit(void);
  *************************************************************/
 
 // SPI port
-constexpr static std::uint8_t SS   = 8;
-constexpr static std::uint8_t MOSI = 10;
-constexpr static std::uint8_t MISO = 11;
-constexpr static std::uint8_t SCK  = 9;
+constexpr static uint8_t SS   = 8;
+constexpr static uint8_t MOSI = 10;
+constexpr static uint8_t MISO = 11;
+constexpr static uint8_t SCK  = 9;
 
 // TWI port
-constexpr static std::uint8_t SCL  = 24;
-constexpr static std::uint8_t SDA  = 25;
+constexpr static uint8_t SCL  = 24;
+constexpr static uint8_t SDA  = 25;
 
 // Analog pins
-constexpr static std::uint8_t A0 = 0;
-constexpr static std::uint8_t A1 = 1;
-constexpr static std::uint8_t A2 = 2;
-constexpr static std::uint8_t A3 = 3;
-constexpr static std::uint8_t A4 = 4;
-constexpr static std::uint8_t A5 = 5;
-constexpr static std::uint8_t A6 = 6;
-constexpr static std::uint8_t A7 = 7;
+constexpr static uint8_t A0 = 0;
+constexpr static uint8_t A1 = 1;
+constexpr static uint8_t A2 = 2;
+constexpr static uint8_t A3 = 3;
+constexpr static uint8_t A4 = 4;
+constexpr static uint8_t A5 = 5;
+constexpr static uint8_t A6 = 6;
+constexpr static uint8_t A7 = 7;
 
 // External Interrupts
-constexpr static std::uint8_t EI0 = 24;
-constexpr static std::uint8_t EI1 = 25;
-constexpr static std::uint8_t EI2 = 26;
-constexpr static std::uint8_t EI3 = 27;
+constexpr static uint8_t EI0 = 24;
+constexpr static uint8_t EI1 = 25;
+constexpr static uint8_t EI2 = 26;
+constexpr static uint8_t EI3 = 27;
 
 // Hardware Serial port pins
-constexpr static std::uint8_t RX0 = 32;
-constexpr static std::uint8_t TX0 = 33;
-constexpr static std::uint8_t RX1 = 26;
-constexpr static std::uint8_t TX1 = 27;
+constexpr static uint8_t RX0 = 32;
+constexpr static uint8_t TX0 = 33;
+constexpr static uint8_t RX1 = 26;
+constexpr static uint8_t TX1 = 27;
 
 
 // NIBO 2 IO definitions

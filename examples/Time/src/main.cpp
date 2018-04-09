@@ -1,6 +1,10 @@
-#include <Arduino.h>
-#define FH_TIME_ARDUINO
+//#define FH_TIME_ARDUINO
+#define FH_TIME 0
 #define FH_UART0_TX 64
+
+#ifdef FH_TIME_ARDUINO
+#include <Arduino.h>
+#endif
 
 #include "fastduino.hpp"
 
@@ -9,18 +13,22 @@ using namespace fasthal::duino;
 
 static constexpr auto led = ino<LED_BUILTIN>;
 
-#ifdef FH_TIME_ARDUINO
 void setup(){
     apply(
-        makeOutput(led),
-        begin(uart0)
+        enable(irq)
+        ,makeOutput(led)
+        ,begin(uart0)
+        #ifdef FH_TIME
+        ,begin(time)
+        #endif
     );
 }
 
-void loop(){
-    toggle_(led);
+void loop(){    
     auto ms = time_ms();
     auto us = time_us();
+    if (us > ms)
+        toggle_(led);
     print(uart0, "My time: ");
     print(uart0, ms);
     printc(uart0, ' ');
@@ -28,10 +36,13 @@ void loop(){
     delay_ms(1000);
 }
 
-#else
+#ifndef FH_TIME_ARDUINO
 
 int main(){
-    while (1){}
+    setup();
+    while (1){
+        loop();
+    }
 }
 
 #endif

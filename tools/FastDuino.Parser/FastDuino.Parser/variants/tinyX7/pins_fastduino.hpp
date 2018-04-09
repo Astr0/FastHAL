@@ -31,8 +31,8 @@
 
 
 
-#define NUM_DIGITAL_PINS            16
-#define NUM_ANALOG_INPUTS           32
+#define FH_NUM_DIGITAL_PINS            16
+#define FH_NUM_ANALOG_INPUTS           32
 #define analogInputToDigitalPin(p)  ((p < 8) ? 10 -(p): -1)
 
 #define digitalPinHasPWM(p)         ((p) == 2 || (p) == 7 || (p) == 12)
@@ -67,17 +67,17 @@
 #endif
 
 //Ax constexprants cannot be used for digitalRead/digitalWrite/analogWrite functions, only analogRead().
-static constexpr std::uint8_t A0 = 0x80 | 0;
-static constexpr std::uint8_t A1 = 0x80 | 1;
-static constexpr std::uint8_t A2 = 0x80 | 2;
-static constexpr std::uint8_t A3 = 0x80 | 3;
-static constexpr std::uint8_t A4 = 0x80 | 4;
-static constexpr std::uint8_t A5 = 0x80 | 5;
-static constexpr std::uint8_t A6 = 0x80 | 6;
-static constexpr std::uint8_t A7 = 0x80 | 7;
-static constexpr std::uint8_t A8 = 0x80 | 8;
-static constexpr std::uint8_t A9 = 0x80 | 9;
-static constexpr std::uint8_t A10 = 0x80 | 10;
+static constexpr uint8_t A0 = 0x80 | 0;
+static constexpr uint8_t A1 = 0x80 | 1;
+static constexpr uint8_t A2 = 0x80 | 2;
+static constexpr uint8_t A3 = 0x80 | 3;
+static constexpr uint8_t A4 = 0x80 | 4;
+static constexpr uint8_t A5 = 0x80 | 5;
+static constexpr uint8_t A6 = 0x80 | 6;
+static constexpr uint8_t A7 = 0x80 | 7;
+static constexpr uint8_t A8 = 0x80 | 8;
+static constexpr uint8_t A9 = 0x80 | 9;
+static constexpr uint8_t A10 = 0x80 | 10;
 #define LED_BUILTIN (4)
 
 //----------------------------------------------------------
@@ -130,9 +130,9 @@ static constexpr std::uint8_t A10 = 0x80 | 10;
 
 
 
-#define digitalPinToPCICR(p)    (((p) >= 0 && (p) <= 10) ? (&PCICR) : ((std::uint8_t *)NULL))
+#define digitalPinToPCICR(p)    (((p) >= 0 && (p) <= 10) ? (&PCICR) : ((uint8_t *)NULL))
 #define digitalPinToPCICRbit(p) (((p) >= 3 && (p) <= 10) ? 4 : 5)
-#define digitalPinToPCMSK(p)    (((p) >= 3 && (p) <= 10) ? (&PCMSK0) : (((p) >= 0 && (p) <= 2) ? (&PCMSK1) : ((std::uint8_t *)NULL)))
+#define digitalPinToPCMSK(p)    (((p) >= 3 && (p) <= 10) ? (&PCMSK0) : (((p) >= 0 && (p) <= 2) ? (&PCMSK1) : ((uint8_t *)NULL)))
 #define digitalPinToPCMSKbit(p) (((p) >= 3 && (p) <= 10) ? (10 - (p)) : (p))
 
 

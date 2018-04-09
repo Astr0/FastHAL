@@ -67,33 +67,33 @@
    PCINT31-24: D 7- 0  : bit 3
 */
 
-#define NUM_DIGITAL_PINS            32
-#define NUM_ANALOG_INPUTS           8
+#define FH_NUM_DIGITAL_PINS            32
+#define FH_NUM_ANALOG_INPUTS           8
 
 #define analogInputToDigitalPin(p)  ((p < 8) ? (p) + 24 : -1)
 #define digitalPinHasPWM(p)         (((p) > 3) && ((p) < 14) && ((p) != 7) && ((p) != 11))
 
-static constexpr std::uint8_t SS   = 9;
-static constexpr std::uint8_t MOSI = 11;
-static constexpr std::uint8_t MISO = 12;
-static constexpr std::uint8_t SCK  = 13;
+static constexpr uint8_t SS   = 9;
+static constexpr uint8_t MOSI = 11;
+static constexpr uint8_t MISO = 12;
+static constexpr uint8_t SCK  = 13;
 
-static constexpr std::uint8_t SDA = 19;
-static constexpr std::uint8_t SCL = 20;
-static constexpr std::uint8_t LED_BUILTIN = 6;
+static constexpr uint8_t SDA = 19;
+static constexpr uint8_t SCL = 20;
+static constexpr uint8_t LED_BUILTIN = 6;
 
-static constexpr std::uint8_t A0 = 24;
-static constexpr std::uint8_t A1 = 25;
-static constexpr std::uint8_t A2 = 26;
-static constexpr std::uint8_t A3 = 27;
-static constexpr std::uint8_t A4 = 28;
-static constexpr std::uint8_t A5 = 29;
-static constexpr std::uint8_t A6 = 30;
-static constexpr std::uint8_t A7 = 31;
+static constexpr uint8_t A0 = 24;
+static constexpr uint8_t A1 = 25;
+static constexpr uint8_t A2 = 26;
+static constexpr uint8_t A3 = 27;
+static constexpr uint8_t A4 = 28;
+static constexpr uint8_t A5 = 29;
+static constexpr uint8_t A6 = 30;
+static constexpr uint8_t A7 = 31;
 
-#define digitalPinToPCICR(p)    (((p) >= 0 && (p) < NUM_DIGITAL_PINS) ? (&PCICR) : ((std::uint8_t *)0))
+#define digitalPinToPCICR(p)    (((p) >= 0 && (p) < FH_NUM_DIGITAL_PINS) ? (&PCICR) : ((uint8_t *)0))
 #define digitalPinToPCICRbit(p) ((p) > 23 ? 0 : (((p) > 13 && (p) < 21) || ((p) == 7) ? 2 : (((p) > 10) || ((p) == 9) || ((p) == 4) ? 1 : 3)))
-#define digitalPinToPCMSK(p)    ((p) < 32 ? ((p) > 23 ? (&PCMSK0) : (((p) > 13 && (p) < 21) || ((p) == 7) ? (&PCMSK2) : (((p) > 10) || ((p) == 9) || ((p) == 4) ? (&PCMSK1) : (&PCMSK3)))) : ((std::uint8_t *)0))
+#define digitalPinToPCMSK(p)    ((p) < 32 ? ((p) > 23 ? (&PCMSK0) : (((p) > 13 && (p) < 21) || ((p) == 7) ? (&PCMSK2) : (((p) > 10) || ((p) == 9) || ((p) == 4) ? (&PCMSK1) : (&PCMSK3)))) : ((uint8_t *)0))
 
 #ifndef NOT_AN_INTERRUPT
 #define NOT_AN_INTERRUPT (-1)
@@ -101,7 +101,7 @@ static constexpr std::uint8_t A7 = 31;
 #define digitalPinToInterrupt(p)  ((p) == 2 ? 0 : ((p) == 3 ? 1 : ((p) == 22 ? 2 : NOT_AN_INTERRUPT)))
 
 #ifndef ARDUINO_MAIN
-extern constexpr std::uint8_t digital_pin_to_PCMSK_bit_PGM;
+extern constexpr uint8_t digital_pin_to_PCMSK_bit_PGM;
 #endif
 
 #define digitalPinToPCMSKbit(p) ((digital_pin_to_PCMSK_bit_PGM + p))
@@ -113,7 +113,7 @@ extern constexpr std::uint8_t digital_pin_to_PCMSK_bit_PGM;
 #define PD 4
 
 // this was just too complicated to express as a formula, and we have plenty of flash memory 
-constexpr std::uint8_t digital_pin_to_PCMSK_bit_PGM[] = {
+constexpr uint8_t digital_pin_to_PCMSK_bit_PGM[] = {
   0,
   1,
   2,

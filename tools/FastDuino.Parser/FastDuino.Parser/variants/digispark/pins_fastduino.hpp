@@ -61,14 +61,14 @@
 #define TIMER1A 3
 #define TIMER1B 4
 
-//changed it to std::uint16_t to std::uint8_t
+//changed it to uint16_t to uint8_t
 extern 
 extern 
 extern 
-extern constexpr std::uint8_t port_to_pcmask_PGM[];
+extern constexpr uint8_t port_to_pcmask_PGM[];
 
 extern constexpr std::uint8_t ino_port_num[];
-// extern constexpr std::uint8_t digital_pin_to_bit_PGM[];
+// extern constexpr uint8_t digital_pin_to_bit_PGM[];
 extern constexpr std::uint8_t ino_pin_num[];
 extern constexpr std::uint8_t ino_timer_oc_num[];
 
@@ -82,22 +82,22 @@ extern constexpr std::uint8_t ino_timer_oc_num[];
 #define digitalPinToTimer(P) ( ( digital_pin_to_timer_PGM + (P) ) )
 #define analogInPinToBit(P) (P)
 // in the following lines modified pgm_read_word in , word doesn't work on attiny45
-#define portOutputRegister(P) ( (volatile std::uint8_t *)( ( port_to_output_PGM + (P))) )
-#define portInputRegister(P) ( (volatile std::uint8_t *)( ( port_to_input_PGM + (P))) )
-#define portModeRegister(P) ( (volatile std::uint8_t *)( ( port_to_mode_PGM + (P))) )
-#define portPcMaskRegister(P) ( (volatile std::uint8_t *)( ( port_to_pcmask_PGM + (P))) )
+#define portOutputRegister(P) ( (volatile uint8_t *)( ( port_to_output_PGM + (P))) )
+#define portInputRegister(P) ( (volatile uint8_t *)( ( port_to_input_PGM + (P))) )
+#define portModeRegister(P) ( (volatile uint8_t *)( ( port_to_mode_PGM + (P))) )
+#define portPcMaskRegister(P) ( (volatile uint8_t *)( ( port_to_pcmask_PGM + (P))) )
 
 #if defined(__AVR_ATtinyX5__)
-#define digitalPinToPCICR(p)    (((p) >= 0 && (p) <= 5) ? (&GIMSK) : ((std::uint8_t *)NULL))
+#define digitalPinToPCICR(p)    (((p) >= 0 && (p) <= 5) ? (&GIMSK) : ((uint8_t *)NULL))
 #define digitalPinToPCICRbit(p) (PCIE)
-#define digitalPinToPCMSK(p)    (((p) >= 0 && (p) <= 5) ? (&PCMSK) : ((std::uint8_t *)NULL))
+#define digitalPinToPCMSK(p)    (((p) >= 0 && (p) <= 5) ? (&PCMSK) : ((uint8_t *)NULL))
 #define digitalPinToPCMSKbit(p) (p)
 #endif
 
 #if defined(__AVR_ATtinyX4__)
-#define digitalPinToPCICR(p)    (((p) >= 0 && (p) <= 10) ? (&GIMSK) : ((std::uint8_t *)NULL))
+#define digitalPinToPCICR(p)    (((p) >= 0 && (p) <= 10) ? (&GIMSK) : ((uint8_t *)NULL))
 #define digitalPinToPCICRbit(p) (((p) <= 2) ? PCIE1 : PCIE0)
-#define digitalPinToPCMSK(p)    (((p) <= 2) ? (&PCMSK1) : (((p) <= 10) ? (&PCMSK0) : ((std::uint8_t *)NULL)))
+#define digitalPinToPCMSK(p)    (((p) <= 2) ? (&PCMSK1) : (((p) <= 10) ? (&PCMSK0) : ((uint8_t *)NULL)))
 #define digitalPinToPCMSKbit(p) (((p) <= 2) ? (p) : (10 - (p)))
 #endif
 

@@ -28,8 +28,8 @@
 
 
 
-#define NUM_DIGITAL_PINS            35
-#define NUM_ANALOG_INPUTS           8
+#define FH_NUM_DIGITAL_PINS            35
+#define FH_NUM_ANALOG_INPUTS           8
 #define analogPinToChannel(P)  (  (pin >= 20) ? pin - 20 : pin )
 #define analogInputToDigitalPin(p)  ((p < 8) ? (p) + 20 : -1)
 #define digitalPinHasPWM(p)         ((p) == 9 || (p) == 10 || (p) == 11 || (p) == 12 || (p) == 13 || (p) == 14 || (p) == 15 || (p) == 19)
@@ -63,7 +63,7 @@
 #define A7              27
 
 #define digitalPinToPCICR(p)    (((p) >=  8 && (p) <= 12) || \
-                                 ((p) >= 28 && (p) <= 30) ? (&PCICR) : ((std::uint8_t *)0))
+                                 ((p) >= 28 && (p) <= 30) ? (&PCICR) : ((uint8_t *)0))
 
 // Pins PCINT7:0 are mapped to PCIE0 interrupt on bit 0 of PCICR, only PCINT8 is mapped to PCIE1.
 #define digitalPinToPCICRbit(p) (((p) >=  8 && (p) <= 12) || \

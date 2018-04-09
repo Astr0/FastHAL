@@ -34,8 +34,8 @@
 
 
 
-#define NUM_DIGITAL_PINS            26
-#define NUM_ANALOG_INPUTS           8
+#define FH_NUM_DIGITAL_PINS            26
+#define FH_NUM_ANALOG_INPUTS           8
 #define analogInputToDigitalPin(p)  ((p < 8) ? (p) + 26 : -1)
 #define digitalPinHasPWM(p)         ((p) == 3 ||(p) == 4 ||(p) == 5 ||(p) == 8 ||(p) == 9 ||(p) == 19 ||(p) == 34 || (p) == 35)
 
@@ -48,38 +48,38 @@
 #define TXLED_PORT PORTB
 #define TXLED_POS  PB7  
 
-constexpr static std::uint8_t SS   = 10;
-constexpr static std::uint8_t MOSI = 11;
-constexpr static std::uint8_t MISO = 12;
-constexpr static std::uint8_t SCK  = 13;
+constexpr static uint8_t SS   = 10;
+constexpr static uint8_t MOSI = 11;
+constexpr static uint8_t MISO = 12;
+constexpr static uint8_t SCK  = 13;
 
-constexpr static std::uint8_t SDA = 14;
-constexpr static std::uint8_t SCL = 15;
-constexpr static std::uint8_t LED = 34;
-constexpr static std::uint8_t LED1 = 34;
-constexpr static std::uint8_t LED2 = 35;
+constexpr static uint8_t SDA = 14;
+constexpr static uint8_t SCL = 15;
+constexpr static uint8_t LED = 34;
+constexpr static uint8_t LED1 = 34;
+constexpr static uint8_t LED2 = 35;
 
-constexpr static std::uint8_t A0 = 26;
-constexpr static std::uint8_t A1 = 27;
-constexpr static std::uint8_t A2 = 28;
-constexpr static std::uint8_t A3 = 29;
-constexpr static std::uint8_t A4 = 30;
-constexpr static std::uint8_t A5 = 31;
-constexpr static std::uint8_t A6 = 32;
-constexpr static std::uint8_t A7 = 33;
+constexpr static uint8_t A0 = 26;
+constexpr static uint8_t A1 = 27;
+constexpr static uint8_t A2 = 28;
+constexpr static uint8_t A3 = 29;
+constexpr static uint8_t A4 = 30;
+constexpr static uint8_t A5 = 31;
+constexpr static uint8_t A6 = 32;
+constexpr static uint8_t A7 = 33;
 
 // A majority of the pins are NOT PCINTs, SO BE WARNED (i.e. you cannot use them as receive pins)
 // Only pins available for RECEIVE (TRANSMIT can be on any pin):
 // Pins: 7, 8, 9, 10, 11, 12, 13, 20
 
 #define digitalPinToPCICR(p)    ( (((p) >= 7) && ((p) <= 13)) || \
-                                  ((p) == 20) ? (&PCICR) : ((std::uint8_t *)0) )
+                                  ((p) == 20) ? (&PCICR) : ((uint8_t *)0) )
 
 #define digitalPinToPCICRbit(p) ( ((p) == 7) ? 1 : 0 ) 
 
 #define digitalPinToPCMSK(p)    ( ((((p) >= 8) && ((p) <= 13)) || ((p) == 20)) ? (&PCMSK0) : \
                                 ( ((p) == 7) ? (&PCMSK1) : \
-                                ((std::uint8_t *)0) ) )
+                                ((uint8_t *)0) ) )
 
 #define digitalPinToPCMSKbit(p) ( ((p) == 7) ? 0 : \
                                 ( ((p) == 8) ? 4 : \

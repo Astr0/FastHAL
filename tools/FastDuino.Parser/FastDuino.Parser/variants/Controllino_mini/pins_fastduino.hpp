@@ -24,6 +24,6 @@
 */
 
 #include "../standard/pins_fastduino.hpp"
-#undef NUM_ANALOG_INPUTS
-#define NUM_ANALOG_INPUTS           8
+#undef FH_NUM_ANALOG_INPUTS
+#define FH_NUM_ANALOG_INPUTS           8
 #define CONTROLLINO_MINI

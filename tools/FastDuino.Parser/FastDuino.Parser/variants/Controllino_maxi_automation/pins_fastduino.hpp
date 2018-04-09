@@ -24,8 +24,8 @@
 */
 
 #include "../mega/pins_fastduino.hpp"
-#undef NUM_DIGITAL_PINS
-#define NUM_DIGITAL_PINS            70
-#undef NUM_ANALOG_INPUTS
-#define NUM_ANALOG_INPUTS           16
+#undef FH_NUM_DIGITAL_PINS
+#define FH_NUM_DIGITAL_PINS            70
+#undef FH_NUM_ANALOG_INPUTS
+#define FH_NUM_ANALOG_INPUTS           16
 #define CONTROLLINO_MAXI_AUTOMATION

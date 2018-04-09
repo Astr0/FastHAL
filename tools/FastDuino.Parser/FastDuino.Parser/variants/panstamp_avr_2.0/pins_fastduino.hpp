@@ -50,28 +50,28 @@
 #define LNA_EN  19
 #define PA_EN   18
 
-#define NUM_DIGITAL_PINS            23
-#define NUM_ANALOG_INPUTS           8
+#define FH_NUM_DIGITAL_PINS            23
+#define FH_NUM_ANALOG_INPUTS           8
 #define analogInputToDigitalPin(p)  ((p < 6) ? (p) + 14 : -1)
 
 #define digitalPinHasPWM(p)         ((p) == 1 || (p) == 2 || (p) == 3 || (p) == 4 || (p) == 18 || (p) == 19)
 
 
-static constexpr std::uint8_t SS   = 22;
-static constexpr std::uint8_t MOSI = 0;
-static constexpr std::uint8_t MISO = 1;
-static constexpr std::uint8_t SCK  = 2;
+static constexpr uint8_t SS   = 22;
+static constexpr uint8_t MOSI = 0;
+static constexpr uint8_t MISO = 1;
+static constexpr uint8_t SCK  = 2;
 
-static constexpr std::uint8_t SDA = 3;
-static constexpr std::uint8_t SCL = 4;
+static constexpr uint8_t SDA = 3;
+static constexpr uint8_t SCL = 4;
 
-static constexpr std::uint8_t A0 = 8;
-static constexpr std::uint8_t A1 = 9;
-static constexpr std::uint8_t A2 = 10;
-static constexpr std::uint8_t A3 = 11;
-static constexpr std::uint8_t A4 = 3;
-static constexpr std::uint8_t A5 = 4;
-static constexpr std::uint8_t A6 = 12;
+static constexpr uint8_t A0 = 8;
+static constexpr uint8_t A1 = 9;
+static constexpr uint8_t A2 = 10;
+static constexpr uint8_t A3 = 11;
+static constexpr uint8_t A4 = 3;
+static constexpr uint8_t A5 = 4;
+static constexpr uint8_t A6 = 12;
 static constexpr std::uint8_t A7 = 13;
 
 // Preferred analog pin to measure battery voltage
@@ -135,7 +135,7 @@ static constexpr std::uint8_t A7 = 13;
 
 
 
-constexpr std::uint8_t ino_port_num[] = {
+constexpr std::std::uint8_t ino_port_num[] = {
 	2, /* 0 */
 	2,
 	2,
@@ -161,7 +161,7 @@ constexpr std::uint8_t ino_port_num[] = {
   4
 };
 
-constexpr std::uint8_t digital_pin_to_bit_mask_PGM[] = {
+constexpr uint8_t digital_pin_to_bit_mask_PGM[] = {
 	_BV(3),
 	_BV(4),
 	_BV(5),

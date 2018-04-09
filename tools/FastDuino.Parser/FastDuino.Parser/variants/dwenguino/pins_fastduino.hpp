@@ -42,8 +42,8 @@
 #define TONE_USE_TIMER2         // Use timer 2 for Tone, You can also choose to use timer 1 or 3
 #define DISABLE_NEWPING_TIMER   // disable timer functionality of newpin library because they use same timer2 in CTC mode as tone function
 
-#define NUM_DIGITAL_PINS  48
-#define NUM_ANALOG_INPUTS 8
+#define FH_NUM_DIGITAL_PINS  48
+#define FH_NUM_ANALOG_INPUTS 8
 
 // No TX or RX led connected 
 #define TX_RX_LED_INIT	//DDRD |= (1<<5), DDRB |= (1<<0)
@@ -52,92 +52,92 @@
 #define RXLED0			//PORTB |= (1<<0)
 #define RXLED1			//PORTB &= ~(1<<0)
     
-static constexpr std::uint8_t RX = 0;
-static constexpr std::uint8_t TX = 1;
+static constexpr uint8_t RX = 0;
+static constexpr uint8_t TX = 1;
 
-static constexpr std::uint8_t SDA = 15;
-static constexpr std::uint8_t SCL = 14;
+static constexpr uint8_t SDA = 15;
+static constexpr uint8_t SCL = 14;
 
 // Map SPI port to 'new' pins 
-static constexpr std::uint8_t SS   = 10;
-static constexpr std::uint8_t MOSI = 2;
-static constexpr std::uint8_t MISO = 12;
-static constexpr std::uint8_t SCK  = 13;
+static constexpr uint8_t SS   = 10;
+static constexpr uint8_t MOSI = 2;
+static constexpr uint8_t MISO = 12;
+static constexpr uint8_t SCK  = 13;
 
 // Mapping of analog pins as digital I/O
-static constexpr std::uint8_t A0 = 24;
-static constexpr std::uint8_t A1 = 25;
-static constexpr std::uint8_t A2 = 26;
-static constexpr std::uint8_t A3 = 27;
-static constexpr std::uint8_t A4 = 28;
-static constexpr std::uint8_t A5 = 29;
-static constexpr std::uint8_t A6 = 30; 
-static constexpr std::uint8_t A7 = 31;
+static constexpr uint8_t A0 = 24;
+static constexpr uint8_t A1 = 25;
+static constexpr uint8_t A2 = 26;
+static constexpr uint8_t A3 = 27;
+static constexpr uint8_t A4 = 28;
+static constexpr uint8_t A5 = 29;
+static constexpr uint8_t A6 = 30; 
+static constexpr uint8_t A7 = 31;
 
-static constexpr std::uint8_t BAND_GAP = 70; 
-static constexpr std::uint8_t GROUND = 71; // = 31 - 8 + 48 (for more info see ino_mux at the end of this file)
+static constexpr uint8_t BAND_GAP = 70; 
+static constexpr uint8_t GROUND = 71; // = 31 - 8 + 48 (for more info see ino_mux at the end of this file)
 
 // Dwengo functionality
 // LEDs
 #define LEDS_DIR DDRA
 #define LEDS PORTA
-static constexpr std::uint8_t LED0 = 32;
-static constexpr std::uint8_t LED1 = 33;
-static constexpr std::uint8_t LED2 = 34;
-static constexpr std::uint8_t LED3 = 35;
-static constexpr std::uint8_t LED4 = 36;
-static constexpr std::uint8_t LED5 = 37;
-static constexpr std::uint8_t LED6 = 38;
-static constexpr std::uint8_t LED7 = 39;
+static constexpr uint8_t LED0 = 32;
+static constexpr uint8_t LED1 = 33;
+static constexpr uint8_t LED2 = 34;
+static constexpr uint8_t LED3 = 35;
+static constexpr uint8_t LED4 = 36;
+static constexpr uint8_t LED5 = 37;
+static constexpr uint8_t LED6 = 38;
+static constexpr uint8_t LED7 = 39;
 
 // Buzzer
-static constexpr std::uint8_t BUZZER = 46;
+static constexpr uint8_t BUZZER = 46;
 
 // Buttons
-static constexpr std::uint8_t SW_C = 47;
-static constexpr std::uint8_t SW_N = 16;
-static constexpr std::uint8_t SW_E = 17;
-static constexpr std::uint8_t SW_S = 18;
-static constexpr std::uint8_t SW_W = 19;
+static constexpr uint8_t SW_C = 47;
+static constexpr uint8_t SW_N = 16;
+static constexpr uint8_t SW_E = 17;
+static constexpr uint8_t SW_S = 18;
+static constexpr uint8_t SW_W = 19;
 
 // DC motor connector
-static constexpr std::uint8_t MOTOR_1_0 = 44; // Motor PWM
-static constexpr std::uint8_t MOTOR_1_1 = 43; // Motor direction
-static constexpr std::uint8_t MOTOR_2_0 = 45; // Motor PWM
-static constexpr std::uint8_t MOTOR_2_1 = 42; // Motor direction
+static constexpr uint8_t MOTOR_1_0 = 44; // Motor PWM
+static constexpr uint8_t MOTOR_1_1 = 43; // Motor direction
+static constexpr uint8_t MOTOR_2_0 = 45; // Motor PWM
+static constexpr uint8_t MOTOR_2_1 = 42; // Motor direction
 
 // Servo motors
-static constexpr std::uint8_t SERVO_1 = 40;
-static constexpr std::uint8_t SERVO_2 = 41;
+static constexpr uint8_t SERVO_1 = 40;
+static constexpr uint8_t SERVO_2 = 41;
 
 // Dwengo LCD
-static constexpr std::uint8_t LCD_BL = 20;
-static constexpr std::uint8_t LCD_E = 21;
-static constexpr std::uint8_t LCD_RW = 22;
-static constexpr std::uint8_t LCD_RS = 23;
-static constexpr std::uint8_t LCD_D0 = 32;
-static constexpr std::uint8_t LCD_D1 = 33;
-static constexpr std::uint8_t LCD_D2 = 34;
-static constexpr std::uint8_t LCD_D3 = 35;
-static constexpr std::uint8_t LCD_D4 = 36;
-static constexpr std::uint8_t LCD_D5 = 37;
-static constexpr std::uint8_t LCD_D6 = 38;
-static constexpr std::uint8_t LCD_D7 = 39;
+static constexpr uint8_t LCD_BL = 20;
+static constexpr uint8_t LCD_E = 21;
+static constexpr uint8_t LCD_RW = 22;
+static constexpr uint8_t LCD_RS = 23;
+static constexpr uint8_t LCD_D0 = 32;
+static constexpr uint8_t LCD_D1 = 33;
+static constexpr uint8_t LCD_D2 = 34;
+static constexpr uint8_t LCD_D3 = 35;
+static constexpr uint8_t LCD_D4 = 36;
+static constexpr uint8_t LCD_D5 = 37;
+static constexpr uint8_t LCD_D6 = 38;
+static constexpr uint8_t LCD_D7 = 39;
 
 // External interrupts
-static constexpr std::uint8_t D0_INT= 2;   // INT2 on PD2 - D0
-static constexpr std::uint8_t D1_INT= 3;   // INT3 on PD3 - D1
-static constexpr std::uint8_t D14_INT = 0; // INT0 on PD0 - D14
-static constexpr std::uint8_t D15_INT = 1; // INT1 on PD1 - D15
-static constexpr std::uint8_t D16_INT = 7; // INT7 on PE7 - D16
-static constexpr std::uint8_t D17_INT = 6; // INT6 on PE6 - D17
-static constexpr std::uint8_t D18_INT = 5; // INT5 on PE5 - D18
-static constexpr std::uint8_t D19_INT = 4; // INT4 on PE4 - D19
+static constexpr uint8_t D0_INT= 2;   // INT2 on PD2 - D0
+static constexpr uint8_t D1_INT= 3;   // INT3 on PD3 - D1
+static constexpr uint8_t D14_INT = 0; // INT0 on PD0 - D14
+static constexpr uint8_t D15_INT = 1; // INT1 on PD1 - D15
+static constexpr uint8_t D16_INT = 7; // INT7 on PE7 - D16
+static constexpr uint8_t D17_INT = 6; // INT6 on PE6 - D17
+static constexpr uint8_t D18_INT = 5; // INT5 on PE5 - D18
+static constexpr uint8_t D19_INT = 4; // INT4 on PE4 - D19
 
 // PCINT 0-7 are on pins 6-13
-#define digitalPinToPCICR(p)    ( (((p) >= 6) && ((p) <= 13)) ? (&PCICR) : ((std::uint8_t *)0) )
+#define digitalPinToPCICR(p)    ( (((p) >= 6) && ((p) <= 13)) ? (&PCICR) : ((uint8_t *)0) )
 #define digitalPinToPCICRbit(p) 0
-#define digitalPinToPCMSK(p)    ( (((p) >= 6) && ((p) <= 13)) ? (&PCMSK0) : ((std::uint8_t *)0) )
+#define digitalPinToPCMSK(p)    ( (((p) >= 6) && ((p) <= 13)) ? (&PCMSK0) : ((uint8_t *)0) )
 #define digitalPinToPCMSKbit(p) ( (((p) >= 6) && ((p) <= 13)) ? ((p) - 6) : 0 )
 
 
@@ -344,7 +344,7 @@ constexpr std::uint8_t ino_timer_oc_num[] = {
 // Converts pinNumber to MUX channel bits (MUX4..0 datasheet p322)
 // First 48 definitions map digital IO pins to ADC channel: digital pins without ADC channel will be read as ground (MUX = 31),
 // last defintions can be used for special ADC commamds (like internal bandgap or differential ADC)
-constexpr std::uint8_t ino_mux[] = {
+constexpr uint8_t ino_mux[] = {
     7, // readAnalog(0) => ADC7 (first 7 idices are not digital ports but number of analog channel)
     6, // readAnalog(1) => ADC6 
     5, // readAnalog(2) => ADC5 

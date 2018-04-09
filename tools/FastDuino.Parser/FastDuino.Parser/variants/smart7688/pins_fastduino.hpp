@@ -91,8 +91,8 @@
 #undef OCR2_6
 #undef OCR2_7
 
-#define NUM_DIGITAL_PINS  31
-#define NUM_ANALOG_INPUTS 12
+#define FH_NUM_DIGITAL_PINS  31
+#define FH_NUM_ANALOG_INPUTS 12
 
 #define TX_RX_LED_INIT	DDRD |= (1<<5), DDRB |= (1<<0)
 #define TXLED0			PORTD |= (1<<5)
@@ -100,35 +100,35 @@
 #define RXLED0			PORTB |= (1<<0)
 #define RXLED1			PORTB &= ~(1<<0)
 
-static constexpr std::uint8_t SDA = 2;
-static constexpr std::uint8_t SCL = 3;
+static constexpr uint8_t SDA = 2;
+static constexpr uint8_t SCL = 3;
 #define LED_BUILTIN 13
 // There are no TX/RX LED on LinkIt Smart 7688 Duo
 
 // Map SPI port to 'new' pins D14..D17
-static constexpr std::uint8_t SS   = 17;
-static constexpr std::uint8_t MOSI = 16;
-static constexpr std::uint8_t MISO = 14;
-static constexpr std::uint8_t SCK  = 15;
+static constexpr uint8_t SS   = 17;
+static constexpr uint8_t MOSI = 16;
+static constexpr uint8_t MISO = 14;
+static constexpr uint8_t SCK  = 15;
 
 // Mapping of analog pins as digital I/O
 // A6-A11 share with digital pins
-static constexpr std::uint8_t A0 = 18;
-static constexpr std::uint8_t A1 = 19;
-static constexpr std::uint8_t A2 = 20;
-static constexpr std::uint8_t A3 = 21;
-static constexpr std::uint8_t A4 = 22;
-static constexpr std::uint8_t A5 = 23;
-static constexpr std::uint8_t A6 = 24;	// D4
-static constexpr std::uint8_t A7 = 25;	// D6
-static constexpr std::uint8_t A8 = 26;	// D8
-static constexpr std::uint8_t A9 = 27;	// D9
-static constexpr std::uint8_t A10 = 28;	// D10
-static constexpr std::uint8_t A11 = 29;	// D12
+static constexpr uint8_t A0 = 18;
+static constexpr uint8_t A1 = 19;
+static constexpr uint8_t A2 = 20;
+static constexpr uint8_t A3 = 21;
+static constexpr uint8_t A4 = 22;
+static constexpr uint8_t A5 = 23;
+static constexpr uint8_t A6 = 24;	// D4
+static constexpr uint8_t A7 = 25;	// D6
+static constexpr uint8_t A8 = 26;	// D8
+static constexpr uint8_t A9 = 27;	// D9
+static constexpr uint8_t A10 = 28;	// D10
+static constexpr uint8_t A11 = 29;	// D12
 
-#define digitalPinToPCICR(p)    ((((p) >= 8 && (p) <= 11) || ((p) >= 14 && (p) <= 17) || ((p) >= A8 && (p) <= A10)) ? (&PCICR) : ((std::uint8_t *)0))
+#define digitalPinToPCICR(p)    ((((p) >= 8 && (p) <= 11) || ((p) >= 14 && (p) <= 17) || ((p) >= A8 && (p) <= A10)) ? (&PCICR) : ((uint8_t *)0))
 #define digitalPinToPCICRbit(p) 0
-#define digitalPinToPCMSK(p)    ((((p) >= 8 && (p) <= 11) || ((p) >= 14 && (p) <= 17) || ((p) >= A8 && (p) <= A10)) ? (&PCMSK0) : ((std::uint8_t *)0))
+#define digitalPinToPCMSK(p)    ((((p) >= 8 && (p) <= 11) || ((p) >= 14 && (p) <= 17) || ((p) >= A8 && (p) <= A10)) ? (&PCMSK0) : ((uint8_t *)0))
 #define digitalPinToPCMSKbit(p) ( ((p) >= 8 && (p) <= 11) ? (p) - 4 : ((p) == 14 ? 3 : ((p) == 15 ? 1 : ((p) == 16 ? 2 : ((p) == 17 ? 0 : (p - A8 + 4))))))
 
 //	__AVR_ATmega32U4__ has an unusual mapping of pins to channels
@@ -286,7 +286,7 @@ constexpr std::uint8_t ino_timer_oc_num[16] = {
 	255,
 };
 
-constexpr std::uint8_t ino_mux[12] = {
+constexpr uint8_t ino_mux[12] = {
 	0,	// A0				PF0					ADC0
 	1,	// A1				PF1					ADC1	
 	4,	// A2				PF4					ADC4	

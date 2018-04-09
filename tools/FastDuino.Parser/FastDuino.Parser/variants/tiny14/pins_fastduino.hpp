@@ -43,18 +43,18 @@
 //  PWM        (D  6)  PA6  7|    |8   PA5  (D  5)        PWM
 //                           +----+
 
-constexpr static std::uint8_t A0 = 0;
-constexpr static std::uint8_t A1 = 1;
-constexpr static std::uint8_t A2 = 2;
-constexpr static std::uint8_t A3 = 3;
-constexpr static std::uint8_t A4 = 4;
-constexpr static std::uint8_t A5 = 5;
-constexpr static std::uint8_t A6 = 6;
-constexpr static std::uint8_t A7 = 7;
+constexpr static uint8_t A0 = 0;
+constexpr static uint8_t A1 = 1;
+constexpr static uint8_t A2 = 2;
+constexpr static uint8_t A3 = 3;
+constexpr static uint8_t A4 = 4;
+constexpr static uint8_t A5 = 5;
+constexpr static uint8_t A6 = 6;
+constexpr static uint8_t A7 = 7;
 
-#define digitalPinToPCICR(p)    ( ((p) >= 0 && (p) <= 10) ? (&GIMSK) : ((std::uint8_t *)0) )
+#define digitalPinToPCICR(p)    ( ((p) >= 0 && (p) <= 10) ? (&GIMSK) : ((uint8_t *)0) )
 #define digitalPinToPCICRbit(p) ( ((p) <= 7) ? PCIE0 : PCIE1 )
-#define digitalPinToPCMSK(p)    ( ((p) <= 7) ? (&PCMSK0) : (((p) <= 10) ? (&PCMSK1) : ((std::uint8_t *)0)) )
+#define digitalPinToPCMSK(p)    ( ((p) <= 7) ? (&PCMSK0) : (((p) <= 10) ? (&PCMSK1) : ((uint8_t *)0)) )
 #define digitalPinToPCMSKbit(p) ( ((p) <= 7) ? (p) : (10 - (p)) )
 
 #if (2 + 2 == 4)

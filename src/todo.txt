@@ -20,6 +20,7 @@
 + func pwm
 
 * time stuff (millis, micros, delay)
+* print, write progmem stuff
 * I2C
 * power modes (sleep/standby, etc.)
 * device drivers

@@ -28,8 +28,8 @@
 
 
 
-#define NUM_DIGITAL_PINS            6
-#define NUM_ANALOG_INPUTS           2
+#define FH_NUM_DIGITAL_PINS            6
+#define FH_NUM_ANALOG_INPUTS           2
 #define analogInputToDigitalPin(p)  ((p < 6) ? (p) + 14 : -1)
 
 #if defined(__AVR_ATmega8__)
@@ -40,29 +40,29 @@
 
 #define IS_BEAN (1)
 
-static constexpr std::uint8_t SS   = 2;
-static constexpr std::uint8_t MOSI = 3;
-static constexpr std::uint8_t MISO = 4;
-static constexpr std::uint8_t SCK  = 5;
+static constexpr uint8_t SS   = 2;
+static constexpr uint8_t MOSI = 3;
+static constexpr uint8_t MISO = 4;
+static constexpr uint8_t SCK  = 5;
 
-static constexpr std::uint8_t SDA = 18;
-static constexpr std::uint8_t SCL = 19;
-static constexpr std::uint8_t LED_BUILTIN = 13;
+static constexpr uint8_t SDA = 18;
+static constexpr uint8_t SCL = 19;
+static constexpr uint8_t LED_BUILTIN = 13;
 
-static constexpr std::uint8_t A0 = 18; // remapped for Bean (swapped with A4)
-static constexpr std::uint8_t A1 = 19; // remapped for Bean (swapped with A5)
-static constexpr std::uint8_t A2 = 16;
-static constexpr std::uint8_t A3 = 17;
-static constexpr std::uint8_t A4 = 14; // remapped for Bean (swapped with A0)
-static constexpr std::uint8_t A5 = 15; // remapped for Bean (swapped with A1)
-static constexpr std::uint8_t A6 = 20;
-static constexpr std::uint8_t A7 = 21;
+static constexpr uint8_t A0 = 18; // remapped for Bean (swapped with A4)
+static constexpr uint8_t A1 = 19; // remapped for Bean (swapped with A5)
+static constexpr uint8_t A2 = 16;
+static constexpr uint8_t A3 = 17;
+static constexpr uint8_t A4 = 14; // remapped for Bean (swapped with A0)
+static constexpr uint8_t A5 = 15; // remapped for Bean (swapped with A1)
+static constexpr uint8_t A6 = 20;
+static constexpr uint8_t A7 = 21;
 
-static constexpr std::uint8_t CC_INTERRUPT_PIN = 13;
+static constexpr uint8_t CC_INTERRUPT_PIN = 13;
 
-#define digitalPinToPCICR(p)    (((p) >= 0 && (p) <= 21) ? (&PCICR) : ((std::uint8_t *)0))
+#define digitalPinToPCICR(p)    (((p) >= 0 && (p) <= 21) ? (&PCICR) : ((uint8_t *)0))
 #define digitalPinToPCICRbit(p) (((p) <= 7) ? 2 : (((p) <= 13) ? 0 : 1))
-#define digitalPinToPCMSK(p)    (((p) <= 7) ? (&PCMSK2) : (((p) <= 13) ? (&PCMSK0) : (((p) <= 21) ? (&PCMSK1) : ((std::uint8_t *)0))))
+#define digitalPinToPCMSK(p)    (((p) <= 7) ? (&PCMSK2) : (((p) <= 13) ? (&PCMSK0) : (((p) <= 21) ? (&PCMSK1) : ((uint8_t *)0))))
 #define digitalPinToPCMSKbit(p) (((p) <= 7) ? (p) : (((p) <= 13) ? ((p) - 8) : ((p) - 14)))
 
 #if (2 + 2 == 4)

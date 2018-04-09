@@ -35,24 +35,24 @@
 
 
 
-static constexpr std::uint8_t SS   = 4;
-static constexpr std::uint8_t MOSI = 5;
-static constexpr std::uint8_t MISO = 6;
-static constexpr std::uint8_t SCK  = 7;
+static constexpr uint8_t SS   = 4;
+static constexpr uint8_t MOSI = 5;
+static constexpr uint8_t MISO = 6;
+static constexpr uint8_t SCK  = 7;
 
-static constexpr std::uint8_t SDA = 17;
-static constexpr std::uint8_t SCL = 16;
+static constexpr uint8_t SDA = 17;
+static constexpr uint8_t SCL = 16;
 
 #define LED_BUILTIN 0
 
-static constexpr std::uint8_t A0 = 31;
-static constexpr std::uint8_t A1 = 30;
-static constexpr std::uint8_t A2 = 29;
-static constexpr std::uint8_t A3 = 28;
-static constexpr std::uint8_t A4 = 27;
-static constexpr std::uint8_t A5 = 26;
-static constexpr std::uint8_t A6 = 25;
-static constexpr std::uint8_t A7 = 24;
+static constexpr uint8_t A0 = 31;
+static constexpr uint8_t A1 = 30;
+static constexpr uint8_t A2 = 29;
+static constexpr uint8_t A3 = 28;
+static constexpr uint8_t A4 = 27;
+static constexpr uint8_t A5 = 26;
+static constexpr uint8_t A6 = 25;
+static constexpr uint8_t A7 = 24;
 
 // ATMEL ATMEGA644/ATMEGA1284 / SANGUINO
 //
@@ -79,15 +79,15 @@ static constexpr std::uint8_t A7 = 24;
 //       PWM (D 14) PD6 20|        |21  PD7 (D 15) PWM
 //                        +--------+
 //
-#define NUM_DIGITAL_PINS            24
-#define NUM_ANALOG_INPUTS           8
+#define FH_NUM_DIGITAL_PINS            24
+#define FH_NUM_ANALOG_INPUTS           8
 
 #define analogInputToDigitalPin(p)  ((p < 8) ? 31 - (p): -1)
 #define analogPinToChannel(p)       ((p < 8) ? (p) : 31 - (p))
 
 #define digitalPinHasPWM(p)         ((p) == 3 || (p) == 4 || (p) == 12 || (p) == 13 || (p) == 14 || (p) == 15 )
 
-#define digitalPinToPCICR(p)        ( (((p) >= 0) && ((p) <= 31)) ? (&PCICR) : ((std::uint8_t *)0) )
+#define digitalPinToPCICR(p)        ( (((p) >= 0) && ((p) <= 31)) ? (&PCICR) : ((uint8_t *)0) )
 
 #define digitalPinToPCICRbit(p)     ( (((p) >= 24) && ((p) <= 31)) ? 0 : \
                                     ( (((p) >=  0) && ((p) <=  7)) ? 1 : \
@@ -99,7 +99,7 @@ static constexpr std::uint8_t A7 = 24;
                                     ( (((p) >=  0) && ((p) <=  7)) ? (&PCMSK1) : \
                                     ( (((p) >= 16) && ((p) <= 23)) ? (&PCMSK2) : \
                                     ( (((p) >=  8) && ((p) <= 15)) ? (&PCMSK3) : \
-                                    ((std::uint8_t *)0) ) ) ) )
+                                    ((uint8_t *)0) ) ) ) )
 
 
 #define digitalPinToPCMSKbit(p)     ( (((p) >= 24) && ((p) <= 31)) ? (31 - (p)) : \

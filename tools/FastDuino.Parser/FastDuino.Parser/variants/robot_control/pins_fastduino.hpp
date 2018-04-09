@@ -45,14 +45,14 @@
 #define PIN_SERIAL_RX       (0)
 #define PIN_SERIAL_TX       (1)
 
-static constexpr std::uint8_t RX  = PIN_SERIAL_RX;
-static constexpr std::uint8_t TX  = PIN_SERIAL_TX;
+static constexpr uint8_t RX  = PIN_SERIAL_RX;
+static constexpr uint8_t TX  = PIN_SERIAL_TX;
 
 #define PIN_WIRE_SDA        (2)
 #define PIN_WIRE_SCL        (3)
 
-static constexpr std::uint8_t SDA = PIN_WIRE_SDA;
-static constexpr std::uint8_t SCL = PIN_WIRE_SCL;
+static constexpr uint8_t SDA = PIN_WIRE_SDA;
+static constexpr uint8_t SCL = PIN_WIRE_SCL;
 
 // Map SPI port to 'new' pins D14..D17
 #define PIN_SPI_SS    (17)
@@ -60,10 +60,10 @@ static constexpr std::uint8_t SCL = PIN_WIRE_SCL;
 #define PIN_SPI_MISO  (14)
 #define PIN_SPI_SCK   (15)
 
-static constexpr std::uint8_t SS   = PIN_SPI_SS;
-static constexpr std::uint8_t MOSI = PIN_SPI_MOSI;
-static constexpr std::uint8_t MISO = PIN_SPI_MISO;
-static constexpr std::uint8_t SCK  = PIN_SPI_SCK;
+static constexpr uint8_t SS   = PIN_SPI_SS;
+static constexpr uint8_t MOSI = PIN_SPI_MOSI;
+static constexpr uint8_t MISO = PIN_SPI_MISO;
+static constexpr uint8_t SCK  = PIN_SPI_SCK;
 
 // Mapping of analog pins as digital I/O
 // A6-A11 share with digital pins
@@ -80,39 +80,39 @@ static constexpr std::uint8_t SCK  = PIN_SPI_SCK;
 #define PIN_A10  (28)
 #define PIN_A11  (29)
 
-static constexpr std::uint8_t A0 = PIN_A0;
-static constexpr std::uint8_t A1 = PIN_A1;
-static constexpr std::uint8_t A2 = PIN_A2;
-static constexpr std::uint8_t A3 = PIN_A3;
-static constexpr std::uint8_t A4 = PIN_A4;
-static constexpr std::uint8_t A5 = PIN_A5;
-static constexpr std::uint8_t A6 = PIN_A6;	// D4
-static constexpr std::uint8_t A7 = PIN_A7;	// D6
-static constexpr std::uint8_t A8 = PIN_A8;	// D8
-static constexpr std::uint8_t A9 = PIN_A9;	// D9
-static constexpr std::uint8_t A10 = PIN_A10;	// D10
-static constexpr std::uint8_t A11 = PIN_A11;	// D12
+static constexpr uint8_t A0 = PIN_A0;
+static constexpr uint8_t A1 = PIN_A1;
+static constexpr uint8_t A2 = PIN_A2;
+static constexpr uint8_t A3 = PIN_A3;
+static constexpr uint8_t A4 = PIN_A4;
+static constexpr uint8_t A5 = PIN_A5;
+static constexpr uint8_t A6 = PIN_A6;	// D4
+static constexpr uint8_t A7 = PIN_A7;	// D6
+static constexpr uint8_t A8 = PIN_A8;	// D8
+static constexpr uint8_t A9 = PIN_A9;	// D9
+static constexpr uint8_t A10 = PIN_A10;	// D10
+static constexpr uint8_t A11 = PIN_A11;	// D12
 
 // Specific Mapping for the Control Board
-static constexpr std::uint8_t KEY 	= 18;  	// AD0
-static constexpr std::uint8_t MUX_IN = 24; 	// ADC8 - A6
-static constexpr std::uint8_t MUXA 	= 6;  	// D5 - TKD4
-static constexpr std::uint8_t MUXB 	= 11;  	// D11
-static constexpr std::uint8_t MUXC 	= 12;  	// D12 - TKD5
-static constexpr std::uint8_t MUXD 	= 13;   // D13
-static constexpr std::uint8_t BUZZ 	= 5;   	// D5
-static constexpr std::uint8_t POT 	= 23;  	// AD5
-static constexpr std::uint8_t DC_LCD = 10; 	// D10
-static constexpr std::uint8_t LCD_CS = 9;  	// D9
-static constexpr std::uint8_t RST_LCD = 7; 	// D6
-static constexpr std::uint8_t CARD_CS = 8;   // D8
-static constexpr std::uint8_t TKD0	 = 19;  // ADC6 - A1
-static constexpr std::uint8_t TKD1	 = 20;  // ADC5 - A2
-static constexpr std::uint8_t TKD2	 = 21;  // ADC4 - A3
-static constexpr std::uint8_t TKD3	 = 22;  // ADC1 - A4
-static constexpr std::uint8_t TKD4	 = 6;   // D5 - MUXA
-static constexpr std::uint8_t TKD5	 = 12;  // D12 - MUXC
-static constexpr std::uint8_t LED1	 = 17;  // D17 - RX_Led
+static constexpr uint8_t KEY 	= 18;  	// AD0
+static constexpr uint8_t MUX_IN = 24; 	// ADC8 - A6
+static constexpr uint8_t MUXA 	= 6;  	// D5 - TKD4
+static constexpr uint8_t MUXB 	= 11;  	// D11
+static constexpr uint8_t MUXC 	= 12;  	// D12 - TKD5
+static constexpr uint8_t MUXD 	= 13;   // D13
+static constexpr uint8_t BUZZ 	= 5;   	// D5
+static constexpr uint8_t POT 	= 23;  	// AD5
+static constexpr uint8_t DC_LCD = 10; 	// D10
+static constexpr uint8_t LCD_CS = 9;  	// D9
+static constexpr uint8_t RST_LCD = 7; 	// D6
+static constexpr uint8_t CARD_CS = 8;   // D8
+static constexpr uint8_t TKD0	 = 19;  // ADC6 - A1
+static constexpr uint8_t TKD1	 = 20;  // ADC5 - A2
+static constexpr uint8_t TKD2	 = 21;  // ADC4 - A3
+static constexpr uint8_t TKD3	 = 22;  // ADC1 - A4
+static constexpr uint8_t TKD4	 = 6;   // D5 - MUXA
+static constexpr uint8_t TKD5	 = 12;  // D12 - MUXC
+static constexpr uint8_t LED1	 = 17;  // D17 - RX_Led
 
 //	__AVR_ATmega32U4__ has an unusual mapping of pins to channels
 
@@ -264,7 +264,7 @@ constexpr std::uint8_t ino_timer_oc_num[18] = {
 	255,
 };
 
-constexpr std::uint8_t ino_mux[12] = {
+constexpr uint8_t ino_mux[12] = {
 	7,	// A0				PF7					ADC7
 	6,	// A1				PF6					ADC6	
 	5,	// A2				PF5					ADC5	
