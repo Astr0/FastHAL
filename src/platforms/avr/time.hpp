@@ -24,10 +24,10 @@ namespace fasthal{
 		template<class TTimer = decltype(timer0), typename TTimer::cs_t VClock = TTimer::cs_t::def>
 		struct avr_time{
 			using tcnt_t = field_data_type<decltype(TTimer::tcnt)>;
-			static_assert(sizeof(tcnt_t) == 1, "Only 8 bit timers are supported");
+			//static_assert(sizeof(tcnt_t) == 1, "Only 8 bit timers are supported");
 
 			static constexpr auto prescaler = timer_cs_value(VClock);
-			static constexpr auto tov_value = static_cast<tcnt_t>(~(tcnt_t{0}));
+			static constexpr auto tov_value = 255;//static_cast<tcnt_t>(~(tcnt_t{0})); - this can be changed for 16 bit timers...
 			static constexpr auto tov_count = static_cast<std::uint32_t>(tov_value) + 1;
 
 			static constexpr auto us_per_tick = cycles_to_us(prescaler);
@@ -76,7 +76,7 @@ namespace fasthal{
 						tovs++;
 				}
 				// don't do the math inside no_irq
-				return ((tovs << (8 * sizeof(tcnt_t))) + t) * us_per_tick;
+				return (tovs * tov_count + t) * us_per_tick;
 			}
 
 			void delay_ms(time_t ms){
