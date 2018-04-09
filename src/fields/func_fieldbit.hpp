@@ -1,5 +1,5 @@
-#ifndef FH_FIELDBIT_FUNCS
-#define FH_FIELDBIT_FUNCS
+#ifndef FH_FUNCS_FIELDBIT_H_
+#define FH_FUNCS_FIELDBIT_H_
 
 #include "fieldbit.hpp"
 

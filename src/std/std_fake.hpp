@@ -17,6 +17,8 @@ using base_type_t = typename std::remove_cv<typename std::remove_reference<T>::t
 template<class T, size_t N>
 constexpr size_t array_size(T (&)[N]) { return N; }
 
+struct empty_t{};
+
 };
 
 #endif

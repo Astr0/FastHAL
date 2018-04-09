@@ -7,6 +7,7 @@
 #ifdef FH_HAS_ADC
 
 #include "../../fields/fields.hpp"
+#include "../../fields/func_fieldbit.hpp"
 #include "../../utils/functions.h"
 #include "../../std/std_fake.hpp"
 
@@ -78,7 +79,7 @@ namespace fasthal{
 	}
 	template<typename TRef = decltype(adc_ref::def)>
 	void set_ref_(details::adc_t adc, TRef ref = adc_ref::def){
-		apply(set_ref(adc, ref));
+		write_(avr::refs, ref);
 	}
 
 	template<typename TAdps = decltype(adc_ps::def)>
@@ -87,7 +88,7 @@ namespace fasthal{
 	}
 	template<typename TAdps = decltype(adc_ps::def)>
 	void set_ps_(details::adc_t adc, TAdps ps = adc_ps::def){
-		apply(set_ps(adc, ps));
+		write_(avr::adps, ps);
 	}
 
 	template<typename TRes = decltype(adc_res::def)>
@@ -96,7 +97,7 @@ namespace fasthal{
 	}
 	template<typename TRes = decltype(adc_res::def)>
 	void set_res_(details::adc_t adc, TRes res = adc_res::def){
-		apply(set_res(adc, res));
+		set_(avr::adlar, res);
 	}
 
 	template<typename TMux>
@@ -104,8 +105,8 @@ namespace fasthal{
 		return write(avr::mux, mux);
 	}
 	template<typename TMux>
-	void select_(details::adc_t adc, TMux mux){
-		apply(select(adc, mux));
+	inline void select_(details::adc_t adc, TMux mux){
+		write_(avr::mux, mux);
 	}	
 
 	// enable/disable ADC
@@ -157,81 +158,26 @@ namespace fasthal{
 		return read_(adc);
 	}
 
+	namespace details{
+		template<typename TMux>
+		struct func_fieldbit_adc{
+			using mux_t = TMux;
+		};
+	}
 
+	template<typename T, typename TMux = typename details::func_fieldbit<T>::mux_t>
+	constexpr auto select(T adMux){
+		return write(avr::mux, TMux{});
+	}
+	template<typename T, typename TMux = typename details::func_fieldbit<T>::mux_t>
+	void select_(T adMux){
+		write_(avr::mux, TMux{});
+	}	
 
-    // class Adc{        
-    // public:
-	// 	static void begin(AdcPrescaler prescaler = AdcPrescaler::Default){
-	// 		ADCSRA |= (1 << ADEN) | ((uint8_t)prescaler);
-	// 	}
-		
-	// 	static void end() {
-	// 		disable();
-	// 	}
-	
-	// 	static void select(AdcRef ref, bool is8bit, std::uint8_t adMux){
-	// 		#if defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)
-	// 		// 5 MUX bits and ADLAR IN ADCSRB
-	// 		ADMUX = ((std::uint8_t)ref) | (adMuxmux & 0x1F);
-			
-	// 		fh_wbi(ADCSRB, ADLAR, is8bit);
-	// 		#else
-						
-	// 		#if defined(ADCSRB) && defined(MUX5)
-	// 		// the MUX5 bit of ADCSRB selects whether we're reading from channels
-	// 		// 0 to 7 (MUX5 low) or 8 to 15 (MUX5 high).
-	// 		fh_wbi(ADCSRB, MUX5, adMux & 0x10);
-	// 		#endif
-			
-	// 		ADMUX = ((std::uint8_t)ref) | (is8bit ? (1 << ADLAR) : 0) | (adMux & 0x0F);
-
-	// 		#endif
-	// 	}	
-	
-	//     static void enable(){
-    //         fh_sbi(ADCSRA, ADEN); 
-    //     }
-
-    //     static void disable(){
-    //         fh_cbi(ADCSRA, ADEN);
-    //     }
-		
-	// 	static void start(){
-	// 		// start the conversion
-	// 		fh_sbi(ADCSRA, ADSC);
-	// 	}
-		
-	// 	static bool running(){
-	// 		// ADSC is cleared when the conversion finishes
-	// 		return ADCSRA & (1 << ADSC);
-	// 	}
-		
-	// 	static void wait(){
-	// 		while (running());
-	// 	}
-		
-	// 	static uint16_t read(){
-	// 		return ADC;
-	// 	}
-
-	// 	static uint8_t read8bit(){
-	// 		return ADCH;
-	// 	}			
-    // };
-    
-		
-    // template<AdcRef ref, bool is8bit, uint8_t mux>
-    // class AdcChannel{
-    // public:	
-	// 	typedef typename std::conditional<is8bit, uint8_t, uint16_t>::type result_t;
-	
-	// 	static result_t read(){			
-	// 		Adc::select(ref, is8bit, mux);
-	// 		Adc::start();
-    //         Adc::wait();
-	// 		return is8bit ? Adc::read8bit() : Adc::read();
-    //     }
-    // };
+	template<typename T, typename TMux = typename details::func_fieldbit<T>::mux_t>
+	constexpr auto convert_(T adMux){
+		return convert_(details::adc_t{}, TMux{});
+	}
 }
 
 #endif // ADC stuff
