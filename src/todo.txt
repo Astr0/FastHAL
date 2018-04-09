@@ -18,8 +18,8 @@
 + design some kind of HAL (with linking to what pin where and Arduino pin numbering?) so one could select pinMode, do IO, ADC and intterupts? 
 + func adc
 + func pwm
++/- time stuff (millis, micros, delay). TODO: allow set WGM, get tov value based on wgm, support phase correct modes?
 
-* time stuff (millis, micros, delay)
 * print, write progmem stuff
 * I2C
 * power modes (sleep/standby, etc.)
