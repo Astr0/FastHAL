@@ -49,6 +49,10 @@ namespace fasthal{
             //write(ostream, reinterpret_cast<uint8_t*>(str), &buf[sizeof(buf)] - str);
         }        
     }
+    template<class T, details::enable_if_ostream<T> dummy = nullptr>
+    void printc(T ostream, char c){
+        write(ostream, c);
+    }
 
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
     void println(T ostream){ 

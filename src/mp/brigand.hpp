@@ -611,24 +611,24 @@ namespace detail
         return begin == end ? n : detail::count_bools(begin + 1, end, n + *begin);
     }
 #endif
-    template <bool... Bs>
+    template <bool... VBs>
     struct template_count_bools
     {
         using type = ::brigand::size_t<0>;
     };
-    template <bool B, bool... Bs>
-    struct template_count_bools<B, Bs...>
+    template <bool VB, bool... VBs>
+    struct template_count_bools<VB, VBs...>
     {
-        using type = ::brigand::size_t<B + template_count_bools<Bs...>::type::value>;
+        using type = ::brigand::size_t<VB + template_count_bools<VBs...>::type::value>;
     };
-    template <bool B1, bool B2, bool B3, bool B4, bool B5, bool B6, bool B7, bool B8, bool B9,
-              bool B10, bool B11, bool B12, bool B13, bool B14, bool B15, bool B16, bool... Bs>
-    struct template_count_bools<B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15,
-                                B16, Bs...>
+    template <bool VB1, bool VB2, bool VB3, bool VB4, bool VB5, bool VB6, bool VB7, bool VB8, bool VB9,
+              bool VB10, bool VB11, bool VB12, bool VB13, bool VB14, bool VB15, bool VB16, bool... VBs>
+    struct template_count_bools<VB1, VB2, VB3, VB4, VB5, VB6, VB7, VB8, VB9, VB10, VB11, VB12, VB13, VB14, VB15,
+                                VB16, VBs...>
     {
         using type =
-            ::brigand::size_t<B1 + B2 + B3 + B4 + B5 + B6 + B7 + B8 + B9 + B10 + B11 + B12 + B13 +
-                              B14 + B15 + B16 + template_count_bools<Bs...>::type::value>;
+            ::brigand::size_t<VB1 + VB2 + VB3 + VB4 + VB5 + VB6 + VB7 + VB8 + VB9 + VB10 + VB11 + VB12 + VB13 +
+                              VB14 + VB15 + VB16 + template_count_bools<VBs...>::type::value>;
     };
 }
 namespace lazy
