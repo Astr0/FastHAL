@@ -64,7 +64,7 @@ FH_DECLARE_REGISTER_ONLY(ocr4b, OCR4B)
 // output compare C
 #if defined(OCR4C)
 #define FH_HAS_TIMER4_OCC
-FH_DECLARE_REGISTER_ONLY(ocr4b, OCR4C)
+FH_DECLARE_REGISTER_ONLY(ocr4c, OCR4C)
 #endif
 
 // input capture

@@ -8,87 +8,82 @@
 namespace fasthal{
     // int8
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    bool write(T ostream, char n) {
-        return write(ostream, static_cast<std::uint8_t>(n));
+    void write(T ostream, char n) {
+        write(ostream, static_cast<std::uint8_t>(n));
     }
 
     // bytes
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    bool write(T ostream, const std::uint8_t *buffer, std::size_t size){        
-        while (size--) {
-            if (!write(ostream, *buffer++))
-                return false;
-        }
-        return true;
+    void write(T ostream, const std::uint8_t *buffer, std::size_t size){        
+        while (size--) 
+            write(ostream, *buffer++);
     }
 
     namespace details{
         template<class T, details::enable_if_ostream<T> dummy = nullptr>
-        bool write_data_only(T ostream, const char* text) {
+        void write_data_only(T ostream, const char* text) {
             char c;
-            while ((c = *text++) != '\0'){
-                if (!write(ostream, c))
-                    return false;
-            }
-            return true;
+            while ((c = *text++) != '\0')
+                write(ostream, c);
         }
     }
 
     //cstring
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    bool write(T ostream, const char* text) {
+    void write(T ostream, const char* text) {
         details::write_data_only(ostream, text);
-        return write(ostream, char{0});
+        write(ostream, char{0});
     }
 
     // uint16
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    bool write(T ostream, std::uint16_t n) {
+    void write(T ostream, std::uint16_t n) {
         auto c = reinterpret_cast <std::uint8_t*>(&n);
-        return 
-            write(ostream, *c) && 
-            write(ostream, *(c + 1));
+        
+        write(ostream, *c++);
+        write(ostream, *c);
     }
 
     // int16
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    bool write(T ostream, std::int16_t n) {
-        return write(ostream, static_cast<std::uint16_t>(n));
+    void write(T ostream, std::int16_t n) {
+        write(ostream, static_cast<std::uint16_t>(n));
     }
 
     // uint32
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    bool write(T ostream, std::uint32_t n) {
+    void write(T ostream, std::uint32_t n) {
         auto c = reinterpret_cast<std::uint8_t*>(&n);
-        return 
-            write(ostream, *c) && 
-            write(ostream, *(c + 1)) &&
-            write(ostream, *(c + 2)) &&
-            write(ostream, *(c + 3));
+        
+        write(ostream, *c++);
+        write(ostream, *c++);
+        write(ostream, *c++);
+        write(ostream, *c);
     }    
     
     // int32
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    bool write(T ostream, std::int32_t n) {
-        return write(ostream, static_cast<std::uint32_t>(n));
+    void write(T ostream, std::int32_t n) {
+        write(ostream, static_cast<std::uint32_t>(n));
     }
 
     // float
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    bool write(T ostream, float n) {
+    void write(T ostream, float n) {
         static_assert(sizeof(float)==sizeof(std::uint32_t), "Float is not 4 bytes");
         
-        return write(ostream, alias_cast<std::uint32_t>(n));
+        write(ostream, alias_cast<std::uint32_t>(n));
     }
 
     // double
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    bool write(T ostream, double n) {        
+    void write(T ostream, double n) {        
         if constexpr (sizeof(double) == sizeof(std::uint32_t)){
-            return write(ostream, alias_cast<std::uint32_t>(n));
+            write(ostream, alias_cast<std::uint32_t>(n));
         } else if constexpr(sizeof(double) == 2 * sizeof(std::uint32_t)){
             auto c = reinterpret_cast<std::uint32_t*>(&n);
-            return write(ostream, *c) && write(ostream, *(c + 1)); 
+            write(ostream, *c++);
+            write(ostream, *c); 
         } else{
             static_assert(true, "Strange sizeof(double)");
         }
