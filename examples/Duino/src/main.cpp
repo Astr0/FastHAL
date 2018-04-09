@@ -4,7 +4,7 @@
 using namespace fasthal;
 using namespace fasthal::duino;
 
-static constexpr auto ledPin = ino<13>;
+static constexpr auto ledPin = ino<LED_BUILTIN>;
 
 int main(){
     
