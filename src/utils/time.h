@@ -10,12 +10,12 @@ namespace fasthal{
 	
 	// elapsed checker suitable for Bounce. elapsed() when called Checks count.
 	template <unsigned Checks>
-	class ElapsedChecks{
+	class elapsed_checks{
 		using checks_t = brigand::number_type<Checks + 1>;
 		
 		checks_t _checks;
 	public:
-		ElapsedChecks(){ reset(); }
+		elapsed_checks(): _checks(0) { }
 		void reset(){ _checks = 0; }
 		bool elapsed(){
 			if (_checks == Checks)

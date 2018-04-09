@@ -8,5 +8,6 @@
 #include "timers.hpp"
 #include "uart.hpp"
 #include "gpio.hpp"
+#include "time.hpp"
 
 #endif /* AVR_HAL_H_ */
