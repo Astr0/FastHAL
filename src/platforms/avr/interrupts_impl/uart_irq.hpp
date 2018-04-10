@@ -104,9 +104,10 @@ constexpr auto irq_rxc0 = interrupt<FH_IRQ_RXC0>{};
 namespace details{
     template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txr0)>>: 
         func_fieldbit_enable<decltype(avr::udrie0)>,
-        func_fieldbit_ready<decltype(avr::udre0)>
-        {};
-    template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txc0)>>: func_fieldbit_enable<decltype(avr::txcie0)>{};
+        func_fieldbit_ready<decltype(avr::udre0)>{};
+    template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txc0)>>: 
+        func_fieldbit_enable<decltype(avr::txcie0)>,
+        func_fieldbit_ready_reset<decltype(avr::txc0)>{};
     template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_rxc0)>>: func_fieldbit_enable<decltype(avr::rxcie0)>{};
 }
 #endif
@@ -118,7 +119,9 @@ namespace details{
     template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txr1)>>: 
         func_fieldbit_enable<decltype(avr::udrie1)>,
         func_fieldbit_ready<decltype(avr::udre1)>{};
-    template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txc1)>>: func_fieldbit_enable<decltype(avr::txcie1)>{};
+    template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txc1)>>: 
+        func_fieldbit_enable<decltype(avr::txcie1)>,
+        func_fieldbit_ready_reset<decltype(avr::txc1)>{};
     template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_rxc1)>>: func_fieldbit_enable<decltype(avr::rxcie1)>{};
 }
 #endif
@@ -130,7 +133,9 @@ namespace details{
     template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txr2)>>: 
         func_fieldbit_enable<decltype(avr::udrie2)>,
         func_fieldbit_ready<decltype(avr::udre2)>{};
-    template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txc2)>>: func_fieldbit_enable<decltype(avr::txcie2)>{};
+    template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txc2)>>: 
+        func_fieldbit_enable<decltype(avr::txcie2)>,
+        func_fieldbit_ready_reset<decltype(avr::txc2)>{};
     template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_rxc2)>>: func_fieldbit_enable<decltype(avr::rxcie2)>{};
 }
 #endif
@@ -142,7 +147,9 @@ namespace details{
     template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txr3)>>: 
         func_fieldbit_enable<decltype(avr::udrie3)>,
         func_fieldbit_ready<decltype(avr::udre3)>{};
-    template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txc3)>>: func_fieldbit_enable<decltype(avr::txcie3)>{};
+    template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_txc3)>>: 
+        func_fieldbit_enable<decltype(avr::txcie3)>,
+        func_fieldbit_ready_reset<decltype(avr::txc3)>{};
     template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_rxc3)>>: func_fieldbit_enable<decltype(avr::rxcie3)>{};
 }
 #endif

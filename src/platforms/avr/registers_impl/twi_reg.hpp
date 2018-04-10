@@ -18,21 +18,22 @@ FH_DECLARE_REGISTER_ONLY(twar, TWAR);
 FH_DECLARE_REGISTER_ONLY(twsr, TWSR);
 
 // prescaler
-enum class TWPS: std::uint8_t{
+enum class tw_ps: std::uint8_t{
     _1 = 0
     , _4 =  (0 << TWPS1) | (1 << TWPS0)
     , _16 = (1 << TWPS1) | (0 << TWPS0)
     , _64 = (1 << TWPS1) | (1 << TWPS0)
+    , def = _1
 };
 
-template<TWPS V>
-static constexpr auto twps_v = integral_constant<TWPS, V>{};
+template<tw_ps V>
+static constexpr auto twps_v = integral_constant<tw_ps, V>{};
 
-constexpr auto twps = mField<(1 << TWPS0) | (1 << TWPS1), TWPS>(twsr);
+constexpr auto twps = mField<(1 << TWPS0) | (1 << TWPS1), tw_ps>(twsr);
 
 
 // status
-enum class TWS: std::uint8_t{
+enum class tw_s: std::uint8_t{
     // master statuses 
     // mt = master transmit
     // mr = master receive
@@ -67,10 +68,10 @@ enum class TWS: std::uint8_t{
     sla_lbyte_ack       = 0xC8, // last data byte was transmitted and ACK has been received, reseting TWI, st
 };
 
-template<TWS V>
-static constexpr auto tws_v = integral_constant<TWS, V>{};
+template<tw_s V>
+static constexpr auto tws_v = integral_constant<tw_s, V>{};
 
-constexpr auto tws = mField<(std::uint8_t)(~((1 << TWPS0) | (1 << TWPS1))), TWS>(twsr);
+constexpr auto tws = mField<(std::uint8_t)(~((1 << TWPS0) | (1 << TWPS1))), tw_s>(twsr);
 
 #endif
 

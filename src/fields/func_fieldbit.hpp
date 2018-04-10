@@ -56,6 +56,9 @@ namespace fasthal{
 	template<typename TFunc, typename TFieldBit = typename details::func_fieldbit<TFunc>::ready_t>
 	constexpr auto inline ready_(TFunc func){ return read_(TFieldBit{}); }	
 
+	template<typename TFunc, typename TFieldBit = typename details::func_fieldbit<TFunc>::ready_t>
+	constexpr auto inline wait_(TFunc func){ return wait_hi(TFieldBit{}); }	
+
 	// reset
 	template<typename TFunc, typename TFieldBit = typename details::func_fieldbit<TFunc>::reset_t>
 	constexpr auto inline reset(TFunc func){ return set(TFieldBit{}); }	

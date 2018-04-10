@@ -5,7 +5,7 @@ using namespace fasthal;
 using namespace fasthal::avr;
 
 constexpr auto channel = mux_v<0>;
-constexpr auto my_adc_res = adc_res::_8;
+constexpr auto my_is8bit = integral_constant<bool, true>{};
 
 // TODO: HAL to make this much nicer 
 // static constexpr auto led = gpioD5;
@@ -21,7 +21,7 @@ int main(void)
 	apply(
 	 	//	Adc::begin();
 		 // default voltage, desired resolution
-		begin(adc, adc_ref::def, my_adc_res),
+		begin(adc, ad_ref::def, my_is8bit),
 		// LedPin::setMode(PinMode::Output);
 		//makeOutput(led)
 		set(led_ddr) 
@@ -29,7 +29,7 @@ int main(void)
 	
 	while (true){		
 	// 	auto val = TestAdc::read();
-		auto val = convert_(adc, channel);
+		auto val = convert8_(adc, channel);
 	// 	LedPin::set(val < 100);
 		set(led, val < 100);
 	}
