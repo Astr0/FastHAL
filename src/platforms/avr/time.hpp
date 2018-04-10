@@ -21,14 +21,16 @@ namespace fasthal{
 	static constexpr auto cycles_to_us(std::uint32_t cycles) { return cycles / cycles_per_us;}
 
 	namespace details{
-		template<class TTimer = decltype(timer0), typename TTimer::cs_t VClock = TTimer::cs_t::def>
+		template<class TTimer = decltype(timer0), typename TTimer::cs_t VClock = TTimer::cs_t::def, typename TTimer::wgm_t VWgm = TTimer::wgm_t::pwm_fastdef>
 		struct avr_time{
 			using tcnt_t = field_data_type<decltype(TTimer::tcnt)>;
 			//static_assert(sizeof(tcnt_t) == 1, "Only 8 bit timers are supported");
 
 			static constexpr auto prescaler = timer_cs_value(VClock);
-			static constexpr auto tov_value = 255;//static_cast<tcnt_t>(~(tcnt_t{0})); - this can be changed for 16 bit timers...
-			static constexpr auto tov_count = static_cast<std::uint32_t>(tov_value) + 1;
+			static constexpr auto tov_value = timer_wgm_max(VWgm);
+			static_assert(tov_value != 0, "Can't calc time in this WGM mode");
+			static constexpr auto tov_top = timer_wgm_tov(VWgm);
+			static constexpr auto tov_count = tov_top ? (static_cast<std::uint32_t>(tov_value) + 1) :  (static_cast<std::uint32_t>(tov_value) * 2/* + 1*/);
 
 			static constexpr auto us_per_tick = cycles_to_us(prescaler);
 			static constexpr auto us_per_tov = cycles_to_us(tov_count * prescaler);
@@ -66,36 +68,59 @@ namespace fasthal{
 
 			inline time_t time_us() const{
 				time_t tovs;
-				tcnt_t t;
-				{
-					no_irq noirq{};
-					tovs = _overflows;
-					t = read_(TTimer::tcnt);
-					// OVF flag set and timer was reset, we should be handling interrupt, but it's off atm
-					if (ready_(TTimer::irq_tov) && t < tov_value)
-						tovs++;
+				if constexpr (tov_top){
+					tcnt_t t;
+					{
+						no_irq noirq{};
+						tovs = _overflows;
+						t = read_(TTimer::tcnt);
+						// OVF flag set and timer was reset, we should be handling interrupt, but it's off atm
+						if (ready_(TTimer::irq_tov) && t < tov_value)
+							tovs++;
+					
+					}
+					// don't do the math inside no_irq
+					return (tovs * tov_count + t) * us_per_tick;
+				} else{
+					// in tov bottom we can't get nice accuracy since we don't know count direction
+					{
+						no_irq noiqr{};
+						tovs = _overflows;
+					}
+					return tovs * tov_count * us_per_tick;
 				}
-				// don't do the math inside no_irq
-				return (tovs * tov_count + t) * us_per_tick;
 			}
 
 			void delay_ms(time_t ms){
-				auto start = time_us();
-				while (ms > 0){
-					if (time_us() - start >= 1000)
-					{
-						ms--;
-						start += 1000;						
+				if constexpr (tov_top){
+					// use time_us for better accuracy
+					auto start = time_us();
+					while (ms > 0){
+						if (time_us() - start >= 1000)
+						{
+							ms--;
+							start += 1000;						
+						}
+					}
+				} else{
+					// use time_ms for smaller code size since time_us doesn't have better accuracy
+					auto start = time_ms();
+					while (ms > 0){
+						if (time_ms() - start > 0)
+						{
+							ms--; 
+							start++;
+						}
 					}
 				}
 			}
 		};
 	}
 
-	template<class TTimer, typename TTimer::cs_t VClock>
-	inline constexpr auto begin(details::avr_time<TTimer, VClock> t){
+	template<class TTimer, typename TTimer::cs_t VClock, typename TTimer::wgm_t VWgm>
+	inline constexpr auto begin(details::avr_time<TTimer, VClock, VWgm> t){
 		return combine(
-			begin(TTimer{}, integral_constant<typename TTimer::cs_t, VClock>{}, integral_constant<typename TTimer::wgm_t, TTimer::wgm_t::pwm_fastdef>{}),
+			begin(TTimer{}, integral_constant<typename TTimer::cs_t, VClock>{}, integral_constant<typename TTimer::wgm_t, VWgm>{}),
 			enable(TTimer::irq_tov)
 		);
 	}
@@ -109,8 +134,11 @@ namespace fasthal{
 	#ifndef FH_TIME_CS
 	#define FH_TIME_CS _64
 	#endif
+	#ifndef FH_TIME_WGM
+	#define FH_TIME_WGM pwm_fastdef
+	#endif
 
-	static auto time = details::avr_time<details::timer_impl<FH_TIME>, details::timer_impl<FH_TIME>::cs_t::FH_TIME_CS>{};
+	static auto time = details::avr_time<details::timer_impl<FH_TIME>, details::timer_impl<FH_TIME>::cs_t::FH_TIME_CS, details::timer_impl<FH_TIME>::wgm_t::FH_TIME_WGM>{};
 
 	namespace details{
     	template<>

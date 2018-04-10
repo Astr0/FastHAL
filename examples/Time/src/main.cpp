@@ -1,6 +1,6 @@
 //#define FH_TIME_ARDUINO
 #define FH_TIME 1
-#define FH_TIME_CS _64
+#define FH_TIME_WGM pwm_pcdef
 #define FH_UART0_TX 64
 
 #ifdef FH_TIME_ARDUINO

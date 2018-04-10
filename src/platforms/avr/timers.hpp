@@ -224,6 +224,92 @@ namespace fasthal{
         };
     }
 
+    // max value to generate TOV
+    static constexpr std::uint16_t timer_wgm_max(details::timer_wgm3 wgm){
+        using wgm_t = details::timer_wgm3;
+        switch (wgm){
+            case wgm_t::normal      : return 0xFFFF;
+            case wgm_t::pwm_pc8     : return 0x00FF;
+            case wgm_t::pwm_pc9     : return 0x01FF;
+            case wgm_t::pwm_pc10    : return 0x03FF;            
+            case wgm_t::pwm_fast8   : return 0x00FF;
+            case wgm_t::pwm_fast9   : return 0x01FF;
+            case wgm_t::pwm_fast10  : return 0x03FF;
+            default                 : return 0;
+        };
+    }
+
+    // where TOV interrupts (true - top, false - bottom)
+    static constexpr bool timer_wgm_tov(details::timer_wgm3 wgm){
+        using wgm_t = details::timer_wgm3;
+        switch (wgm){
+            case wgm_t::normal      : return true;
+            case wgm_t::pwm_pc8     : return false;
+            case wgm_t::pwm_pc9     : return false;
+            case wgm_t::pwm_pc10    : return false;
+            case wgm_t::ctc_a       : return true;
+            case wgm_t::pwm_fast8   : return true;
+            case wgm_t::pwm_fast9   : return true;
+            case wgm_t::pwm_fast10  : return true;
+            case wgm_t::pwm_pcfci   : return false;
+            case wgm_t::pwm_pcfca   : return false;
+            case wgm_t::pwm_pci     : return false;
+            case wgm_t::pwm_pca     : return false;
+            case wgm_t::ctc_i       : return true;            
+            case wgm_t::pwm_fasti   : return true;
+            case wgm_t::pwm_fasta   : return true;
+            default                 : return true;            
+        };
+    }
+
+    // max value to generate TOV
+    static constexpr std::uint8_t timer_wgm_max(details::timer_wgm2 wgm){
+        using wgm_t = details::timer_wgm2;
+        switch (wgm){
+            case wgm_t::normal      : return 0xFF;
+            case wgm_t::pwm_pcmax   : return 0xFF;
+            case wgm_t::pwm_fastmax : return 0xFF;
+            default                 : return 0;
+        };
+    }
+
+    // where TOV interrupts (true - top, false - bottom)
+    static constexpr bool timer_wgm_tov(details::timer_wgm2 wgm){
+        using wgm_t = details::timer_wgm2;
+        switch (wgm){
+            case wgm_t::normal      : return true;
+            case wgm_t::pwm_pcmax   : return false;
+            case wgm_t::ctc_a       : return true;
+            case wgm_t::pwm_fastmax : return true;
+            case wgm_t::pwm_pca     : return false;
+            case wgm_t::pwm_fasta   : return true;
+            default                 : return true;            
+        };
+    }
+
+        // max value to generate TOV
+    static constexpr std::uint8_t timer_wgm_max(details::timer_wgm1 wgm){
+        using wgm_t = details::timer_wgm1;
+        switch (wgm){
+            case wgm_t::normal      : return 0xFF;
+            case wgm_t::pwm_pcmax   : return 0xFF;
+            case wgm_t::pwm_fastmax : return 0xFF;
+            default                 : return 0;
+        };
+    }
+
+    // where TOV interrupts (true - top, false - bottom)
+    static constexpr bool timer_wgm_tov(details::timer_wgm1 wgm){
+        using wgm_t = details::timer_wgm1;
+        switch (wgm){
+            case wgm_t::normal      : return true;
+            case wgm_t::pwm_pcmax   : return false;
+            case wgm_t::ctc_a       : return true;
+            case wgm_t::pwm_fastmax : return true;
+            default                 : return true;            
+        };
+    }
+
 
     #include "timers/timer0.hpp"
     #include "timers/timer1.hpp"
