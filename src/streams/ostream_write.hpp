@@ -32,7 +32,7 @@ namespace fasthal{
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
     void write(T ostream, const char* text) {
         details::write_data_only(ostream, text);
-        write(ostream, char{0});
+        write(ostream, '\0');
     }
 
     // uint16

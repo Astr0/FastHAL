@@ -14,18 +14,21 @@
 
 #include "fasthal.hpp"
 
+#define _FLASH(x) FH_FLASH(x)
+//#define _FLASH(x) x
+
 using namespace fasthal;
 using namespace fasthal::avr;
 
 template<typename T>
 void testPrint(T writer, uint8_t read){
-    print(writer, "Hello from Arduino:");
+    print(writer, _FLASH("Hello from Arduino:"));
     println(writer, read);
-    print(writer, "uint32_t: ");
+    print(writer, _FLASH("uint32_t: "));
     println(writer, (uint32_t)read);
-    print(writer, "float: ");
+    print(writer, _FLASH("float: "));
     println(writer, (float)read);
-    print(writer, "double: ");
+    print(writer, _FLASH("double: "));
     println(writer, (double)read);
 }
 

@@ -115,7 +115,7 @@ namespace fasthal{
             write(ostream, '-');
             n = -n;
         }
-        print(ostream, static_cast<std::uint8_t>(n));
+        print(ostream, static_cast<std::uint8_t>(n), base);
     }
 
     template<class T, unsigned VBase = 10, details::enable_if_ostream<T> dummy = nullptr>
@@ -130,7 +130,7 @@ namespace fasthal{
             write(ostream, '-');
             n = -n;
         }
-        print(ostream, static_cast<std::uint8_t>(n));
+        print(ostream, static_cast<std::uint8_t>(n), base);
     }
 
     template<class T, unsigned VBase = 10, details::enable_if_ostream<T> dummy = nullptr>
@@ -145,7 +145,7 @@ namespace fasthal{
             write(ostream, '-');
             n = -n;
         }
-        print(ostream, static_cast<std::uint8_t>(n));
+        print(ostream, static_cast<std::uint8_t>(n), base);
     }
 
     template<class T, unsigned VBase = 10, details::enable_if_ostream<T> dummy = nullptr>

@@ -9,5 +9,6 @@
 #include "uart.hpp"
 #include "gpio.hpp"
 #include "time.hpp"
+#include "flash_string.hpp"
 
 #endif /* AVR_HAL_H_ */
