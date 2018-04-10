@@ -8,7 +8,7 @@ FH_DECLARE_REGISTER_ONLY(twbr, TWBR);
 FH_DECLARE_REGISTER_ONLY(twdr, TWDR);
 #endif
 
-// address register
+// slave address register, 7 bits address + TWGCE - enable recognition of broadcast (general call)
 #ifdef TWAR
 FH_DECLARE_REGISTER_ONLY(twar, TWAR);
 #endif
@@ -78,27 +78,27 @@ constexpr auto tws = mField<(std::uint8_t)(~((1 << TWPS0) | (1 << TWPS1))), TWS>
 #ifdef TWCR
 FH_DECLARE_REGISTER_ONLY(twcr, TWCR);
 
-// interrupt flag
+// interrupt flag, SCL is stretched while it's set, not automatically reset, reset by writing 1
 #ifdef TWINT
 constexpr auto twint = fieldBit<TWINT>(twcr);
 #endif
 
-// Enable Acknowledge
+// Enable Acknowledge (disabling it virtually disconnects device from TWI)
 #ifdef TWEA
 constexpr auto twea = fieldBit<TWEA>(twcr);
 #endif
 
-// Start condition
+// Start condition will be generated (becomes master) when available. Must be cleared by software after transmitting
 #ifdef TWSTA
 constexpr auto twsta = fieldBit<TWSTA>(twcr);
 #endif
 
-// Stop condition
+// Stop condition will be generated if master, in slave used to reset TWI and recover from error. Cleared automatically.
 #ifdef TWSTO
 constexpr auto twsto = fieldBit<TWSTO>(twcr);
 #endif
 
-// Write collision flag
+// Write collision flag - attempt to write to TWDR when TWINT is low. Cleared when writing TWDR when TWINT is high.
 #ifdef TWWC
 constexpr auto twwc = fieldBit<TWWC>(twcr);
 #endif

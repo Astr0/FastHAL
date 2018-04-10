@@ -5,7 +5,7 @@
     namespace details{
         template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_i2c)>>: 
             func_fieldbit_enable<decltype(avr::twie)>,
-            func_fieldbit_ready<decltype(avr::twint)>
+            func_fieldbit_ready_reset<decltype(avr::twint)>
             {};
     }
     
