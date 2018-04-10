@@ -34,7 +34,10 @@ void loop(){
     print(uart0, ms);
     printc(uart0, ' ');
     println(uart0, us);
-    delay_ms(1000);
+    // delay_us approximation (doesn't count for loop cycles)
+    for (auto i = 0; i < 1000; ++i)
+        delay_us(1000);
+    //delay_ms(1000);
 }
 
 #ifndef FH_TIME_ARDUINO
