@@ -19,8 +19,7 @@
 + func adc
 + func pwm
 + time stuff (millis, micros, delay). allow set WGM, get tov value based on wgm, support phase correct modes
-
-* print, write progmem stuff
++ print, write progmem stuff
 
 * I2C
 * power modes (sleep/standby, etc.)

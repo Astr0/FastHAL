@@ -35,18 +35,17 @@ void loop(){
     printc(uart0, ' ');
     println(uart0, us);
     // delay_us approximation (doesn't count for loop cycles)
-    for (auto i = 0; i < 1000; ++i)
-        delay_us(1000);
-    //delay_ms(1000);
+    if (read_(led)) {
+        for (auto i = 0; i < 1000; ++i)
+            delay_us(1000);
+    } else {
+        delay_ms(1000);
+    }
 }
 
 #ifndef FH_TIME_ARDUINO
 
 int main(){
-    // PORTB = time.ms_inc / 256;
-    // PORTB = time.ms_inc % 256; // 262, ok
-    //PORTB = time.frac_inc / 256;
-    //PORTB = time.frac_inc % 256; //262, ok
     setup();
     while (1){
         loop();

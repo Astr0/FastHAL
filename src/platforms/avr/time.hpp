@@ -229,6 +229,13 @@ namespace fasthal{
 			);
 			// return = 4 cycles 
 		}
+
+		void delay_ms_us_impl(time_t ms){ 
+			while (ms > 0){
+				delay_us_impl(999); // some compensation for while loop...
+				ms--;
+			}
+		}
 	}
 
 	template<class TTimer, typename TTimer::cs_t VClock, typename TTimer::wgm_t VWgm>
@@ -262,14 +269,28 @@ namespace fasthal{
 
 	inline time_t time_ms(){ return time.time_ms(); }
 	inline time_t time_us(){ return time.time_us(); }
-	inline void delay_ms(time_t ms){ time.delay_ms(ms); }
-	inline void delay_us(std::uint16_t us){ details::delay_us_impl(us); }
 	#elif defined(FH_TIME_ARDUINO)
 	inline time_t time_ms(){ return ::millis(); }
 	inline time_t time_us(){ return ::micros(); }
-	inline void delay_ms(time_t ms){ ::delay(ms); }
-	inline void delay_us(std::uint16_t us){ ::delayMicroseconds(us); }
 	#endif
+
+	inline void delay_us(std::uint16_t us){
+		#if defined(FH_TIME_ARDUINO)
+			::delayMicroseconds(us); 
+		#else
+			details::delay_us_impl(us);
+		#endif
+	}
+
+	inline void delay_ms(time_t ms){
+		#if defined(FH_TIME_ARDUINO)
+		::delay(ms);
+		#elif defined(FH_TIME)
+		time.delay_ms(ms);
+		#else
+		details::delay_ms_us_impl(ms);
+		#endif
+	}
 }
 
 #endif
