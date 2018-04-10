@@ -43,6 +43,7 @@ namespace fasthal{
 
     // interrupts normalization...
     #include "interrupts_impl/uart_irq.hpp"
+    #include "interrupts_impl/twi_irq.hpp"
 
     // runs irq if it's ready and enabled, but global interrupts disabled
     template<unsigned VNum>
