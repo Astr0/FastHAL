@@ -4,126 +4,75 @@
 #include "../mp/brigand_ex.hpp"
 #include "../std/std_types.hpp"
 
-// TODO: Fix ringbuffer so 1 bytes is ok (tail and head moves out of range and % later)
 namespace fasthal{
-    template<unsigned VBufferSize>
+    template<unsigned VCapacity>
     struct ring_buffer{
-        using index_t = brigand::number_type<VBufferSize>;
+        static_assert((VCapacity & (VCapacity - 1)) == 0, "Capacity should be a power of 2");
+        using index_t = brigand::number_type<2 * VCapacity>;
         using data_t = std::uint8_t;
-        static constexpr index_t size = VBufferSize;
+        static constexpr index_t capacity = VCapacity;
     private:
-        using index2_t = brigand::number_type<size * 2>;
-        using index1_t = brigand::number_type<size + 1>;        
+        //using index2_t = brigand::number_type<size * 2>;
+        //using index1_t = brigand::number_type<size + 1>;        
 
-        volatile index_t _head;
-        volatile index_t _tail;
-        data_t _buffer[size];
+        volatile index_t _write;
+        volatile index_t _read;
+        data_t _buffer[capacity];
+
+        static constexpr index_t mask(index_t index){ return index & (capacity - 1);}
     public:       
-        ring_buffer(): _head(0), _tail(0){ }
+        ring_buffer(): _write(0), _read(0){ }
 
-        inline void clear(){
-            _head = _tail;
-        }
+        inline void clear(){ _write = _read = 0; }
 
-        index_t available(){
-            // doesn't makes much sense to NoInterrupt here since after no interrupt things may change
-            // tail is read second so it will return <= real available
-            return ((index2_t)(size + _head - _tail)) % size;
-        }
-
-        bool empty(){
-            return _head == _tail;
-        }
-
-        data_t peek(){
-            return _buffer[_tail];
-        }
-
-        data_t read_dirty(){
-            uint8_t c = peek();
-            _tail = ((index1_t)(_tail + 1)) % size;
-            return c;
-        }
-
-        data_t read(){
-            return empty() ? 0 : read_dirty();
-        }
-
-        index_t next_i(){
-            return ((index1_t)(_head + 1)) % size;
-        }
-
-        bool can_write_i(index_t i){
-            return i != _tail;
-        }
-
-        void write_i(index_t i, data_t c){
-            _buffer[_head] = c;
-            _head = i;
-        }
-
-        bool try_write_i(index_t i, data_t c){
-            // if we should be storing the received character into the location
-            // just before the tail (meaning that the head would advance to the
-            // current location of the tail), we're about to overflow the buffer
-            // and so we don't write the character or advance the head.
-            if (can_write_i(i))                
-            {
-                write_i(i, c);
-                return true;
-            }
-            return false;            
-        }
+        // doesn't makes much sense to NoInterrupt here since after no interrupt things may change
+        // tail is read second so it will return <= real available
+        inline index_t size(){ return _write - _read; }
+        inline bool empty(){ return _write == _read; }
+        inline bool full(){return size() == capacity;}
+ 
+        inline data_t peek(){ return _buffer[mask(_read)]; }
+        inline data_t read_dirty(){ return _buffer[mask(_read++)]; }
+        inline data_t read() { return empty() ? 0 : read_dirty(); }
 
         bool try_write(data_t c){
-            return try_write_i(next_i(), c);
+            if (full()) return false;
+            _buffer[mask(_write++)] = c;
+            return true;
         }
     };
 
     // not valid template arguments
     template<>
     struct ring_buffer<0>{
-        static constexpr std::uint8_t size = 0;
+        static constexpr std::uint8_t capacity = 0;
     };
 
     template<>
     struct ring_buffer<1>{
         using index_t = std::uint8_t;
         using data_t = std::uint8_t;
-        static constexpr std::uint8_t size = 1;
+        static constexpr std::uint8_t capacity = 1;
     private:
-        data_t _data;
-        bool _hasData;
+        volatile data_t _data;
+        volatile bool _hasData;
     public:
         ring_buffer(): _hasData(false) { }
 
         inline void clear(){ _hasData = false; }
-
         index_t available(){ return _hasData ? 1 : 0; }
-
         bool empty(){ return !_hasData; }
+        bool full(){ return _hasData; }
 
         data_t peek(){ return _data; }
 
-        data_t read_dirty(){ 
+        data_t read_dirty() { 
+            auto d = _data;
             _hasData = false;
-            return _data; 
+            return d; 
         }
 
         data_t read(){ return _hasData ? read_dirty() : 0; }
-
-        index_t next_i(){
-            return 0;
-        }
-
-        bool can_write_i(index_t i){
-            return !_hasData;
-        }
-
-        void write_i(index_t i, data_t c){
-            _data = c;
-            _hasData = true;
-        }
 
         bool try_write(data_t c){
             if (_hasData)
@@ -132,10 +81,6 @@ namespace fasthal{
             _hasData = true;
             return true;
         }
-
-        bool try_write_i(index_t i, data_t c){
-            return try_write(c);
-        }        
     };
 }
 

@@ -53,7 +53,7 @@ namespace fasthal{
         };
 
         template<class T, bool tx>
-        static constexpr auto uart_has_buf = uart_buf<T, tx>::buffer.size > 0;
+        static constexpr auto uart_has_buf = uart_buf<T, tx>::buffer.capacity > 0;
 
         template<unsigned VNum>
         struct uart{
@@ -224,8 +224,7 @@ namespace fasthal{
             }
 
             // wait for buffer space
-            auto i = buffer.next_i();
-            while (!buffer.try_write_i(i, c)){
+            while (!buffer.try_write(c)){
                 try_irq_force(uart_t::irq_txr);
             }
 
