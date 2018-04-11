@@ -62,44 +62,47 @@ using namespace fasthal::duino;
 
 static constexpr auto i2c = i2c0;
 
-// void debugi2c(const char* why){
-//     // print(uart0, why);
-//     // print(uart0, ' ');
-//     // print(uart0, 'x');
-//     // println(uart0, static_cast<std::uint8_t>(read_(i2c.status)), numberbase_hex);
-// }
+void debugi2c(const char* why){
+    print(uart0, why);
+    print(uart0, ' ');
+    print(uart0, 'x');
+    println(uart0, static_cast<std::uint8_t>(read_(i2c.status)), numberbase_hex);
+}
 
 static constexpr auto address = i2c_address_v<0x23>;
 
-template<typename TMode>
-void bh1750_set_mode(TMode mode){
+void bh1750_set_mode(std::uint8_t mode, bool sendStop = true){
     // configure BH1750. TODO: Errors
     start(i2c);
-    //debugi2c("start_w");
+    debugi2c("start_w");
     // select BH1750
     select(i2c, i2c_write, address);
-    //debugi2c("sla+w");
+    debugi2c("sla+w");
     // write mode command (CONTINUOUS_HIGH_RES_MODE)
     write(i2c, mode);
-    //debugi2c("write");
+    debugi2c("write");
     // stop i2c
-    stop(i2c);
-    //debugi2c("stop");
+    if (sendStop)
+    {
+        stop(i2c);
+        debugi2c("stop");
+    }
     // wait 
     delay_ms(120);
 }
 
-std::uint16_t bh1750_read(){
-    start(i2c);
-    //debugi2c("start_r");
+std::uint16_t bh1750_read(std::uint8_t mode){
+    bh1750_set_mode(mode, false);
+    stop_start(i2c);
+    debugi2c("stop_start");
     select(i2c, i2c_read, address);
-    //debugi2c("sla+r");
+    debugi2c("sla+r");
     std::uint16_t result = read(i2c) << 8;
-    //debugi2c("read");
+    debugi2c("read");
     result |= read(i2c, i2c_last);
-    //debugi2c("readl");
+    debugi2c("readl");
     stop(i2c);
-    //debugi2c("stop");
+    debugi2c("stop");
     result = (result * 10) / 12;
     return result;
 }
@@ -116,14 +119,14 @@ int main(){
     );
 
     // wake up?
-    bh1750_set_mode(std::uint8_t{0x0});
+    bh1750_set_mode(0x0);
 
     println(uart0, "BH1750 Test begin");
 
     while (1){
-        bh1750_set_mode(std::uint8_t{0x10});
-        delay_ms(180);
-        auto light = bh1750_read();
+        //bh1750_set_mode(std::uint8_t{0x10});
+        //delay_ms(180);
+        auto light = bh1750_read(0x10);
         print(uart0, "Lux: ");
         print(uart0, light);
         println(uart0, " lx");

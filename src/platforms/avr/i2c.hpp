@@ -1,14 +1,74 @@
 #ifndef FH_AVR_I2C_H_
 #define FH_AVR_I2C_H_
 
-// I2C should have commands
-// begin as master
-// master - write to slave
-// master - read from slave
-// slave - read write from master
-// slave - respond on read to master
-// possible re-starts
-// implement as streaming protocol?
+// I2C should
+// read/write as master with some kind of error reporting
+// interrupt/fail on slave transmit/receive and call some kind of callback to handle it
+// support streaming protocol
+// use little to no RAM and code, buffered on non-buffered mode
+
+
+// Master Trasfer state machine (start+select_w)
+// ***** state: action
+// ready: start
+// m_start: select_w
+// m_restart: select_w, select_r
+// mt: write, repeated start, stop, stop_start
+// mt_nack: write, repeated start, stop, stop_start
+// mt_write: write, repeated start, stop, stop_start
+// mt_write_nack: write, repeated start, stop, stop_start
+// m_collision: enter not-addressed-slave (fail), start
+// ***** action > states
+// start -> m_start, m_restart
+// select_w -> mt, mt_nack, m_collision
+// write -> mt_write, mt_write_nack, m_collision
+// stop -> ready
+// stop_start -> m_start
+// fail -> ready??
+
+// Master Receive state machine (start+select_r)
+// ***** state: action
+// ready: start
+// m_start: select_r
+// m_restart: select_w, select_r
+// m_collision: enter not-addressed-slave (fail), start
+// mr: read, readlast, repeated start, stop, stop_start
+// mr_nack: read, readlast, repeated start, stop, stop_start
+// mr_read: read, readlast
+// mr_readl: repeated start, stop, stop_start
+// ***** action > states
+// start -> m_start, m_restart
+// select_r -> mr, mr_nack, m_collision
+// read -> mr_read
+// readlast -> mr_readl, m_collision
+// stop -> ready
+// stop_start -> m_start
+// fail -> ready??
+
+// Slave Transfer state machine (TWAR initialized, TWEN=1, TWEA = 1, TWSTA = 0, TWSTO = 0) or state=recv_sla_r_lp. Sets TWINT
+// ***** state: action
+// st: writelast, write
+// st_lp: writelast, write
+// st_write: writelast, write
+// st_writel: enter not-addressed-slave disable recognition (fail_nack), enter not-addressed-slave enable recognition (fail_ack), start (ack/nack)
+// st_writel_ack: fail(ack/nack), start (ack/nack)
+
+// Slave Receive state machine (TWAR initialized, TWEN=1, TWEA = 1, TWSTA = 0, TWSTO = 0) or state=. Sets TWINT
+// ***** state: action
+// sr: read, readlast
+// sr_la: read, readlast
+// sr_cast: read, readlast
+// sr_cast_la: read, readlast
+// sr_read: read, readlast
+// sr_readl: fail(ack/nack), start(ack/nack)
+// sr_read_cast: read, readlast
+// sr_readl_cast: fail(ack/nack), start(ack/nack)
+// sr_stop_restart: fail(ack/nack), start(ack/nack)
+
+// global statuses
+// ready: something's ok goin on (transfer or wait), no actions
+// bus_fail: Illegal start/stop condition, stop to reset TWI module (no stop is really sent on bus)
+
 
 #include "registers.hpp"
 
@@ -172,6 +232,19 @@ namespace fasthal{
         apply(
             details::i2c_control(i2c),
             set(i2c.stop)
+        );
+        wait_lo(i2c.stop);
+        // TODO: Check for error?
+    }
+
+    // master stop & start
+    template<unsigned VNum>
+    void stop_start(details::i2c_impl<VNum> i2c){
+        // TODO: Check stop condition?
+        apply(
+            details::i2c_control(i2c),
+            set(i2c.stop),
+            set(i2c.start)
         );
         wait_lo(i2c.stop);
         // TODO: Check for error?

@@ -30,35 +30,36 @@ enum class tw_s: std::uint8_t{
     // master statuses 
     // mt = master transmit
     // mr = master receive
-    bus_fail            = 0x00, // hw error on bus    
-    start               = 0x08, // start transmited, (mode) will be transmitted and waiting for ACK or NACK, mt, mr
-    restart             = 0x10, // restart ok, (mode) will be transmitted and waiting for ACK or NACK, mt, mr
-    sla_w_ack           = 0x18, // slave ack'ed for start write, mt
-    sla_w_nack          = 0x20, // slave nack'ed for start write, mt
-    byte_ack            = 0x28, // byte send ok, mt
-    byte_nack           = 0x30, // byte send no ack, mt
-    collision           = 0x38, // another master took of the bus unexpectedly, mt, mr
-    sla_r_ack           = 0x40, // slave ack'ed for start read, mr
-    sla_r_nack          = 0x48, // slave nack'ed for start read, mr
-    recv_byte           = 0x50, // recevied byte ok. ACK or NACK will be send, mr
-    recv_byte_nack      = 0x58, // nack sent to slave after receiving byte and sending nack, stop restart or stop/start will be transmitted, mr
+    bus_fail          = 0x00, // HW error on bus (invalid START/STOP condition). Need for bus restart.
+    m_start           = 0x08, // Entered START. Need select_w or select_r
+    m_restart         = 0x10, // Entered repeated START. Need select_w or select_r
+    mt                = 0x18, // select_w sent, received ACK. Need write or start/stop/stop_start
+    mt_nack           = 0x20, // select_w sent, received NACK. Need write or start/stop/stop_start
+    mt_write          = 0x28, // MT write, received ACK. Need write or start/stop/stop_start
+    mt_write_nack     = 0x30, // MT write, received NACK. Need write or start/stop/stop_start
+    m_collision       = 0x38, // another master took of the bus unexpectedly in select_w, select_r or write/readl. Need fail or start.
+    mr                = 0x40, // select_r sent, received ACK. Need read/readl or start/stop/stop_start
+    mr_nack           = 0x48, // select_r sent, received NACK. Need read, readlast, repeated start, stop, stop_start
+    mr_read           = 0x50, // recevied byte ok. ACK or NACK will be send, mr
+    mr_readl          = 0x58, // nack sent to slave after receiving byte, stop restart or stop/start will be transmitted, mr
     // slave statuses
     // st = slave transmit
     // sr = slave receive
-    recv_sla_w          = 0x60, // received own sla-w, ACK returned, will receive bytes and ACK/NACK, sr
-    recv_sla_w_lp       = 0x68, // arbitration lost in sla-w, will receive bytes and ACK/NACK, sr
-    recv_sla_w_cast     = 0x70, // broadcast has been received, ACK returned, will receive bytes and ACK/NACK, sr
-    recv_sla_w_lp_cast  = 0x78, // arbitration lost in broadcast, will receive bytes and ACK/NACK, sr
-    recv_sla_byte       = 0x80, // own data has been received, ACK returned, will receive bytes and ACK/NACK, sr
-    recv_sla_lbyte      = 0x88, // own data has been received, NACK returned, reseting TWI, sr
-    recv_sla_byte_cast  = 0x90, // broadcast data has been received, ACK returned, will receive bytes and ACK/NACK, sr
-    recv_sla_lbyte_cast = 0x98, // broadcast data has been received, NACK returned, reseting TWI, sr
-    recv_restart        = 0xA0, // stop or start has been received while still addressed, reseting TWI, sr
-    recv_sla_r          = 0xA8, // received own sla-r, ACK returned, will send bytes, st
-    recv_sla_r_lp       = 0xB0, // arbitration lost in sla-r, will send bytes, st
-    sla_byte_ack        = 0xB8, // data byte was transmitted and ACK has been received, will send bytes, st
-    sla_byte_nack       = 0xC0, // data byte was transmitted and NACK has been received, reseting TWI, st
-    sla_lbyte_ack       = 0xC8, // last data byte was transmitted and ACK has been received, reseting TWI, st
+    sr                = 0x60, // received own sla-w, ACK returned, will receive bytes and ACK/NACK, sr
+    sr_la             = 0x68, // arbitration lost in master sla-r/w, slave address matched
+    sr_cast           = 0x70, // broadcast has been received, ACK returned, will receive bytes and ACK/NACK, sr
+    sr_cast_la        = 0x78, // arbitration lost in master sla-r/w, sla+w broadcast, will receive bytes and ACK/NACK, sr
+    sr_read           = 0x80, // own data has been received, ACK returned, will receive bytes and ACK/NACK, sr
+    sr_readl          = 0x88, // own data has been received, NACK returned, reseting TWI, sr
+    sr_read_cast      = 0x90, // broadcast data has been received, ACK returned, will receive bytes and ACK/NACK, sr
+    sr_readl_cast     = 0x98, // broadcast data has been received, NACK returned, reseting TWI, sr
+    sr_stop_restart   = 0xA0, // stop or start has been received while still addressed, reseting TWI, sr
+    st                = 0xA8, // received own sla-r, ACK returned, will send bytes, st
+    st_la             = 0xB0, // arbitration lost in master sla-r/w, slave address matched
+    st_write          = 0xB8, // data byte was transmitted and ACK has been received, will send bytes, st
+    st_writel         = 0xC0, // data byte was transmitted and NACK has been received, reseting TWI, st
+    st_writel_ack     = 0xC8, // last data byte was transmitted and ACK has been received, reseting TWI, st
+    ready             = 0xF8  // no errors, ok state?
 };
 
 template<tw_s V>
