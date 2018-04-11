@@ -77,6 +77,24 @@ namespace fasthal{
             constexpr auto result = i2c_build_sla(VRead, VAddress);
             return integral_constant<decltype(result), result>{};
         }   
+
+        template<unsigned VNum>
+        static constexpr auto i2c_control(i2c_impl<VNum> i2c){
+            return combine(
+                clear(i2c.control),
+                enable(i2c),
+                reset(i2c)
+            );
+        }
+
+        template<unsigned VNum, typename T>
+        static void i2c_write(i2c_impl<VNum> i2c, T v){
+            apply(
+                write(i2c.data, v),
+                details::i2c_control(i2c)
+            );
+            wait_(i2c);  
+        }
     }
 
     using i2c_address_t = std::uint8_t;
@@ -120,6 +138,7 @@ namespace fasthal{
     // end i2c
     template<unsigned VNum>
     inline constexpr auto end(details::i2c_impl<VNum> i2c){
+        // TODO: Just clear the register?
         return combine(
             // disable
             disable(i2c)
@@ -139,18 +158,10 @@ namespace fasthal{
     void start(details::i2c_impl<VNum> i2c){
         // TODO: Check start condition
         apply(
-            clear(i2c.control),
-            // twen
-            enable(i2c),
-            // ack
-            // enable(i2c.ack),
-            set(i2c.start),  
-            //clear(i2c.stop),
-            reset(i2c)
+            details::i2c_control(i2c),
+            set(i2c.start)
         );
         wait_(i2c);
-        // cleanup 
-        // clear_(i2c.start);
         // TODO: check for error?
     }
 
@@ -159,13 +170,8 @@ namespace fasthal{
     void stop(details::i2c_impl<VNum> i2c){
         // TODO: Check stop condition?
         apply(
-            clear(i2c.control),
-            // twen
-            enable(i2c),
-            // 
-            //clear(i2c.start),
-            set(i2c.stop),            
-            reset(i2c)
+            details::i2c_control(i2c),
+            set(i2c.stop)
         );
         wait_lo(i2c.stop);
         // TODO: Check for error?
@@ -176,33 +182,15 @@ namespace fasthal{
     void select(details::i2c_impl<VNum> i2c, TRead read, TAddress address){
         // TODO: Check select condition?
         auto sla = details::i2c_build_sla(read, address);        
-        apply(
-            write(i2c.data, sla),
-            clear(i2c.control),
-            // twen
-            enable(i2c),
-            //
-            //clear(i2c.start),
-            //clear(i2c.stop),
-            reset(i2c)
-        );
-        wait_(i2c);  
+        details::i2c_write(i2c, sla);
         // TODO: Check for error?
     }
 
     // write
-    template<unsigned VNum>
-    void write(details::i2c_impl<VNum> i2c, std::uint8_t v){        
-        apply(            
-            write(i2c.data, v),
-            clear(i2c.control),
-            // twen
-            enable(i2c),
-            //clear(i2c.start),
-            //clear(i2c.stop),
-            reset(i2c)
-        );
-        wait_(i2c);        
+    template<unsigned VNum, typename T>
+    void write(details::i2c_impl<VNum> i2c, T v){        
+        // TODO: Check start conditions
+        details::i2c_write(i2c, v);
         // TODO: Check for error?
     }
 
@@ -212,12 +200,8 @@ namespace fasthal{
         // TODO: Check start condition
         // Ask for next byte
         apply(
-            clear(i2c.control),
-            enable(i2c),
-            //clear(i2c.start),
-            // clear(i2c.stop),
-            enable(i2c.ack, more),
-            reset(i2c)
+            details::i2c_control(i2c),
+            enable(i2c.ack, more)
         );
         wait_(i2c);
         // TODO: Check status
