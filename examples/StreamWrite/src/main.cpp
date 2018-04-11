@@ -1,4 +1,4 @@
-#define UART1
+//#define UART1
 //#include <Arduino.h>
 
 #define RX_SIZE 64
@@ -14,7 +14,8 @@
 
 #include "fasthal.hpp"
 
-#define _FLASH(x) FH_FLASH(x)
+//#define _FLASH(x) FH_FLASH(x)
+#define _FLASH(x) (x)
 
 using namespace fasthal;
 using namespace fasthal::avr;
