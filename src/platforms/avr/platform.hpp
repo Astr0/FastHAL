@@ -10,5 +10,6 @@
 #include "gpio.hpp"
 #include "time.hpp"
 #include "flash_string.hpp"
+#include "i2c.hpp"
 
 #endif /* AVR_HAL_H_ */

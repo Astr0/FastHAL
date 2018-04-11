@@ -1,11 +1,11 @@
 #if defined(TWI_vect_num)
-    #define FH_IRQ_I2C TWI_vect_num
+    #define FH_IRQ_I2C0 TWI_vect_num
 
-    constexpr auto irq_i2c = interrupt<FH_IRQ_I2C>{};
+    constexpr auto irq_i2c0 = interrupt<FH_IRQ_I2C0>{};
     namespace details{
-        template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_i2c)>>: 
-            func_fieldbit_enable<decltype(avr::twie)>,
-            func_fieldbit_ready_reset<decltype(avr::twint)>
+        template<> struct func_fieldbit_impl<std::base_type_t<decltype(irq_i2c0)>>: 
+            func_fieldbit_enable<decltype(avr::twie0)>,
+            func_fieldbit_ready_reset<decltype(avr::twint0)>
             {};
     }
     

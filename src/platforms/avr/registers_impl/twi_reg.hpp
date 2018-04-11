@@ -1,21 +1,21 @@
 // clock speed
 #ifdef TWBR
-FH_DECLARE_REGISTER_ONLY(twbr, TWBR);
+FH_DECLARE_REGISTER_ONLY(twbr0, TWBR);
 #endif
 
 // data register
 #ifdef TWDR
-FH_DECLARE_REGISTER_ONLY(twdr, TWDR);
+FH_DECLARE_REGISTER_ONLY(twdr0, TWDR);
 #endif
 
 // slave address register, 7 bits address + TWGCE - enable recognition of broadcast (general call)
 #ifdef TWAR
-FH_DECLARE_REGISTER_ONLY(twar, TWAR);
+FH_DECLARE_REGISTER_ONLY(twar0, TWAR);
 #endif
 
 // status register
 #ifdef TWSR
-FH_DECLARE_REGISTER_ONLY(twsr, TWSR);
+FH_DECLARE_REGISTER_ONLY(twsr0, TWSR);
 
 // prescaler
 enum class tw_ps: std::uint8_t{
@@ -29,7 +29,7 @@ enum class tw_ps: std::uint8_t{
 template<tw_ps V>
 static constexpr auto twps_v = integral_constant<tw_ps, V>{};
 
-constexpr auto twps = mField<(1 << TWPS0) | (1 << TWPS1), tw_ps>(twsr);
+constexpr auto twps0 = mField<(1 << TWPS0) | (1 << TWPS1), tw_ps>(twsr0);
 
 
 // status
@@ -71,51 +71,51 @@ enum class tw_s: std::uint8_t{
 template<tw_s V>
 static constexpr auto tws_v = integral_constant<tw_s, V>{};
 
-constexpr auto tws = mField<(std::uint8_t)(~((1 << TWPS0) | (1 << TWPS1))), tw_s>(twsr);
+constexpr auto tws0 = mField<(std::uint8_t)(~((1 << TWPS0) | (1 << TWPS1))), tw_s>(twsr0);
 
 #endif
 
 // control register
 #ifdef TWCR
-FH_DECLARE_REGISTER_ONLY(twcr, TWCR);
+FH_DECLARE_REGISTER_ONLY(twcr0, TWCR);
 
 // interrupt flag, SCL is stretched while it's set, not automatically reset, reset by writing 1
 #ifdef TWINT
-constexpr auto twint = fieldBit<TWINT>(twcr);
+constexpr auto twint0 = fieldBit<TWINT>(twcr0);
 #endif
 
 // Enable Acknowledge (disabling it virtually disconnects device from TWI)
 #ifdef TWEA
-constexpr auto twea = fieldBit<TWEA>(twcr);
+constexpr auto twea0 = fieldBit<TWEA>(twcr0);
 #endif
 
 // Start condition will be generated (becomes master) when available. Must be cleared by software after transmitting
 #ifdef TWSTA
-constexpr auto twsta = fieldBit<TWSTA>(twcr);
+constexpr auto twsta0 = fieldBit<TWSTA>(twcr0);
 #endif
 
 // Stop condition will be generated if master, in slave used to reset TWI and recover from error. Cleared automatically.
 #ifdef TWSTO
-constexpr auto twsto = fieldBit<TWSTO>(twcr);
+constexpr auto twsto0 = fieldBit<TWSTO>(twcr0);
 #endif
 
 // Write collision flag - attempt to write to TWDR when TWINT is low. Cleared when writing TWDR when TWINT is high.
 #ifdef TWWC
-constexpr auto twwc = fieldBit<TWWC>(twcr);
+constexpr auto twwc0 = fieldBit<TWWC>(twcr0);
 #endif
 
 // enable bit
 #ifdef TWEN
-constexpr auto twen = fieldBit<TWEN>(twcr);
+constexpr auto twen0 = fieldBit<TWEN>(twcr0);
 #endif
 
 // interrupt enable
 #ifdef TWIE
-constexpr auto twie = fieldBit<TWIE>(twcr);
+constexpr auto twie0 = fieldBit<TWIE>(twcr0);
 #endif
 
 #endif
 
 #if defined(TWBR) && defined(TWDR) && defined(TWCR)
-#define FH_HAS_I2C
+#define FH_HAS_I2C0
 #endif
