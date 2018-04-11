@@ -13,10 +13,6 @@ FH_DECLARE_REGISTER_ONLY(twdr0, TWDR);
 FH_DECLARE_REGISTER_ONLY(twar0, TWAR);
 #endif
 
-// status register
-#ifdef TWSR
-FH_DECLARE_REGISTER_ONLY(twsr0, TWSR);
-
 // prescaler
 enum class tw_ps: std::uint8_t{
     _1 = 0
@@ -28,9 +24,6 @@ enum class tw_ps: std::uint8_t{
 
 template<tw_ps V>
 static constexpr auto twps_v = integral_constant<tw_ps, V>{};
-
-constexpr auto twps0 = mField<(1 << TWPS0) | (1 << TWPS1), tw_ps>(twsr0);
-
 
 // status
 enum class tw_s: std::uint8_t{
@@ -71,8 +64,14 @@ enum class tw_s: std::uint8_t{
 template<tw_s V>
 static constexpr auto tws_v = integral_constant<tw_s, V>{};
 
-constexpr auto tws0 = mField<(std::uint8_t)(~((1 << TWPS0) | (1 << TWPS1))), tw_s>(twsr0);
+// status register
+#ifdef TWSR
+FH_DECLARE_REGISTER_ONLY(twsr0, TWSR);
 
+// prescaler
+constexpr auto twps0 = mField<(1 << TWPS0) | (1 << TWPS1), tw_ps>(twsr0);
+// status
+constexpr auto tws0 = mField<(std::uint8_t)(~((1 << TWPS0) | (1 << TWPS1))), tw_s>(twsr0);
 #endif
 
 // control register

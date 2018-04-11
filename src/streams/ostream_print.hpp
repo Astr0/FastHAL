@@ -14,7 +14,10 @@ namespace fasthal{
     template<unsigned V>
     static constexpr auto numberbase_v = numberbase_t<V>{};
 
-    static constexpr auto numberbase_def = numberbase_v<10>;
+    static constexpr auto numberbase_dec = numberbase_v<10>;
+    static constexpr auto numberbase_bin = numberbase_v<2>;
+    static constexpr auto numberbase_hex = numberbase_v<16>;
+    static constexpr auto numberbase_def = numberbase_dec;    
 
     namespace details{
         template <typename T, unsigned VBase>
@@ -50,7 +53,7 @@ namespace fasthal{
         }        
     }
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    void printc(T ostream, char c){
+    void print(T ostream, char c){
         write(ostream, c);
     }
 

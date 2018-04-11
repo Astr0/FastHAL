@@ -27,7 +27,7 @@ namespace fasthal{
         // enable, reset, ready for i2c
         template<unsigned VNum>
         struct func_fieldbit_impl<i2c_impl<VNum>>:
-            func_fieldbit_enable<decltype(i2c_impl<VNum>::en)>,
+            func_fieldbit_enable<decltype(i2c_impl<VNum>::enable)>,
             func_fieldbit_ready_reset<decltype(i2c_impl<VNum>::ready)>
             { };
 
@@ -58,7 +58,7 @@ namespace fasthal{
         // general case
         template<typename TRead, typename TAddress>
         inline constexpr auto i2c_build_sla(TRead read, TAddress address){
-            auto result = static_cast<std::uint8_t>(address) << 1;
+            auto result = static_cast<std::uint8_t>(static_cast<std::uint8_t>(address) << 1);
             if (read)
                 result |= 1;
             return result;
@@ -66,7 +66,7 @@ namespace fasthal{
         // optimized for known mode
         template<bool VRead, typename TAddress>
         inline constexpr auto i2c_build_sla(integral_constant<bool, VRead> read, TAddress address){
-            auto result = static_cast<std::uint8_t>(address) << 1;
+            auto result = static_cast<std::uint8_t>(static_cast<std::uint8_t>(address) << 1);
             if constexpr (VRead)
                 result |= 1;
             return result;            
@@ -89,22 +89,27 @@ namespace fasthal{
 
     constexpr auto i2c_write = integral_constant<bool, false>{};
     constexpr auto i2c_read = integral_constant<bool, true>{};
+    
+    constexpr auto i2c_more = integral_constant<bool, true>{};
+    constexpr auto i2c_last = integral_constant<bool, false>{};
 
     // master begin
     template<unsigned VNum, typename TFreq = decltype(i2c_freq_def), typename TPs = decltype(avr::tw_ps::def)>
     inline constexpr auto begin(details::i2c_impl<VNum> i2c, TFreq freq = i2c_freq_def, TPs ps = avr::tw_ps::def){
         auto _twbr = details::i2c_calc_twbr(freq, ps);
         return combine(
-            // set ps
-            write(i2c.ps, ps),
             // set twbr
             write(i2c.rate, _twbr),
+            clear(i2c.control),
+            // set ps
+            write(i2c.ps, ps),
             // enable
-            enable(i2c),
+            //write()
+            enable(i2c)
             // enable interrupt?
-            enable(i2c.irq),
+            //enable(i2c.irq),
             // enable ack
-            enable(i2c.ack)
+            //enable(i2c.ack)
         );
     }
     template<unsigned VNum, typename TFreq = decltype(i2c_freq_def), typename TPs = decltype(avr::tw_ps::def)>
@@ -117,11 +122,11 @@ namespace fasthal{
     inline constexpr auto end(details::i2c_impl<VNum> i2c){
         return combine(
             // disable
-            disable(i2c),
+            disable(i2c)
             // disable interrupt
-            disable(i2c.irq),
+            //disable(i2c.irq),
             // disable ack
-            disable(i2c.ack)
+            //disable(i2c.ack)
         );
     }
     template<unsigned VNum>
@@ -132,32 +137,91 @@ namespace fasthal{
     // master start 
     template<unsigned VNum>
     void start(details::i2c_impl<VNum> i2c){
-
+        // TODO: Check start condition
+        apply(
+            clear(i2c.control),
+            // twen
+            enable(i2c),
+            // ack
+            // enable(i2c.ack),
+            set(i2c.start),  
+            //clear(i2c.stop),
+            reset(i2c)
+        );
+        wait_(i2c);
+        // cleanup 
+        // clear_(i2c.start);
+        // TODO: check for error?
     }
 
     // master stop 
     template<unsigned VNum>
     void stop(details::i2c_impl<VNum> i2c){
-
+        // TODO: Check stop condition?
+        apply(
+            clear(i2c.control),
+            // twen
+            enable(i2c),
+            // 
+            //clear(i2c.start),
+            set(i2c.stop),            
+            reset(i2c)
+        );
+        wait_lo(i2c.stop);
+        // TODO: Check for error?
     }
 
     // master select device and mode
     template<unsigned VNum, typename TRead, typename TAddress>
     void select(details::i2c_impl<VNum> i2c, TRead read, TAddress address){
-        auto sla = details::i2c_build_sla(read, address);
-
+        // TODO: Check select condition?
+        auto sla = details::i2c_build_sla(read, address);        
+        apply(
+            write(i2c.data, sla),
+            clear(i2c.control),
+            // twen
+            enable(i2c),
+            //
+            //clear(i2c.start),
+            //clear(i2c.stop),
+            reset(i2c)
+        );
+        wait_(i2c);  
+        // TODO: Check for error?
     }
 
     // write
     template<unsigned VNum>
-    void write(details::i2c_impl<VNum> i2c, std::uint8_t v){
-
+    void write(details::i2c_impl<VNum> i2c, std::uint8_t v){        
+        apply(            
+            write(i2c.data, v),
+            clear(i2c.control),
+            // twen
+            enable(i2c),
+            //clear(i2c.start),
+            //clear(i2c.stop),
+            reset(i2c)
+        );
+        wait_(i2c);        
+        // TODO: Check for error?
     }
 
-    // read
-    template<unsigned VNum>
-    std::uint8_t read(details::i2c_impl<VNum> i2c){
-        return 0;
+    // read - more - more reads expected, last - it was last read
+    template<unsigned VNum, typename TMore = decltype(i2c_more)>
+    auto read(details::i2c_impl<VNum> i2c, TMore more = i2c_more){
+        // TODO: Check start condition
+        // Ask for next byte
+        apply(
+            clear(i2c.control),
+            enable(i2c),
+            //clear(i2c.start),
+            // clear(i2c.stop),
+            enable(i2c.ack, more),
+            reset(i2c)
+        );
+        wait_(i2c);
+        // TODO: Check status
+        return read_(i2c.data);
     }
 
     #ifdef FH_HAS_I2C0
@@ -166,11 +230,18 @@ namespace fasthal{
         template<>
         struct i2c_impl<0>{
             static constexpr bool available = true;
-            static constexpr auto en = ::fasthal::avr::twen0;
-            static constexpr auto ready = ::fasthal::avr::twint0;
             static constexpr auto ps = ::fasthal::avr::twps0;
             static constexpr auto rate = ::fasthal::avr::twbr0;
+            static constexpr auto status = ::fasthal::avr::tws0;
+            static constexpr auto data = ::fasthal::avr::twdr0;
+            static constexpr auto control = ::fasthal::avr::twcr0;
+            
+            static constexpr auto enable = ::fasthal::avr::twen0;
+            static constexpr auto ready = ::fasthal::avr::twint0;
             static constexpr auto ack = ::fasthal::avr::twea0;
+            static constexpr auto start = ::fasthal::avr::twsta0;
+            static constexpr auto stop = ::fasthal::avr::twsto0;
+            
             static constexpr auto irq = irq_i2c0;
         };
 

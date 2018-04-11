@@ -127,6 +127,8 @@ namespace fasthal{
                 static constexpr inline field_value<TField> execute(TActions... actions){
                     auto value = has_writes ? field_datatype_t{} : TField::read();
                     
+                    // TCNT1 = (std::uint16_t)(TField::address());
+
                     (execute(value, actions), ...);
 
                     if (has_modifies)
@@ -139,8 +141,17 @@ namespace fasthal{
             // iterate through fields
             template<class... TField>
             struct fields_iterator{
-                static constexpr inline auto execute(TActions... actions){
-                    return combine_action_results(field_apply<TField>::execute(actions...)...);
+                template<typename... TFieldV>
+                static constexpr inline auto execute(TActions... actions, TFieldV... fieldV){
+                    return combine_action_results(fieldV...);
+                }
+            };
+            template<class TField, class... TFields>
+            struct fields_iterator<TField, TFields...>{
+                template<typename... TFieldV>
+                static constexpr inline auto execute(TActions... actions, TFieldV... fieldV){
+                    auto field_v = field_apply<TField>::execute(actions...);
+                    return fields_iterator<TFields...>::execute(actions..., fieldV..., field_v);
                 }
             };
 

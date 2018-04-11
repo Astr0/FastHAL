@@ -83,9 +83,15 @@ namespace fasthal{
     
     // ACTIONS
     template<class TField, typename TDataType = field_data_type<TField>, enable_if_needs_field_actions<TField> dummy = nullptr>
-    constexpr auto inline write(TField field, const TDataType value) 
+    constexpr auto inline write(TField field, TDataType value) 
     {
         return details::make_action<details::write_field>(field, value);
+    }
+
+    template<class TField, enable_if_field_c<TField> dummy = nullptr>
+    constexpr auto inline clear(TField field) {
+        using datatype_t = field_data_type<TField>;
+        return write(field, integral_constant<datatype_t, datatype_t{}>{});
     }
 
     template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_needs_field_actions<TField> dummy = nullptr>
@@ -93,7 +99,7 @@ namespace fasthal{
     {
         return details::make_action<details::set_field>(field, mask);
     }
-    
+
     template<class TField, typename TMaskType = field_mask_type<TField>, enable_if_needs_field_actions<TField> dummy = nullptr>
     constexpr auto inline clear(TField field, TMaskType mask) {
         return details::make_action<details::clear_field>(field, mask);

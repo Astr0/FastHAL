@@ -40,6 +40,7 @@ namespace fasthal{
 			{
 				using datatype_t = std::base_type_t<decltype(TAccess::value())>;
 
+				//inline static void* address() { return &TAccess::value(); }
 				inline static void write(datatype_t value) { TAccess::value() = value; }
 				inline static datatype_t read() {return TAccess::value();}
 			};	

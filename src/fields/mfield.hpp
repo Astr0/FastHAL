@@ -36,9 +36,9 @@ namespace fasthal{
             TField::write(TField::read() & ~mask | mask_value(value));
 		}
 
-		static datatype_t read()
+		static auto read()
 		{
-			return TField::read() & mask;
+			return static_cast<datatype_t>(TField::read() & mask);
 		}
 
     };
@@ -140,10 +140,10 @@ namespace fasthal{
 	}
 
     template<class TField, class... TFields, details::enable_if_mfield<TField> dummy = nullptr>
-    constexpr typename TField::datatype_t get(TField field, details::field_action_results_t<TFields...> results)
+    constexpr auto get(TField field, details::field_action_results_t<TFields...> results)
     {
         // get underlying and mask it
-        return get(TField::field, results) & TField::mask;
+        return static_cast<typename TField::datatype_t>(get(TField::field, results) & TField::mask);
     }
 }
 
