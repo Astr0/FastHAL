@@ -290,6 +290,7 @@ namespace fasthal{
             // buffered - return value
             return details::uart_buf<T, false>::buffer.read();
         } else{           
+            // TODO: direct read is meaningless - we won't keep up and aways get not available or miss bytes
             // direct - if we have something - read it, otherwise return 0
             return available(uart) ? read_(T::udr) : 0;
         }
