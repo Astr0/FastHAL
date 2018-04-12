@@ -12,7 +12,7 @@ namespace fasthal{
     };
 
     template<class TTarget, unsigned VCapacity>
-    ring_buffer<VCapacity> ring_buffer_transmitter<TTarget, VCapacity>::buffer = {};
+    ring_buffer<VCapacity> ring_buffer_transmitter<TTarget, VCapacity>::buffer{};
 
     namespace details{
         template<class T, unsigned C>

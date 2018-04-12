@@ -22,18 +22,17 @@ namespace details{\
     template<> struct func_fieldbit_impl<std::base_type_t<decltype(avr::txen ## NUM)>>: func_fieldbit_enable<decltype(avr::txen ## NUM)>{};\
     template<> struct func_fieldbit_impl<std::base_type_t<decltype(avr::rxen ## NUM)>>: func_fieldbit_enable<decltype(avr::rxen ## NUM)>{};\
 }\
-static constexpr auto uart##NUM = uart<NUM>{};\
+static constexpr auto uart##NUM = uart<NUM>{};
 
 #define FH_UART_TX(NUM, TRANS)\
+template<> decltype(TRANS.buffer) decltype(TRANS)::buffer{};\
 namespace fasthal::details{\
     template<>\
-    struct uart_trans<NUM>{\
-        using type = decltype(TRANS);\
-    };\
+    struct uart_trans<NUM>{ using type = decltype(TRANS); };\
     template<>\
     struct default_isr<uart<NUM>::irq_txr.number>{ static inline void handle() { uart_txr_irq(uart<NUM>{}); } };\
 }\
-FH_ISR(FH_IRQ_TXR ## NUM);\
+FH_ISR(FH_IRQ_TXR ## NUM);
 
 
 #ifdef FH_HAS_UART0
