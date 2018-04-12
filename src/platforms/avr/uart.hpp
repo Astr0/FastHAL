@@ -172,9 +172,15 @@ namespace fasthal{
         inline void uart_txr_irq(uart<VNum> uart)
         {
             static_assert(uart_async_tx<VNum>, "No UART Transmitter");
-            using trans_t = typename uart_trans<VNum>::type;
-            static_assert(trans_t::async, "Not async UART Transmitter");            
-            // TODO
+            constexpr auto trans = typename uart_trans<VNum>::type{};
+            static_assert(trans.async, "Not async UART Transmitter");
+            auto c = next(trans);
+
+            uart_tx(uart, c.byte);
+
+            // not ok, disable async transmit
+            if (c.type != has_byte_type::ok)
+                disable_(uart.irq_txr);
         }
      }
 
@@ -197,19 +203,45 @@ namespace fasthal{
     //     }        
     // }
 
-    // write 1 byte checked, for transmitter communication
+    // write 1 byte, for transmitter communication
     template<unsigned VNum>
-    void write(uart<VNum> uart, uart_datatype_t c){
+    inline bool write(uart<VNum> uart, uart_datatype_t c){
         #ifdef FH_UART_FLUSH_SAFE
         // enable TX
         enable_(uart.txen);
         #endif
 
-        // wait for written
-        wait_hi(uart.udre);
+        if constexpr(details::uart_async_tx<VNum>){
+            // async - try write
+            if (read_(uart.udre)){
+                details::uart_tx(uart, c);
+                return true;
+            }
+            return false;
+        } else {
+            // sync
+            // wait for written
+            wait_hi(uart.udre);
 
-        // direct write
-        details::uart_tx(uart, c);
+            // direct write
+            details::uart_tx(uart, c);
+
+            return true;
+        }
+    }
+
+    // tries to write something from transmitter
+    template<unsigned VNum>
+    inline void try_write_sync(uart<VNum> uart){
+        static_assert(details::uart_async_tx<VNum>, "Not async uart, shouldn't be here");
+        try_irq_force(uart.irq_txr);
+    }
+
+    // called by transmitter if it has some data
+    template<unsigned VNum>
+    inline void write_async(uart<VNum> uart){
+        static_assert(details::uart_async_tx<VNum>, "Not async uart, shouldn't be here");
+        enable_(uart.irq_txr);
     }
 
     template<unsigned VNum>
