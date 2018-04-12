@@ -3,14 +3,29 @@
 
 #include "stream.hpp"
 #include "../std/std_types.hpp"
+#include "../std/std_fake.hpp"
+#include "../std/type_traits.hpp"
 #include "../utils/functions.h"
+#include <string.h>
 
 namespace fasthal{
-    // int8
+    // // uint8
+    // template<class T, details::enable_if_ostream<T> dummy = nullptr>
+    // void write(T ostream, std::uint8_t n) {
+    //     write(ostream, &n, 1);
+    // }
+
+    // char
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    void write(T ostream, char n) {
+    inline void write(T ostream, char n) {
         write(ostream, static_cast<std::uint8_t>(n));
     }
+
+    // // int
+    // template<class T, details::enable_if_ostream<T> dummy = nullptr>
+    // inline void write(T ostream, std::int8_t n) {
+    //     write(ostream, static_cast<std::uint8_t>(n));
+    // }
 
     // bytes
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
@@ -22,6 +37,7 @@ namespace fasthal{
     namespace details{
         template<class T, details::enable_if_ostream<T> dummy = nullptr>
         void write_data_only(T ostream, const char* text) {
+            //write(ostream, reinterpret_cast<const std::uint8_t*>(text), strlen(text));
             char c;
             while ((c = *text++) != '\0')
                 write(ostream, c);
@@ -29,18 +45,30 @@ namespace fasthal{
     }
 
     //cstring
-    template<class T, details::enable_if_ostream<T> dummy = nullptr>
+    template<class T,
+     details::enable_if_ostream<T> dummy = nullptr>
     void write(T ostream, const char* text) {
+        //write(ostream, reinterpret_cast<const std::uint8_t*>(text), strlen(text) + 1);
         details::write_data_only(ostream, text);
         write(ostream, '\0');
     }
+
+    //fixed string
+    // template<class T, unsigned N,
+    //  details::enable_if_ostream<T> dummy = nullptr>
+    // void write(T ostream, const char (&text)[N]) {
+    //     //write(ostream, reinterpret_cast<const std::uint8_t*>(text), N);
+    //     details::write_data_only(ostream, text);
+    //     write(ostream, '\0');
+    // }
 
     // uint16
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
     void write(T ostream, std::uint16_t n) {
         auto c = reinterpret_cast <std::uint8_t*>(&n);
-        
-        write(ostream, *c++);
+
+        //write(ostream, c, 2);
+        write(ostream, *c++); 
         write(ostream, *c);
     }
 
@@ -55,6 +83,7 @@ namespace fasthal{
     void write(T ostream, std::uint32_t n) {
         auto c = reinterpret_cast<std::uint8_t*>(&n);
         
+        //write(ostream, c, 4);
         write(ostream, *c++);
         write(ostream, *c++);
         write(ostream, *c++);
@@ -70,7 +99,7 @@ namespace fasthal{
     // float
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
     void write(T ostream, float n) {
-        static_assert(sizeof(float)==sizeof(std::uint32_t), "Float is not 4 bytes");
+        static_assert(sizeof(float) == 4, "Float is not 4 bytes");
         
         write(ostream, alias_cast<std::uint32_t>(n));
     }
@@ -78,11 +107,12 @@ namespace fasthal{
     // double
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
     void write(T ostream, double n) {        
-        if constexpr (sizeof(double) == sizeof(std::uint32_t)){
+        if constexpr (sizeof(double) == 4){
             write(ostream, alias_cast<std::uint32_t>(n));
-        } else if constexpr(sizeof(double) == 2 * sizeof(std::uint32_t)){
+        } else if constexpr(sizeof(double) == 8){
             auto c = reinterpret_cast<std::uint32_t*>(&n);
-            write(ostream, *c++);
+            //write(ostream, c, 8);
+            write(ostream, *c++); 
             write(ostream, *c); 
         } else{
             static_assert(true, "Strange sizeof(double)");

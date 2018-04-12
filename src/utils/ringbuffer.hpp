@@ -33,12 +33,34 @@ namespace fasthal{
  
         inline data_t peek(){ return _buffer[mask(_read)]; }
         inline data_t read_dirty(){ return _buffer[mask(_read++)]; }
-        inline data_t read() { return empty() ? 0 : read_dirty(); }
+        inline data_t read() 
+        { 
+            return empty() ? 0 : read_dirty();; 
+        }
 
-        bool try_write(data_t c){
+        bool try_write(data_t c){            
             if (full()) return false;
             _buffer[mask(_write++)] = c;
             return true;
+        }
+        
+        bsize_t write(const std::uint8_t* data, bsize_t size){
+            bsize_t i = 0;
+            for (; i < size && try_write(data[i]); ++i){
+                // empty
+            }
+            return i;
+
+            // //index_t w = _write;
+            // auto canWrite = capacity - size();
+            // if (sz > canWrite)
+            //     sz = canWrite;
+            // else
+            //     canWrite = sz;
+            // while(sz--)
+            //     _buffer[mask(_write++)] = *data++;
+            // //_write = w;
+            // return canWrite;
         }
     };
 
@@ -60,7 +82,7 @@ namespace fasthal{
         ring_buffer(): _hasData(false) { }
 
         inline void clear(){ _hasData = false; }
-        index_t available(){ return _hasData ? 1 : 0; }
+        index_t size(){ return _hasData ? 1 : 0; }
         bool empty(){ return !_hasData; }
         bool full(){ return _hasData; }
 
@@ -73,6 +95,11 @@ namespace fasthal{
         }
 
         data_t read(){ return _hasData ? read_dirty() : 0; }
+
+        bsize_t write(std::uint8_t* c, bsize_t size){
+            if (!size) return 0;
+            return try_write(*c) ? 1 : 0;
+        }
 
         bool try_write(data_t c){
             if (_hasData)

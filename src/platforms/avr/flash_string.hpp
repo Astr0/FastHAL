@@ -12,6 +12,7 @@ namespace fasthal{
 
         template<class T, details::enable_if_ostream<T> dummy = nullptr>
         void write_data_only(T ostream, const flash_str* text) {
+            
             auto p = reinterpret_cast<PGM_P>(text);
             char c;
             while ((c = pgm_read_byte(p++)) != '\0')

@@ -238,8 +238,77 @@ namespace fasthal{
             // direct write
             details::uart_tx<uart_t>(c);
         }
-
     }
+
+    // template<class T, details::enable_if_uart<T> dummy = nullptr>
+    // void write(T uart, const std::uint8_t* data, bsize_t size){
+    //     using uart_t = T;
+
+    //     #ifdef FH_UART_FLUSH_SAFE
+    //     // enable TX
+    //     enable_(uart_t::txen);
+    //     #endif
+
+    //     //auto end = c + len;
+
+    //     if constexpr (details::uart_has_buf<uart_t, true>){
+    //         // buffered
+    //         auto& buffer = details::uart_buf<uart_t, true>::buffer;
+            
+    //         //if (!size) return;
+    //         // If the buffer and the data register is empty, just write the byte
+    //         // to the data register and be done. This shortcut helps
+    //         // significantly improve the effective datarate at high (>
+    //         // 500kbit/s) bitrates, where interrupt overhead becomes a slowdown.
+    //         if (!size) return;
+
+    //         auto end = data + size;
+    //         //bsize_t i = 0;
+
+    //         //auto end = data + size;
+    //         if (read_(uart_t::udre) && buffer.empty()){
+                
+    //             // direct write
+    //             details::uart_tx<uart_t>(*data++);
+                
+    //             if (size == 1) return;
+    //             //i++;
+    //         }
+            
+    //         while (data != end){
+    //             if (buffer.try_write(*data))
+    //                 data++;
+    //             else
+    //                 try_irq_force(uart_t::irq_txr);
+    //         }
+    //         // push buffer 
+    //         // while (true)
+    //         // {
+    //         //     auto written = buffer.write(data, size);
+    //         //     size -= written;
+    //         //     if (!size) break;
+    //         //     data += written;
+    //         //     try_irq_force(uart_t::irq_txr);
+    //         // }
+            
+    //         // auto i = buffer.next_i();
+    //         // while (!buffer.try_write_i(i, c)){
+    //         //     try_irq_force(uart_t::irq_txr);
+    //         // }
+
+    //         // enable IRQ if it was disabled in IRQ itself
+    //         enable_(uart_t::irq_txr);
+    //     } else{            
+    //         while(size--){
+    //             // direct
+    //             // wait for written
+    //             wait_hi(uart_t::udre);
+
+    //             // direct write
+    //             details::uart_tx<uart_t>(*data++);
+    //         }
+    //     }
+    // }
 
     template<class T, details::enable_if_uart<T> dummy = nullptr>
     inline void flush(T uart){
