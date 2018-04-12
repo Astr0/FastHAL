@@ -27,11 +27,10 @@ namespace fasthal{
     // transmitter, shouldn't be here
     template<class TTarget>
     inline has_byte next(sync_transmitter<TTarget> trans);
-
-    // commit on transmitter - ensures that everything that was written was send to target, not really written by target!
+    
     template<class TTarget>
-    inline void commit(sync_transmitter<TTarget> trans){
-        //flush(trans.target);
+    inline void flush(sync_transmitter<TTarget> trans){
+        flush(trans.target);
     }
 
 };

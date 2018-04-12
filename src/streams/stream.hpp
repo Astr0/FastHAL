@@ -19,8 +19,8 @@ namespace fasthal{
     struct has_byte {        
         constexpr has_byte(std::uint8_t __byte, bool __last): byte(__byte), last(__last) { }        
 
-        std::uint8_t byte;
-        bool last;
+        const std::uint8_t byte;
+        const bool last;
     };
 }
 

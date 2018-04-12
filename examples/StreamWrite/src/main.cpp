@@ -30,8 +30,7 @@ void testWrite(T writer, uint8_t read) {
     a = {PORTB, read, PORTC, read};
     write(writer, reinterpret_cast<uint8_t*>(&a), sizeof(test));
     // wait for transfer of unsafe global stuff
-    commit(writer);
-    flush(writer.target);
+    flush(writer);
 }
 
 //static constexpr auto uart0tx = ring_buffer_transmitter<uart<0>, 32>{};
