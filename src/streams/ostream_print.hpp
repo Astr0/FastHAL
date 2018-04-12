@@ -36,9 +36,10 @@ namespace fasthal{
         void print_number(TStream ostream, T n, integral_constant<unsigned, VBase>) {
             static constexpr auto size = print_number_buffer_size<T, VBase>();
             char buf[size]; // Assumes 8-bit chars plus zero byte.
-            char *str = &buf[sizeof(buf) - 1];
+            char *str = &buf[sizeof(buf)];
 
-            *str = '\0';
+            *(--str) = '\0';
+            auto len = bsize_t{0};
             do {
                 char c = n % VBase;
                 n /= VBase;
@@ -47,9 +48,10 @@ namespace fasthal{
                 } else{
                     *(--str) = c < 10 ? c + '0' : c + 'A' - 10;
                 }
+                len++;
             } while(n); 
             details::write_data_only(ostream, str);
-            //write(ostream, reinterpret_cast<uint8_t*>(str), &buf[sizeof(buf)] - str);
+            //write(ostream, reinterpret_cast<uint8_t*>(str), len);
         }        
     }
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
@@ -59,25 +61,41 @@ namespace fasthal{
 
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
     void println(T ostream){ 
-        write(ostream, '\r');
-        write(ostream, '\n');
+        constexpr std::uint8_t buf[2] = {'\r', '\n'};
+        write(ostream, buf, 2);
+        // write(ostream, '\r');
+        // write(ostream, '\n');
     }
 
+    // template<class T, class TChars, 
+    //     details::enable_if_ostream<T> dummy = nullptr,
+    //     std::enable_if_c<std::is_same<TChars, const char*>::value> dummy2 = nullptr
+    //     >
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
     void print(T ostream, const char* text){
         details::write_data_only(ostream, text);
     }
 
-    // template<class T, unsigned N, details::enable_if_ostream<T> dummy = nullptr>
-    // bool print(T ostream, const char (&text)[N]){
-    //     return write(ostream, reinterpret_cast<std::uint8_t*>(text), N - 1);
-    // }
-
+    // template<class T, class TChars, 
+    //     details::enable_if_ostream<T> dummy = nullptr,
+    //     std::enable_if_c<std::is_same<TChars, const char*>::value> dummy2 = nullptr
+    //     >
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
     void println(T ostream, const char* text){
         print(ostream, text);
         println(ostream);
     }
+
+    // template<class T, unsigned N, details::enable_if_ostream<T> dummy = nullptr>
+    // void print(T ostream, const char (&text)[N]){
+    //     write(ostream, reinterpret_cast<const std::uint8_t*>(text), N - 1);
+    // }
+
+    // template<class T, unsigned N, details::enable_if_ostream<T> dummy = nullptr>
+    // void println(T ostream, const char (&text)[N]){
+    //     print(ostream, text);
+    //     println(ostream);
+    // }
 
     template<class T, unsigned VBase = 10, details::enable_if_ostream<T> dummy = nullptr>
     void print(T ostream, std::uint8_t n, numberbase_t<VBase> base = numberbase_def){

@@ -21,13 +21,13 @@ namespace fasthal{
         write(ostream, static_cast<std::uint8_t>(n));
     }
 
-    // // int
-    // template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    // inline void write(T ostream, std::int8_t n) {
-    //     write(ostream, static_cast<std::uint8_t>(n));
-    // }
+    // int
+    template<class T, details::enable_if_ostream<T> dummy = nullptr>
+    inline void write(T ostream, std::int8_t n) {
+        write(ostream, static_cast<std::uint8_t>(n));
+    }
 
-    // bytes
+    // // bytes
     // template<class T, details::enable_if_ostream<T> dummy = nullptr>
     // void write(T ostream, const std::uint8_t *buffer, std::size_t size){        
     //     while (size--) 
