@@ -21,7 +21,8 @@ namespace fasthal{
 
         static constexpr index_t mask(index_t index){ return index & (capacity - 1);}
     public:       
-        ring_buffer(): _write(0), _read(0){ }
+        // clear it manually if needed
+        //ring_buffer(): _write(0), _read(0){ }
 
         inline void clear(){ _write = _read = 0; }
 
@@ -70,45 +71,45 @@ namespace fasthal{
         static constexpr std::uint8_t capacity = 0;
     };
 
-    template<>
-    struct ring_buffer<1>{
-        using index_t = std::uint8_t;
-        using data_t = std::uint8_t;
-        static constexpr std::uint8_t capacity = 1;
-    private:
-        volatile data_t _data;
-        volatile bool _hasData;
-    public:
-        ring_buffer(): _hasData(false) { }
+    // template<>
+    // struct ring_buffer<1>{
+    //     using index_t = std::uint8_t;
+    //     using data_t = std::uint8_t;
+    //     static constexpr std::uint8_t capacity = 1;
+    // private:
+    //     volatile data_t _data;
+    //     volatile bool _hasData;
+    // public:
+    //     ring_buffer(): _hasData(false) { }
 
-        inline void clear(){ _hasData = false; }
-        index_t size(){ return _hasData ? 1 : 0; }
-        bool empty(){ return !_hasData; }
-        bool full(){ return _hasData; }
+    //     inline void clear(){ _hasData = false; }
+    //     index_t size(){ return _hasData ? 1 : 0; }
+    //     bool empty(){ return !_hasData; }
+    //     bool full(){ return _hasData; }
 
-        data_t peek(){ return _data; }
+    //     data_t peek(){ return _data; }
 
-        data_t read_dirty() { 
-            auto d = _data;
-            _hasData = false;
-            return d; 
-        }
+    //     data_t read_dirty() { 
+    //         auto d = _data;
+    //         _hasData = false;
+    //         return d; 
+    //     }
 
-        data_t read(){ return _hasData ? read_dirty() : 0; }
+    //     data_t read(){ return _hasData ? read_dirty() : 0; }
 
-        bsize_t write(std::uint8_t* c, bsize_t size){
-            if (!size) return 0;
-            return try_write(*c) ? 1 : 0;
-        }
+    //     bsize_t write(std::uint8_t* c, bsize_t size){
+    //         if (!size) return 0;
+    //         return try_write(*c) ? 1 : 0;
+    //     }
 
-        bool try_write(data_t c){
-            if (_hasData)
-                return false;
-            _data = c;
-            _hasData = true;
-            return true;
-        }
-    };
+    //     bool try_write(data_t c){
+    //         if (_hasData)
+    //             return false;
+    //         _data = c;
+    //         _hasData = true;
+    //         return true;
+    //     }
+    // };
 }
 
 #endif

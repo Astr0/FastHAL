@@ -15,6 +15,13 @@ namespace fasthal{
         template<class T>
         using enable_if_ostream = std::enable_if_c<is_ostream<T>::value>;
     }
+
+    struct has_byte {        
+        constexpr has_byte(std::uint8_t __byte, bool __last): byte(__byte), last(__last) { }        
+
+        const std::uint8_t byte;
+        const bool last;
+    };
 }
 
 #endif
