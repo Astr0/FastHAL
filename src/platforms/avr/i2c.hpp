@@ -70,6 +70,15 @@
 // bus_fail: Illegal start/stop condition, stop to reset TWI module (no stop is really sent on bus)
 
 
+// API
+// I2C can be in modes: Ready (ok or something failed and stopped), MT, MR, ST, SR
+// Master API
+// start() - from states ready, mt, mt_nack, write, write_nack, m_collision, mr, mr_nack, mr_readl, st_writel, st_writel_ack, st_readl, st_readl_cast, sr_stop_restart
+// stop() - from states bus_fail, mt, mt_nack, mt_write, mt_write_nack, mr, mr_nack, mr_readl
+// write() - from states mt, mt_nack, mt_write, mt_write_nack, st, st_lp, st_write
+// read() - from states mr, mr_nack, mr_read, sr, sr_la, sr_cast, sr_cast_la, sr_read, sr_read_cast
+//
+
 #include "registers.hpp"
 
 #if 1==1//def FH_HAS_I2C0
@@ -78,6 +87,30 @@
 #include "../../std/std_types.hpp"
 
 namespace fasthal{
+    // master op status
+    enum class i2c_state:: std::uint8_t{
+        // nothing is happening
+        ready = 0,
+        // device not available
+        not_available = 1,
+        // lost arbitration
+        lost_abritation = 2,
+        // received nack from device
+        nack = 3,
+        // bus fail
+        bus_fail = 4,
+        // waiting for select
+        select = 5,
+        // mt going on
+        mt = 6,
+        // mr goint on
+        mr = 7,
+        // done op, waiting for stop/start/restart
+        done = 8,
+        // i2c is off
+        off = 9
+    };
+
     namespace details{
         template<unsigned VNum>
         struct i2c_impl{
@@ -138,13 +171,32 @@ namespace fasthal{
             return integral_constant<decltype(result), result>{};
         }   
 
-        template<unsigned VNum>
+        template<bool VStart = false, bool VStop = false, unsigned VNum>
         static constexpr auto i2c_control(i2c_impl<VNum> i2c){
             return combine(
                 clear(i2c.control),
                 enable(i2c),
-                reset(i2c)
+                set(i2c.start, integral_constant<bool, VStart>),
+                set(i2c.stop, integral_constant<bool, VStop>),
+                reset(i2c),
             );
+        }
+
+        template<bool VStart = false, bool VStop = false, unsigned VNum>
+        static void i2c_control_(i2c_impl<VNum> i2c){
+            apply(i2c_control<VStart, VStop>(i2c));
+        }
+        
+        template<unsigned VNum>
+        static void i2c_stop(i2c_impl<VNum> i2c){
+            i2c_control_<false, true>(i2c);
+            wait_lo(i2c.stop);
+        }
+
+        template<unsigned VNum>
+        static void i2c_wait(i2c_impl<VNum> i2c){
+            wait_(i2c);
+            i2c_fsm(i2c);
         }
 
         template<unsigned VNum, typename T>
@@ -154,6 +206,113 @@ namespace fasthal{
                 details::i2c_control(i2c)
             );
             wait_(i2c);  
+        }
+
+        template<unsigned VNum>
+        static void i2c_fsm(i2c_impl<VNum> i2c){
+            using i2c_t = i2c_impl<VNum>;
+            auto s = _read(i2c_t::status);
+            using s_t = typename i2c_t::status_t;
+            switch(s){
+                case s_t::bus_fail:
+                    // HW error on bus (invalid START/STOP condition). Need for bus restart.
+                    i2c_stop(i2c);
+                    i2c_t::state = i2c_state::bus_fail;
+                    break;
+                case s_t::m_start:
+                case s_t::m_restart:
+                    // Entered START. Need select_w or select_r
+                    // Entered repeated START. Need select_w or select_r
+                    i2c_t::state = i2c_state::select;
+                    break;
+                case s_t::mt:
+                    // select_w sent, received ACK. Need write or start/stop/stop_start
+                    i2c_t::state = i2c_state::mt;
+                    // TODO: write something?
+                    break;
+                case s_t::mt_nack:                    
+                    // select_w sent, received NACK. Need write or start/stop/stop_start
+                    i2c_stop();
+                    i2c_t::state = i2c_state::not_available;
+                    break;
+                case s_t::mt_write:
+                    // MT write, received ACK. Need write or start/stop/stop_start
+                    break;
+                case s_t::mt_write_nack:
+                    // MT write, received NACK. Need write or start/stop/stop_start
+                    i2c_stop();
+                    i2c_t::state = i2c_state::nack;
+                    break;
+                case s_t::m_collision:
+                    // another master took of the bus unexpectedly in select_w, select_r or write/readl. Need fail or start.
+                    i2c_stop();
+                    i2c_t::state = i2c_state::lost_abritation;
+                    break;
+                case s_t::mr:
+                    // select_r sent, received ACK. Need read/readl or start/stop/stop_start
+                    i2c_t::state = i2c_state::mr;
+                    // TODO: read something
+                    break;
+                case s_t::mr_nack:
+                    // select_r sent, received NACK. Need read, readlast, repeated start, stop, stop_start
+                    i2c_stop();
+                    i2c_t::state = i2c_state::not_available;
+                    break;
+                case s_t::mr_read:
+                    // TODO: Read something
+                    // recevied byte ok. ACK or NACK will be send, mr
+                    break;
+                case s_t::mr_readl:                    
+                    // nack sent to slave after receiving byte, stop restart or stop/start will be transmitted, mr
+                    i2c_t::state = i2c_state::done;
+                    break;
+                // TODO: Slave thingy
+                case s_t::sr:
+                    // received own sla-w, ACK returned, will receive bytes and ACK/NACK, sr
+                    break;
+                case s_t::sr_la:
+                    // arbitration lost in master sla-r/w, slave address matched
+                    break;
+                case s_t::sr_cast:
+                    // broadcast has been received, ACK returned, will receive bytes and ACK/NACK, sr
+                    break;
+                case s_t::sr_cast_la:
+                    // arbitration lost in master sla-r/w, sla+w broadcast, will receive bytes and ACK/NACK, sr
+                    break;
+                case s_t::sr_read:
+                    // own data has been received, ACK returned, will receive bytes and ACK/NACK, sr
+                    break;
+                case s_t::sr_readl:
+                    // own data has been received, NACK returned, reseting TWI, sr
+                    break;
+                case s_t::sr_read_cast:
+                    // broadcast data has been received, ACK returned, will receive bytes and ACK/NACK, sr
+                    break;
+                case s_t::sr_readl_cast:
+                    // broadcast data has been received, NACK returned, reseting TWI, sr
+                    break;
+                case s_t::sr_stop_restart:
+                    // stop or start has been received while still addressed, reseting TWI, sr
+                    break;
+                case s_t::st:
+                    // received own sla-r, ACK returned, will send bytes, st
+                    break;
+                case s_t::st_la:
+                    // arbitration lost in master sla-r/w, slave address matched
+                    break;
+                case s_t::st_write:
+                    // data byte was transmitted and ACK has been received, will send bytes, st
+                    break;
+                case s_t::st_writel:
+                    // data byte was transmitted and NACK has been received, reseting TWI, st
+                    break;
+                case s_t::st_writel_ack:
+                    // last data byte was transmitted and ACK has been received, reseting TWI, st
+                    break;
+                case s_t::ready:
+                    // no errors, ok state?
+                    break;
+            }
         }
     }
 
@@ -174,19 +333,13 @@ namespace fasthal{
     // master begin
     template<unsigned VNum, typename TFreq = decltype(i2c_freq_def), typename TPs = decltype(avr::tw_ps::def)>
     inline constexpr auto begin(details::i2c_impl<VNum> i2c, TFreq freq = i2c_freq_def, TPs ps = avr::tw_ps::def){
-        auto _twbr = details::i2c_calc_twbr(freq, ps);
+        details::i2c_impl<VNum>::state = i2c_state::ready;
         return combine(
-            // set twbr
-            write(i2c.rate, _twbr),
+            write(i2c.rate, details::i2c_calc_twbr(freq, ps)),
             clear(i2c.control),
-            // set ps
             write(i2c.ps, ps),
-            // enable
-            //write()
             enable(i2c)
-            // enable interrupt?
             //enable(i2c.irq),
-            // enable ack
             //enable(i2c.ack)
         );
     }
@@ -198,15 +351,8 @@ namespace fasthal{
     // end i2c
     template<unsigned VNum>
     inline constexpr auto end(details::i2c_impl<VNum> i2c){
-        // TODO: Just clear the register?
-        return combine(
-            // disable
-            disable(i2c)
-            // disable interrupt
-            //disable(i2c.irq),
-            // disable ack
-            //disable(i2c.ack)
-        );
+        details::i2c_impl<VNum>::state = i2c_state::off;
+        return clear(i2c.control);
     }
     template<unsigned VNum>
     inline void end_(details::i2c_impl<VNum> i2c) { 
@@ -215,19 +361,21 @@ namespace fasthal{
 
     // master start 
     template<unsigned VNum>
-    void start(details::i2c_impl<VNum> i2c){
-        // TODO: Check start condition
-        apply(
-            details::i2c_control(i2c),
-            set(i2c.start)
-        );
-        wait_(i2c);
-        // TODO: check for error?
+    i2c_state start(details::i2c_impl<VNum> i2c){
+        // check start condition        
+        if (i2c.state == i2c_state::off || i2c.state == i2c_state::select)
+            return i2c.state;
+
+        details::i2c_control_<true, false>(i2c);
+        details::i2c_wait(i2c);
+
+        // check end condition
+        return i2c.state;
     }
 
     // master stop 
     template<unsigned VNum>
-    void stop(details::i2c_impl<VNum> i2c){
+    i2c_state stop(details::i2c_impl<VNum> i2c){
         // TODO: Check stop condition?
         apply(
             details::i2c_control(i2c),
@@ -287,6 +435,8 @@ namespace fasthal{
         template<>
         struct i2c_impl<0>{
             static constexpr bool available = true;
+            using status_t = avr::tw_s;
+
             static constexpr auto ps = ::fasthal::avr::twps0;
             static constexpr auto rate = ::fasthal::avr::twbr0;
             static constexpr auto status = ::fasthal::avr::tws0;
@@ -300,6 +450,8 @@ namespace fasthal{
             static constexpr auto stop = ::fasthal::avr::twsto0;
             
             static constexpr auto irq = irq_i2c0;
+
+            static i2c_state state;
         };
 
         // enable for i2c.ack
@@ -308,6 +460,7 @@ namespace fasthal{
             func_fieldbit_enable<decltype(::fasthal::avr::twea0)>
             { };
     }
+    static i2c_state details::i2c_impl<0>::state = i2c_state::off;
     constexpr auto i2c0 = details::i2c_impl<0>{};
     
     #endif
