@@ -205,29 +205,17 @@ namespace fasthal{
 
     // write 1 byte, for transmitter communication
     template<unsigned VNum>
-    inline bool write(uart<VNum> uart, uart_datatype_t c){
+    inline bool try_write(uart<VNum> uart, uart_datatype_t c){
         #ifdef FH_UART_FLUSH_SAFE
         // enable TX
         enable_(uart.txen);
         #endif
 
-        if constexpr(details::uart_async_tx<VNum>){
-            // async - try write
-            if (read_(uart.udre)){
-                details::uart_tx(uart, c);
-                return true;
-            }
-            return false;
-        } else {
-            // sync
-            // wait for written
-            wait_hi(uart.udre);
-
-            // direct write
+        if (read_(uart.udre)){
             details::uart_tx(uart, c);
-
             return true;
         }
+        return false;
     }
 
     // tries to write something from transmitter

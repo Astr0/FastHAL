@@ -23,7 +23,7 @@ namespace fasthal{
     template<class TTarget, unsigned C>
     inline void write(ring_buffer_transmitter<TTarget, C> trans, std::uint8_t c){
         // shortcut if empty buffer -> try write something sync
-        if (trans.buffer.empty() && write(trans.target, c))           
+        if (trans.buffer.empty() && try_write(trans.target, c))           
             return;
 
         // wait for buffer space
