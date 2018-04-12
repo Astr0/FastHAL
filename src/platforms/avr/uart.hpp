@@ -184,25 +184,6 @@ namespace fasthal{
         }
      }
 
-    //     template<class T>
-    //     inline void uart_txr_irq()
-    //     {
-    //         static_assert(uart_has_buf<T, true>, "No UART TX buffer");
-            
-    //         // If interrupts are enabled, there must be more data in the output
-    //         // buffer. Send the next byte
-    //         auto& buffer = uart_buf<T, true>::buffer;
-    //         auto c = buffer.read_dirty();
-        
-    //         uart_tx<T>(c);
-
-    //         if (buffer.empty()) {
-    //             // Buffer empty, so disable interrupts
-    //             disable_(T::irq_txr);
-    //         }
-    //     }        
-    // }
-
     // write 1 byte, for transmitter communication
     template<unsigned VNum>
     inline bool try_write(uart<VNum> uart, uart_datatype_t c){
@@ -274,92 +255,6 @@ namespace fasthal{
     inline void end_(uart<VNum> uart, bool doFlush = true){ apply(end(uart, doFlush)); }
 
     #include "uart_impl.hpp"
-
-        // if constexpr (details::uart_has_buf<uart_t, true>){
-        //     // buffered
-        //     auto& buffer = details::uart_buf<uart_t, true>::buffer;
-            
-        //     // If the buffer and the data register is empty, just write the byte
-        //     // to the data register and be done. This shortcut helps
-        //     // significantly improve the effective datarate at high (>
-        //     // 500kbit/s) bitrates, where interrupt overhead becomes a slowdown.
-        //     if (read_(uart_t::udre) && buffer.empty()){
-        //         // direct write
-        //         details::uart_tx<uart_t>(c);
-        //         return;
-        //     }
-
-        //     // wait for buffer space
-        //     while (!buffer.try_write(c)){
-        //         try_irq_force(uart_t::irq_txr);
-        //     }
-
-        //     // enable IRQ if it was disabled in IRQ itself
-        //     enable_(uart_t::irq_txr);
-        // } else{            
-        //     // direct
-        //     // wait for written
-        //     wait_hi(uart_t::udre);
-
-        //     // direct write
-        //     details::uart_tx<uart_t>(c);
-        // }
-    //}
-
-    // template<class T, details::enable_if_uart<T> dummy = nullptr>
-    // void write(T uart, const std::uint8_t* data, bsize_t size){
-    //     using uart_t = T;
-
-    //     #ifdef FH_UART_FLUSH_SAFE
-    //     // enable TX
-    //     enable_(uart_t::txen);
-    //     #endif
-
-    //     //auto end = c + len;
-
-    //     if constexpr (details::uart_has_buf<uart_t, true>){
-    //         // buffered
-    //         auto& buffer = details::uart_buf<uart_t, true>::buffer;
-            
-    //         //if (!size) return;
-    //         // If the buffer and the data register is empty, just write the byte
-    //         // to the data register and be done. This shortcut helps
-    //         // significantly improve the effective datarate at high (>
-    //         // 500kbit/s) bitrates, where interrupt overhead becomes a slowdown.
-    //         if (!size) return;
-
-    //         auto end = data + size;
-    //         //bsize_t i = 0;
-
-    //         //auto end = data + size;
-    //         if (read_(uart_t::udre) && buffer.empty()){
-                
-    //             // direct write
-    //             details::uart_tx<uart_t>(*data++);
-                
-    //             if (size == 1) return;
-    //             //i++;
-    //         }
-            
-    //         while (data != end){
-    //             if (buffer.try_write(*data))
-    //                 data++;
-    //             try_irq_force(uart_t::irq_txr);
-    //         }
-
-    //         // enable IRQ if it was disabled in IRQ itself
-    //         enable_(uart_t::irq_txr);
-    //     } else{            
-    //         while(size--){
-    //             // direct
-    //             // wait for written
-    //             wait_hi(uart_t::udre);
-
-    //             // direct write
-    //             details::uart_tx<uart_t>(*data++);
-    //         }
-    //     }
-    // }
 
     // ************************* RX **************************
     // template<class T, details::enable_if_uart<T> dummy = nullptr>
