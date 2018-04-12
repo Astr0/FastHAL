@@ -39,7 +39,7 @@ namespace fasthal{
     inline auto next(ring_buffer_transmitter<TTarget, C> trans){
         auto c = trans.buffer.read_dirty();
         auto last = trans.buffer.empty();
-        return has_byte{ c, last ? has_byte_type::last : has_byte_type::ok };
+        return has_byte{ c, last };
     }
 
     // commit on transmitter - ensures that everything that was written was send to target, not really written by target!

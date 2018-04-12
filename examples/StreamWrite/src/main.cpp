@@ -34,8 +34,9 @@ void testWrite(T writer, uint8_t read) {
     flush(writer.target);
 }
 
-static constexpr auto uart0tx = ring_buffer_transmitter<uart<0>, 32>{};
-FH_UART_TX(0, uart0tx);
+//static constexpr auto uart0tx = ring_buffer_transmitter<uart<0>, 32>{};
+//FH_UART_TX(0, uart0tx);
+static constexpr auto uart0tx = sync_transmitter<uart<0>>{};
 
 int main(){
 	apply(

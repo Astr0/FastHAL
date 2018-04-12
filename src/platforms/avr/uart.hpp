@@ -179,7 +179,7 @@ namespace fasthal{
             uart_tx(uart, c.byte);
 
             // not ok, disable async transmit
-            if (c.type != has_byte_type::ok)
+            if (c.last)
                 disable_(uart.irq_txr);
         }
      }
@@ -255,18 +255,16 @@ namespace fasthal{
         #endif
 
         // wait for TX completed
-        wait_hi(uart.txc);
-
-        // if constexpr(details::uart_has_buf<uart_t, true>) {
-        //     // buffered mode
-        //     // write data buffer empty interrupt enabled (we have data in write buffer)
-        //     // or transmission not complete (no data in write buffer, but it's not actually transmitted)
-        //     while (enabled_(uart_t::irq_txr) || read_(uart_t::txc))
-        //         try_irq_force(uart_t::irq_txr);
-        // } else{
-        //     // wait for TX completed
-        //     wait_hi(uart_t::txc);
-        // }
+        if constexpr(details::uart_async_tx<VNum>) {
+            // buffered mode
+            // write data buffer empty interrupt enabled (we have data in write buffer)
+            // or transmission not complete (no data in write buffer, but it's not actually transmitted)
+            while (enabled_(uart.irq_txr) || read_(uart.txc))
+                try_irq_force(uart.irq_txr);
+        } else{
+            // wait for TX completed
+            wait_hi(uart.txc);
+        }
     }
    
 

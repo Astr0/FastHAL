@@ -24,12 +24,9 @@ namespace fasthal{
         write(trans.target, c);
     }
 
-    // transmitter
+    // transmitter, shouldn't be here
     template<class TTarget>
-    inline auto next(sync_transmitter<TTarget> trans){
-        // shouldn't be here technically
-        return has_byte_none;
-    }
+    inline has_byte next(sync_transmitter<TTarget> trans);
 
     // commit on transmitter - ensures that everything that was written was send to target, not really written by target!
     template<class TTarget>
