@@ -2,9 +2,9 @@
 //#include <Arduino.h>
 
 #define RX_SIZE 64
-#define TX_SIZE 64
+#define TX_SIZE 32
 
-#define FH_UART0_RX RX_SIZE
+//#define FH_UART0_RX RX_SIZE
 #define FH_UART0_TX TX_SIZE
 
 #ifdef UART1
