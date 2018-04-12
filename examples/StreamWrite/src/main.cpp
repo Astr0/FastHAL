@@ -2,6 +2,8 @@
 //#include <Arduino.h>
 #include "fasthal.hpp"
 
+#define TX_SIZE 32
+
 #define _FLASH(x) x
 
 using namespace fasthal;
@@ -33,13 +35,20 @@ void testWrite(T writer, uint8_t read) {
     flush(writer);
 }
 
-// template<>
-// ring_buffer<32> ring_buffer_transmitter<uart<0>, 32>::buffer{};
 
-static constexpr auto uart0tx = ring_buffer_transmitter<uart<0>, 32>{};
-
+#ifdef TX_SIZE
+static constexpr auto uart0tx = ring_buffer_transmitter<uart<0>, TX_SIZE>{};
 FH_UART_TX(0, uart0tx);
-//static constexpr auto uart0tx = sync_transmitter<uart<0>>{};
+#ifdef UART1
+static constexpr auto uart1tx = ring_buffer_transmitter<uart<1>, TX_SIZE>{};
+FH_UART_TX(1, uart1tx);
+#endif
+#else
+static constexpr auto uart0tx = sync_transmitter<uart<0>>{};
+#ifdef UART1
+static constexpr auto uart1tx = sync_transmitter<uart<1>>{};
+#endif
+#endif
 
 int main(){
 	apply(
@@ -57,7 +66,7 @@ int main(){
         testWrite(uart0tx, read);
         //testWrite2(bw, read);
         #ifdef UART1
-        testWrite(uart1, read);
+        testWrite(uart1tx, read);
         #endif
 	}
 }
