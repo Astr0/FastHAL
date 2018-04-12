@@ -45,7 +45,7 @@ namespace fasthal{
     // commit on transmitter - ensures that everything that was written was send to target, not really written by target!
     template<class TTarget, unsigned C>
     inline void commit(ring_buffer_transmitter<TTarget, C> trans){
-        flush(trans.target);
+        //flush(trans.target);
     }
 }
 #endif
