@@ -65,75 +65,37 @@ static constexpr auto i2c = i2c0;
 static constexpr auto uart0tx = ring_buffer_transmitter<uart<0>, 32>{};
 FH_UART_TX(0, uart0tx);
 
-void debugi2c(const char* why){
-    print(uart0tx, why);
-    print(uart0tx, ' ');
-    print(uart0tx, 'x');
-    println(uart0tx, static_cast<std::uint8_t>(read_(i2c.status)), numberbase_hex);
-}
+// void debugi2c(const char* why){
+//     print(uart0tx, why);
+//     print(uart0tx, ' ');
+//     print(uart0tx, 'x');
+//     println(uart0tx, static_cast<std::uint8_t>(read_(i2c.status)), numberbase_hex);
+// }
 
 static constexpr auto address = i2c_address_v<0x23>;
 
-void bh1750_set_mode(std::uint8_t mode, bool sendStop = true){
-    // configure BH1750. TODO: Errors
-    start(i2c);
-    debugi2c("start_w");
-    // select BH1750
-    select(i2c, i2c_write, address);
-    debugi2c("sla+w");
-    // write mode command (CONTINUOUS_HIGH_RES_MODE)
+bool bh1750_set_mode(std::uint8_t mode){
+    // select BH1750 write
+    if (!start_w(i2c, address))
+        return false;
+    // write mode command
     write(i2c, mode);
-    debugi2c("write");
-    // stop i2c
-    if (sendStop)
-    {
-        stop(i2c);
-        debugi2c("stop");
-    }
+    if (!stop(i2c))
+        return false;
     // wait 
     delay_ms(120);
+    return true;
 }
 
-// i2c_status bh1750_set_mode_(std::uint8_t mode){
-//     // work in transactions that either fail or complete    
-    
-//     // no errors here, but error may be recorded
-//     start_w(i2c, address);
-//     // select_w(i2c, address);
-//     write(i2c, mode);
-//     return stop(i2c);
-// }
-
-// std::uint16_t bh1750_read_(std::uint8_t mode){
-//     if (!bh1750_set_mode(mode, false))
-//         return 0;
-//     // no errors here
-//     //stop_start(i2c);
-//     start_r(i2c, address, 2);
-//     // no errors
-//     std::uint16_t result = read(i2c) << 8;
-//     // and here no errors
-//     result |= read(i2c);
-//     auto status = stop(i2c);
-//     // return some error value in case of fail
-//     result = status ? (result * 10) / 12 : 0;
-//     return result;
-// }
-
 std::uint16_t bh1750_read(std::uint8_t mode){
-    bh1750_set_mode(mode, false);
-    stop_start(i2c);
-    debugi2c("stop_start");
-    select(i2c, i2c_read, address);
-    debugi2c("sla+r");
-    std::uint16_t result = read(i2c) << 8;
-    debugi2c("read");
-    result |= read(i2c, i2c_last);
-    debugi2c("readl");
-    stop(i2c);
-    debugi2c("stop");
-    result = (result * 10) / 12;
-    return result;
+    if (!bh1750_set_mode(mode))
+        return 0;
+    if (!start_r(i2c, address, 2))
+        return 0;
+    std::uint16_t result = (read(i2c) << 8) | read(i2c);
+    if (!stop(i2c))
+        return 0;
+    return (result * 10) / 12;
 }
 
 int main(){    
