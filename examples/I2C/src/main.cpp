@@ -62,11 +62,13 @@ using namespace fasthal::duino;
 
 static constexpr auto i2c = i2c0;
 
+static constexpr auto uart0tx = sync_transmitter<uart<0>>{};
+
 void debugi2c(const char* why){
-    print(uart0, why);
-    print(uart0, ' ');
-    print(uart0, 'x');
-    println(uart0, static_cast<std::uint8_t>(read_(i2c.status)), numberbase_hex);
+    print(uart0tx, why);
+    print(uart0tx, ' ');
+    print(uart0tx, 'x');
+    println(uart0tx, static_cast<std::uint8_t>(read_(i2c.status)), numberbase_hex);
 }
 
 static constexpr auto address = i2c_address_v<0x23>;
@@ -91,33 +93,31 @@ void bh1750_set_mode(std::uint8_t mode, bool sendStop = true){
     delay_ms(120);
 }
 
-// i2c_status bh1750_set_mode_(std::uint8_t mode, bool stop = true){
-//     // work in transactions that either fail or complete    
+i2c_status bh1750_set_mode_(std::uint8_t mode){
+    // work in transactions that either fail or complete    
     
-//     // no errors here, but error may be recorded
-//     start(i2c);
-//     select_w(i2c, address);
-//     write(i2c, mode);
-//     return stop
-//         ? stop(i2c) 
-//         : status(i2c);
-// }
+    // no errors here, but error may be recorded
+    start_w(i2c, address);
+    // select_w(i2c, address);
+    write(i2c, mode);
+    return stop(i2c);
+}
 
-// std::uint16_t bh1750_read_(std::uint8_t mode){
-//     if (!bh1750_set_mode(mode, false))
-//         return 0;
-//     // no errors here
-//     stop_start(i2c);
-//     select_r(i2c, address, 2);
-//     // no errors
-//     std::uint16_t result = read(i2c) << 8;
-//     // and here no errors
-//     result |= read(i2c);
-//     auto status = stop(i2c);
-//     // return some error value in case of fail
-//     result = status ? (result * 10) / 12 : 0;
-//     return result;
-// }
+std::uint16_t bh1750_read_(std::uint8_t mode){
+    if (!bh1750_set_mode(mode, false))
+        return 0;
+    // no errors here
+    //stop_start(i2c);
+    start_r(i2c, address, 2);
+    // no errors
+    std::uint16_t result = read(i2c) << 8;
+    // and here no errors
+    result |= read(i2c);
+    auto status = stop(i2c);
+    // return some error value in case of fail
+    result = status ? (result * 10) / 12 : 0;
+    return result;
+}
 
 std::uint16_t bh1750_read(std::uint8_t mode){
     bh1750_set_mode(mode, false);
@@ -149,15 +149,15 @@ int main(){
     // wake up?
     bh1750_set_mode(0x0);
 
-    println(uart0, "BH1750 Test begin");
+    println(uart0tx, "BH1750 Test begin");
 
     while (1){
         //bh1750_set_mode(std::uint8_t{0x10});
         //delay_ms(180);
         auto light = bh1750_read(0x10);
-        print(uart0, "Lux: ");
-        print(uart0, light);
-        println(uart0, " lx");
+        print(uart0tx, "Lux: ");
+        print(uart0tx, light);
+        println(uart0tx, " lx");
         delay_ms(1000);
     }
 }

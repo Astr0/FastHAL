@@ -1,26 +1,25 @@
 //#define UART1
 //#include <Arduino.h>
-
-#define RX_SIZE 64
-#define TX_SIZE 64
-
-#define FH_UART0_RX RX_SIZE
-#define FH_UART0_TX TX_SIZE
-
-#ifdef UART1
-#define FH_UART1_RX RX_SIZE
-#define FH_UART1_TX TX_SIZE
-#endif
-
 #include "fasthal.hpp"
+
+#define TX_SIZE 32
 
 #define _FLASH(x) x
 
 using namespace fasthal;
 using namespace fasthal::avr;
 
+struct test{
+    uint32_t test1;
+    uint8_t test2;
+    uint8_t test3;
+    uint8_t test4;
+};
+
+test a;
+
 template<typename T>
-void testWrite(T writer, uint8_t read){
+void testWrite(T writer, uint8_t read) {
     write(writer, _FLASH("Hello from Arduino:"));
     write(writer, read);
     write(writer, _FLASH("uint32_t: "));
@@ -29,26 +28,27 @@ void testWrite(T writer, uint8_t read){
     write(writer, (float)read);
     write(writer, _FLASH("double: "));
     write(writer, (double)read);
+    write(writer, _FLASH("struct: "));
+    a = {PORTB, read, PORTC, read};
+    write(writer, reinterpret_cast<uint8_t*>(&a), sizeof(test));
+    // wait for transfer of unsafe global stuff
+    flush(writer);
 }
 
-// template<typename T>
-// void testWrite2(T writer, uint8_t read){
-//     writer.write("Hello from Arduino:");
-//     writer.write(read);
-//     writer.write("uint32_t: ");
-//     writer.write((uint32_t)read);
-//     writer.write("float: ");
-//     writer.write((float)read);
-//     writer.write("double: ");
-//     writer.write((double)read);
-// }
 
-// template<class TUart>
-// struct Test2Adapter{
-//     static bool write(std::uint8_t b){
-//         return fasthal::write(TUart{}, b);
-//     }
-// };
+#ifdef TX_SIZE
+static constexpr auto uart0tx = ring_buffer_transmitter<uart<0>, TX_SIZE>{};
+FH_UART_TX(0, uart0tx);
+#ifdef UART1
+static constexpr auto uart1tx = ring_buffer_transmitter<uart<1>, TX_SIZE>{};
+FH_UART_TX(1, uart1tx);
+#endif
+#else
+static constexpr auto uart0tx = sync_transmitter<uart<0>>{};
+#ifdef UART1
+static constexpr auto uart1tx = sync_transmitter<uart<1>>{};
+#endif
+#endif
 
 int main(){
 	apply(
@@ -63,10 +63,10 @@ int main(){
 	while (true){
         auto read = read_(portC);
         
-        testWrite(uart0, read);
+        testWrite(uart0tx, read);
         //testWrite2(bw, read);
         #ifdef UART1
-        testWrite(uart1, read);
+        testWrite(uart1tx, read);
         #endif
 	}
 }
