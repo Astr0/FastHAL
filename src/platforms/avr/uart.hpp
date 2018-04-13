@@ -12,6 +12,100 @@
 #include "../../streams/stream.hpp"
 
 namespace fasthal{
+    namespace details{
+        template<unsigned VNum>
+        struct uart_trans{
+            using type = void;
+        };
+
+        template<unsigned VNum>
+        struct uart_impl{
+            static constexpr auto available = false;
+            static constexpr auto number = VNum;
+        };
+    }
+
+    template<unsigned VNum>
+    struct uart: details::uart_impl<VNum>{
+        using uart_t = details::uart_impl<VNum>;
+        static_assert(uart_t::available, "UART not available");
+
+        struct lazy{
+            using trans_t = typename details::uart_trans<VNum>::type;
+            static constexpr auto async_tx = !std::is_same<trans_t, void>::value;
+        };
+
+
+        static inline void tx(std::uint8_t c) {
+            // write udr
+            write_(uart_t::udr, c);
+            // clear txc by setting
+            set_(uart_t::txc);
+        }
+
+        static inline void txr_irq()
+        {
+            static_assert(lazy::async_tx, "No UART Transmitter");
+            static_assert(lazy::trans_t::async, "Not async UART Transmitter");
+            auto c = lazy::trans_t::next();
+
+            tx(c.byte);
+
+            // not ok, disable async transmit
+            if (c.last)
+                disable_(uart_t::irq_txr);
+        }
+
+        // write 1 byte, for transmitter communication
+        static inline bool try_write(std::uint8_t c){
+            #ifdef FH_UART_FLUSH_SAFE
+            // enable TX
+            enable_(uart_t::txen);
+            #endif
+
+            if (read_(uart_t::udre)){
+                tx(c);
+                return true;
+            }
+            return false;
+        }
+
+        // tries to write something from transmitter
+        static inline void try_write_sync(){
+            static_assert(lazy::async_tx, "Not async uart, shouldn't be here");
+            try_irq_force(uart_t::irq_txr);
+        }
+
+        // called by transmitter if it has some data
+        static inline void write_async(){
+            static_assert(lazy::async_tx, "Not async uart, shouldn't be here");
+            enable_(uart_t::irq_txr);
+        }
+
+        static inline void flush() {        
+            #ifdef FH_UART_FLUSH_SAFE
+            // If we have never written a byte, no need to flush. This special
+            // case is needed since there is no way to force the TXC (transmit
+            // complete) bit to 1 during initialization
+            if (!enabled_(uart_t::txen))
+                return;
+            #endif
+
+            // wait for TX completed
+            if constexpr(lazy::async_tx) {
+                // buffered mode
+                // write data buffer empty interrupt enabled (we have data in write buffer)
+                // or transmission not complete (no data in write buffer, but it's not actually transmitted)
+                while (enabled_(uart_t::irq_txr) || read_(uart_t::txc))
+                    try_irq_force(uart_t::irq_txr);
+            } else{
+                // wait for TX completed
+                wait_hi(uart_t::txc);
+            }
+        }
+    };
+    
+    // ************ BEGIN ************
     // serial config
     enum class serial_config{
         D5N1 = 0x00,
@@ -46,25 +140,6 @@ namespace fasthal{
     constexpr auto baud_v = integral_constant<std::uint32_t, V>{};
     constexpr auto baud_def = baud_v<9600>;
 
-    template<unsigned VNum>
-    struct uart{
-        static constexpr auto available = false;
-        static constexpr auto number = VNum;
-    };
-
-    namespace details{
-        template<unsigned VNum>
-        struct uart_trans{
-            using type = void;
-        };
-
-        template<unsigned VNum>
-        static constexpr auto uart_async_tx = !std::is_same<typename uart_trans<VNum>::type, void>::value;
-    }
-
-    using uart_datatype_t = std::uint8_t;
-
-    // ************ BEGIN ************
     namespace details{
         template<typename TBaud>
         constexpr auto inline calc_uart_baud(TBaud baud){
@@ -158,90 +233,13 @@ namespace fasthal{
         apply(begin(uart, baud, config));
     }
 
-    // ************ TX ************
-    namespace details{
-        template<class T>
-        inline void uart_tx(T uart, uart_datatype_t c){
-            // write udr
-            write_(T::udr, c);
-            // clear txc by setting
-            set_(T::txc);
-        }
-
-        template<unsigned VNum>
-        inline void uart_txr_irq(uart<VNum> uart)
-        {
-            static_assert(uart_async_tx<VNum>, "No UART Transmitter");
-            constexpr auto trans = typename uart_trans<VNum>::type{};
-            static_assert(trans.async, "Not async UART Transmitter");
-            auto c = next(trans);
-
-            uart_tx(uart, c.byte);
-
-            // not ok, disable async transmit
-            if (c.last)
-                disable_(uart.irq_txr);
-        }
-     }
-
-    // write 1 byte, for transmitter communication
-    template<unsigned VNum>
-    inline bool try_write(uart<VNum> uart, uart_datatype_t c){
-        #ifdef FH_UART_FLUSH_SAFE
-        // enable TX
-        enable_(uart.txen);
-        #endif
-
-        if (read_(uart.udre)){
-            details::uart_tx(uart, c);
-            return true;
-        }
-        return false;
-    }
-
-    // tries to write something from transmitter
-    template<unsigned VNum>
-    inline void try_write_sync(uart<VNum> uart){
-        static_assert(details::uart_async_tx<VNum>, "Not async uart, shouldn't be here");
-        try_irq_force(uart.irq_txr);
-    }
-
-    // called by transmitter if it has some data
-    template<unsigned VNum>
-    inline void write_async(uart<VNum> uart){
-        static_assert(details::uart_async_tx<VNum>, "Not async uart, shouldn't be here");
-        enable_(uart.irq_txr);
-    }
-
-    template<unsigned VNum>
-    inline void flush(uart<VNum> uart) {        
-        #ifdef FH_UART_FLUSH_SAFE
-        // If we have never written a byte, no need to flush. This special
-        // case is needed since there is no way to force the TXC (transmit
-        // complete) bit to 1 during initialization
-        if (!enabled_(uart_t::txen))
-            return;
-        #endif
-
-        // wait for TX completed
-        if constexpr(details::uart_async_tx<VNum>) {
-            // buffered mode
-            // write data buffer empty interrupt enabled (we have data in write buffer)
-            // or transmission not complete (no data in write buffer, but it's not actually transmitted)
-            while (enabled_(uart.irq_txr) || read_(uart.txc))
-                try_irq_force(uart.irq_txr);
-        } else{
-            // wait for TX completed
-            wait_hi(uart.txc);
-        }
-    }
-   
+     
 
     // ************************* END **************************
     template<unsigned VNum>
     inline constexpr auto end(uart<VNum> uart, bool doFlush = true){
         if (doFlush)
-             flush(uart);
+             uart.flush();
         
         return combine(
             disable(uart.rxen),

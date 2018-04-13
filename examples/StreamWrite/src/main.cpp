@@ -2,7 +2,7 @@
 //#include <Arduino.h>
 #include "fasthal.hpp"
 
-#define TX_SIZE 32
+//#define TX_SIZE 32
 
 #define _FLASH(x) x
 

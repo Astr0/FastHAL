@@ -8,9 +8,10 @@
 namespace fasthal{
     template<class TTarget>
     struct sync_transmitter{
-        //using target_t = TTarget;
-        static constexpr TTarget target = TTarget{};
         static constexpr auto async = false;
+
+        // transmitter, shouldn't be here
+        static inline has_byte next();
     };
 
     namespace details{
@@ -21,21 +22,16 @@ namespace fasthal{
     // ostream
     template<class TTarget>
     inline void write(sync_transmitter<TTarget> trans, std::uint8_t c){
-        while (!try_write(trans.target, c))
+        while (!TTarget::try_write(c))
         {
             // nop
         }
-        //write(trans.target, c);
     }
 
-    // transmitter, shouldn't be here
-    template<class TTarget>
-    inline has_byte next(sync_transmitter<TTarget> trans);
-    
+    // ostream nice stuff
     template<class TTarget>
     inline void flush(sync_transmitter<TTarget> trans){
-        flush(trans.target);
-        //flush(trans.target);
+        TTarget::flush();
     }
 
 };
