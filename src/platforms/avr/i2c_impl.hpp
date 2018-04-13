@@ -19,8 +19,11 @@ namespace details{
         
         static constexpr auto irq = irq_i2c0;
 
-        static i2c_state state;
+        static bsize_t bytesToRead;
+        //static i2c_state state;
     };
+
+    bsize_t i2c_impl<0>::bytesToRead{};
 
     // enable for i2c.ack
     template<>

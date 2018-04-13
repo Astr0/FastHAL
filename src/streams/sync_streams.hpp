@@ -6,12 +6,13 @@
 #include "../std/std_types.hpp"
 
 namespace fasthal{
+    // ************************* Transmitter *************************
     template<class TTarget>
     struct sync_transmitter{
         static constexpr auto async = false;
 
         // transmitter, shouldn't be here
-        static inline has_byte next();
+        // static inline has_byte next();
     };
 
     namespace details{
@@ -34,11 +35,25 @@ namespace fasthal{
         TTarget::flush();
     }
 
-    template<class TTarget>
+    // ************************* Receiver *************************
+    template<class TSource>
     struct sync_receiver{
         // TODO
+        // sync and async are completely different!
+        // sync - calls read on target
+        // async - calls try_read_sync on target and receives callback
     };
 
+    namespace details{
+        template<class T>
+        struct is_istream_impl<sync_receiver<T>>: std::true_type{};
+    }    
+    
+    // istream
+    template<class TSource>
+    inline std::uint8_t read(sync_receiver<TSource> recv) {
+        return TSource::read();
+    }
 };
 
 #endif

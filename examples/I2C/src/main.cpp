@@ -77,7 +77,7 @@ bool bh1750_set_mode(std::uint8_t mode){
     if (!i2c0.mt_start(address))
         return false;
     // write mode command
-    write(i2c0.mt, mode);
+    write(i2c0.tx, mode);
     if (!i2c0.stop())
         return false;
     // wait 
@@ -90,7 +90,8 @@ std::uint16_t bh1750_read(std::uint8_t mode){
         return 0;
     if (!i2c0.mr_start(address, 2))
         return 0;
-    std::uint16_t result = (read(i2c0.mr) << 8) | read(i2c0.mr);
+    auto result = std::uint16_t{ read(i2c0.rx) };
+    result = (result << 8) | read(i2c0.rx);    
     if (!i2c0.stop())
         return 0;
     return (result * 10) / 12;
