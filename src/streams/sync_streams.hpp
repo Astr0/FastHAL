@@ -34,6 +34,11 @@ namespace fasthal{
         TTarget::flush();
     }
 
+    template<class TTarget>
+    struct sync_receiver{
+        // TODO
+    };
+
 };
 
 #endif

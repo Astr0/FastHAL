@@ -21,16 +21,14 @@ namespace details{\
     template<> struct func_fieldbit_impl<std::base_type_t<decltype(avr::u2x ## NUM)>>: func_fieldbit_enable<decltype(avr::u2x ## NUM)>{};\
     template<> struct func_fieldbit_impl<std::base_type_t<decltype(avr::txen ## NUM)>>: func_fieldbit_enable<decltype(avr::txen ## NUM)>{};\
     template<> struct func_fieldbit_impl<std::base_type_t<decltype(avr::rxen ## NUM)>>: func_fieldbit_enable<decltype(avr::rxen ## NUM)>{};\
-}\
-static constexpr auto uart##NUM = uart<NUM>{};
+}
+//static constexpr auto uart##NUM = uart<NUM>{};
 
-#define FH_UART_TX(NUM, TRANS)\
-template<> decltype(TRANS.buffer) decltype(TRANS)::buffer{};\
+#define FH_UART_TX(NUM, UART)\
+template<> decltype(UART.tx.buffer) decltype(UART.tx)::buffer{};\
 namespace fasthal::details{\
     template<>\
-    struct uart_trans<NUM>{ using type = decltype(TRANS); };\
-    template<>\
-    struct default_isr<uart<NUM>::irq_txr.number>{ static inline void handle() { uart<NUM>::txr_irq(); } };\
+    struct default_isr<UART.irq_txr.number>{ static inline void handle() { decltype(UART)::tx_impl_t::txr_irq(); } };\
 }\
 FH_ISR(FH_IRQ_TXR ## NUM);
 
