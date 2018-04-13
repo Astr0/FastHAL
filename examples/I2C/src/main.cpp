@@ -62,11 +62,13 @@ using namespace fasthal::duino;
 
 static constexpr auto i2c = i2c0;
 
+static constexpr auto uart0tx = sync_transmitter<uart<0>>{};
+
 void debugi2c(const char* why){
-    print(uart0, why);
-    print(uart0, ' ');
-    print(uart0, 'x');
-    println(uart0, static_cast<std::uint8_t>(read_(i2c.status)), numberbase_hex);
+    print(uart0tx, why);
+    print(uart0tx, ' ');
+    print(uart0tx, 'x');
+    println(uart0tx, static_cast<std::uint8_t>(read_(i2c.status)), numberbase_hex);
 }
 
 static constexpr auto address = i2c_address_v<0x23>;
@@ -149,15 +151,15 @@ int main(){
     // wake up?
     bh1750_set_mode(0x0);
 
-    println(uart0, "BH1750 Test begin");
+    println(uart0tx, "BH1750 Test begin");
 
     while (1){
         //bh1750_set_mode(std::uint8_t{0x10});
         //delay_ms(180);
         auto light = bh1750_read(0x10);
-        print(uart0, "Lux: ");
-        print(uart0, light);
-        println(uart0, " lx");
+        print(uart0tx, "Lux: ");
+        print(uart0tx, light);
+        println(uart0tx, " lx");
         delay_ms(1000);
     }
 }
