@@ -142,27 +142,7 @@ namespace fasthal{
                 enable_(uart_t::irq_txr);
             }
 
-            static inline void flush() {        
-                #ifdef FH_UART_FLUSH_SAFE
-                // If we have never written a byte, no need to flush. This special
-                // case is needed since there is no way to force the TXC (transmit
-                // complete) bit to 1 during initialization
-                if (!enabled_(uart_t::txen))
-                    return;
-                #endif
-
-                // wait for TX completed
-                if constexpr(lazy::async_tx) {
-                    // buffered mode
-                    // write data buffer empty interrupt enabled (we have data in write buffer)
-                    // or transmission not complete (no data in write buffer, but it's not actually transmitted)
-                    while (enabled_(uart_t::irq_txr) || read_(uart_t::txc))
-                        try_irq_force(uart_t::irq_txr);
-                } else{
-                    // wait for TX completed
-                    wait_hi(uart_t::txc);
-                }
-            }
+            
 
             static inline void txr_irq()
             {
@@ -178,16 +158,33 @@ namespace fasthal{
         };
     }
 
-    // Trans factory and Recv factory
-    template<unsigned VNum, template <typename> typename TTrans = sync_transmitter, template <typename> typename TRecv = sync_receiver>
-    struct uart: details::uart_impl<VNum> {
+    struct uart_handler{
+        // controls tx irq, if true - tx will be async and call tx_done on handler
+        static constexpr bool async_tx = false;
+        // controls rx irq, if true - rx will be async and call rx_done on handler
+        static constexpr bool async_rx = false;
+        // check if something was written so flush won't hang =/
+        static constexpr bool safe_flush = false;
+    };
+
+    template<unsigned VNum, class THandler = uart_handler>
+    class uart: details::uart_impl<VNum> {
         using uart_t = details::uart_impl<VNum>;
         static_assert(uart_t::available, "UART not available");
 
-        using tx_impl_t = details::uart_tx_impl<VNum, TTrans>;
-        using trans_t = TTrans<tx_impl_t>;
-        static constexpr auto tx = trans_t{};
+        using handler_t = THandler;
+        static constexpr auto async_tx = handler_t::async_tx;
+        static constexpr auto async_rx = handler_t::async_rx;
+        static constexpr auto safe_flush = handler_t::safe_flush;
 
+        static inline void do_tx(std::uint8_t c) {
+            // write udr
+            write_(uart_t::udr, c);
+            // clear txc by setting
+            set_(uart_t::txc);
+        }        
+    public:
+        // -------------------- begin
         template<typename TBaud = decltype(baud_def), typename TConfig = decltype(serial_config_v<serial_config::def>)>
         static constexpr auto inline begin(TBaud baud = baud_def, TConfig config = serial_config_v<serial_config::def>){            
             auto calc_ = details::calc_uart_baud(baud);
@@ -204,12 +201,9 @@ namespace fasthal{
                 // enable u2x
                 enable(uart_t::u2x, u2x_),
 
-                #ifdef FH_UART_FLUSH_SAFE
-                // disable tx - we will use it to check if anything written
-                disable(uart_t::txen), 
-                #else
-                enable(uart_t::txen), 
-                #endif
+                // disable tx for safe flush - we will use it to check if anything written
+                enable(uart_t::txen, integral_constant<bool, !safe_flush>{}), 
+
                 // disable tx ready irq
                 disable(uart_t::irq_txr),
 
@@ -217,8 +211,7 @@ namespace fasthal{
                 enable(uart_t::rxen),
                 // enable rx ready irq
                 // TODO: If enabled
-                disable(uart_t::irq_rxc)
-                //enable(uart_t::irq_rxc, integral_constant<bool, details::uart_has_buf<uart_t, false>>{})
+                enable(uart_t::irq_rxc, integral_constant<bool, async_rx>{})
             );
         }
 
@@ -227,10 +220,9 @@ namespace fasthal{
             apply(begin(baud, config));
         }        
 
-        static inline constexpr auto end(bool doFlush = true){
-            if (doFlush)
-                 flush(tx);
-            
+        // ---------------------- end
+        static inline constexpr auto end(){
+            // TODO: Flush?
             return combine(
                 disable(uart_t::rxen),
                 disable(uart_t::irq_rxc),
@@ -239,7 +231,53 @@ namespace fasthal{
             );
         }
 
-        static inline void end_(bool doFlush = true){ apply(end(doFlush)); }        
+        static inline void end_(){ apply(end()); }
+
+        // ---------------------- tx
+        static inline void tx(std::uint8_t b){
+            static_assert(!async_tx, "only for sync tx");
+
+            if constexpr(safe_flush){
+                // enable TX
+                enable_(uart_t::txen);
+            }
+            
+            while (!read_(uart_t::udre));
+            
+            do_tx(b);
+        }
+
+        static bool tx(buffer_view buf){
+            if constexpr(async_tx){
+                // TODO: do async stuff
+            } else{
+                while (!buf.empty()) 
+                    tx(buf.next());
+                return true;
+            }
+        }
+
+        static inline void flush() {        
+            if constexpr(safe_flush){
+                // If we have never written a byte, no need to flush. This special
+                // case is needed since there is no way to force the TXC (transmit
+                // complete) bit to 1 during initialization
+                if (!enabled_(uart_t::txen))
+                    return;
+            }
+
+            // wait for TX completed
+            if constexpr(async_tx) {
+                // buffered mode
+                // write data buffer empty interrupt enabled (we have data in write buffer)
+                // or transmission not complete (no data in write buffer, but it's not actually transmitted)
+                while (enabled_(uart_t::irq_txr) || read_(uart_t::txc))
+                    try_irq_force(uart_t::irq_txr);
+            } else{
+                // wait for TX completed
+                while (!read_(uart_t::txc));
+            }
+        }
     };
     
     #include "uart_impl.hpp"

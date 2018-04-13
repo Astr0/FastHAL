@@ -153,14 +153,15 @@ namespace fasthal
 		//return get(fieldBit, apply(read(fieldBit)));
 	}
 
+	// they are evil and not inlined!!!
 	template<class TField, unsigned VNumber, bool VInverted>
 	constexpr auto inline wait_lo(field_bit<TField, VNumber, VInverted> fieldBit){
-		while (read_(fieldBit));
+		while (read_(field_bit<TField, VNumber, VInverted>{}));
 	}
 
 	template<class TField, unsigned VNumber, bool VInverted>
 	constexpr auto inline wait_hi(field_bit<TField, VNumber, VInverted> fieldBit){
-		while (!read_(fieldBit));
+		while (!read_(field_bit<TField, VNumber, VInverted>{}));
 	}	
 }
 

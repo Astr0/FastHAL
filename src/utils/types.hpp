@@ -21,5 +21,15 @@ namespace fasthal{
     // using brigand::uint16_t;
     // using brigand::uint32_t;
     // using brigand::uint64_t;
+
+    class buffer_view{
+        std::uint8_t* _buf;
+        bsize_t _len;
+    public:
+        constexpr buffer_view(std::uint8_t* buf, bsize_t len): _buf(buf), _len(len) { }
+
+        constexpr auto empty(){ return _len == 0; }
+        auto next(){ --_len; return *_buf++; }
+    };
 }
 #endif
