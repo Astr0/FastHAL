@@ -63,37 +63,72 @@ using namespace fasthal::duino;
 static constexpr auto i2c0 = i2c<0>{};
 static constexpr auto uart0 = uart<0>{};
 
-// void debugi2c(const char* why){
-//     print(uart0tx, why);
-//     print(uart0tx, ' ');
-//     print(uart0tx, 'x');
-//     println(uart0tx, static_cast<std::uint8_t>(read_(i2c.status)), numberbase_hex);
-// }
+void debugi2c(const char* why, i2c_state state){
+    static constexpr auto tx = uart0.tx;
+    print(tx, why);
+    print(tx, '=');
+    switch(state){
+        case i2c_state::ready:
+            print(tx, "ready");
+            break;
+        case i2c_state::select:
+            print(tx, "select");
+            break;
+        case i2c_state::mt:
+            print(tx, "mt");
+            break;
+        case i2c_state::mr:
+            print(tx, "mr");
+            break;
+        case i2c_state::done:
+            print(tx, "done");
+            break;
+        case i2c_state::error:
+            print(tx, "error");
+            break;
+        default:
+            print(tx, '?');
+            break;
+    }
+    println(tx);
+}
 
 static constexpr auto address = i2c_address_v<0x23>;
 
 bool bh1750_set_mode(std::uint8_t mode){
     // select BH1750 write
-    if (!i2c0.mt_start(address))
+    auto state = i2c0.start(address, i2c_mt);
+    if (state != i2c_state::mt){
+        debugi2c("start_m", state);
         return false;
+    }
     // write mode command
     write(i2c0.tx, mode);
-    if (!i2c0.stop())
+    state = i2c0.stop();
+    if (state != i2c_state::done){
+        debugi2c("stop_m", state);
         return false;
-    // wait 
-    delay_ms(120);
+    }
+    // don't wait for errors
+    // delay_ms(120);
     return true;
 }
 
 std::uint16_t bh1750_read(std::uint8_t mode){
     if (!bh1750_set_mode(mode))
         return 0;
-    if (!i2c0.mr_start(address, 2))
+    auto state = i2c0.start(address, i2c_mr, 2);
+    if (state != i2c_state::mr){
+        debugi2c("start_r", state);
         return 0;
+    }
     auto result = std::uint16_t{ read(i2c0.rx) };
     result = (result << 8) | read(i2c0.rx);    
-    if (!i2c0.stop())
+    state = i2c0.stop();
+    if (state != i2c_state::done){
+        debugi2c("stop_r", state);
         return 0;
+    }
     return (result * 10) / 12;
 }
 
