@@ -13,16 +13,16 @@ int main(){
     enable_(irq);
     uart0.begin_(baud_v<9600>);
     while (true){
-        // if (available(uart0)){
-        //     auto v = read_dirty(uart0);
-        //     write(uart0, v);
-        // }
+        if (uart0.available()){
+            auto v = uart0.rx<true>();
+            uart0.tx(v);
+        }
         
-        for(auto x = 'a'; x <= 'z'; ++x)
-            uart0.tx(x);
-        uart0.tx(10);
-        uart0.tx(13);
-        uart0.flush();
+        // for(auto x = 'a'; x <= 'z'; ++x)
+        //     uart0.tx(x);
+        // uart0.tx(10);
+        // uart0.tx(13);
+        // uart0.flush();
     }
 
     // Serial.begin(9600);

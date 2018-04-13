@@ -278,51 +278,36 @@ namespace fasthal{
                 while (!read_(uart_t::txc));
             }
         }
+
+        // --------------------------------- RX
+        static constexpr bool available(){
+            static_assert(!async_rx, "only for sync rx");
+
+            // check if we have something
+            if (!read_(uart_t::rxc))
+                return false;
+            // check if it's ok. upe 0 == ok
+            if (!read_(uart_t::upe))
+                return true;
+            // discard error data and return false
+            read_(uart_t::udr);
+            return false;   
+        }
+
+        template<bool dirty = false>
+        static auto rx(){
+            static_assert(!async_rx, "only for sync rx");
+
+            if constexpr(!dirty){
+                while (!available());
+            }
+            return read_(uart_t::udr);
+        }
     };
     
     #include "uart_impl.hpp"
 
     // ************************* RX **************************
-    // template<class T, details::enable_if_uart<T> dummy = nullptr>
-    // constexpr bool available(T uart) {
-    //     if constexpr (details::uart_has_buf<T, false>){
-    //         // buffered - return if buffer has anything
-    //         return !details::uart_buf<T, false>::buffer.empty();
-    //     } else{
-    //         // check if we have something
-    //         if (!read_(T::rxc))
-    //             return false;
-    //         // check if it's ok. upe 0 == ok
-    //         if (!read_(T::upe))
-    //             return true;
-    //         // discard error data and return false
-    //         read_(T::udr);
-    //         return false;        
-    //     }
-    // }
-
-    // template<class T, details::enable_if_uart<T> dummy = nullptr>
-    // constexpr uart_datatype_t read(T uart) {
-    //     if constexpr (details::uart_has_buf<T, false>){
-    //         // buffered - return value
-    //         return details::uart_buf<T, false>::buffer.read();
-    //     } else{           
-    //         // TODO: direct read is meaningless - we won't keep up and aways get not available or miss bytes
-    //         // direct - if we have something - read it, otherwise return 0
-    //         return available(uart) ? read_(T::udr) : 0;
-    //     }
-    // }
-
-    // template<class T, details::enable_if_uart<T> dummy = nullptr>
-    // constexpr uart_datatype_t read_dirty(T uart) {
-    //     if constexpr (details::uart_has_buf<T, false>){
-    //         // buffered - return value
-    //         return details::uart_buf<T, false>::buffer.read_dirty();
-    //     } else{           
-    //         // direct - just read udr???
-    //         return read_(T::udr);
-    //     }
-    // }
 
     // namespace details{
     //     template<class T>
