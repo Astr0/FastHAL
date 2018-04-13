@@ -7,6 +7,15 @@
 // don't check that programmer is stupid, check for error conditions
 
 namespace fasthal{
+    enum class i2c_state{    
+        ready = 0, // nothing is happening on i2c 
+        select, // after start - waiting select_w or select_r 
+        mt, // in mt mode - can write or stop/start
+        mr, // in mr mode - can read
+        done, // done operation (usually mr)
+        error // some error occured (TODO: Detailed)
+    };
+
     namespace details{
         template<unsigned VNum>
         struct i2c_impl{
@@ -87,6 +96,83 @@ namespace fasthal{
             static inline void wait_stop(){
                 wait_lo(_i2c.stop);
             }
+
+            static i2c_state fsm(){
+                auto s = _read(_i2c.status);
+                using s_t = decltype(s);
+                switch(s){
+                    case s_t::bus_fail: // HW error on bus (invalid START/STOP condition). Need for bus restart.
+                    case s_t::mt_nack: // select_w sent, received NACK. Need write or start/stop/stop_start
+                    case s_t::mt_write_nack: // MT write, received NACK. Need write or start/stop/stop_start
+                    case s_t::m_collision: // another master took of the bus unexpectedly in select_w, select_r or write/readl. Need fail or start.
+                    case s_t::mr_nack: // select_r sent, received NACK. Need read, readlast, repeated start, stop, stop_start
+                        return i2c_state::error;
+                    case s_t::m_start: // Entered START. Need select_w or select_r
+                    case s_t::m_restart: // Entered repeated START. Need select_w or select_r
+                        return i2c_state::select;
+                    case s_t::mt: // select_w sent, received ACK. Need write or start/stop/stop_start
+                    case s_t::mt_write: // MT write, received ACK. Need write or start/stop/stop_start
+                        return i2c_state::mt;
+                    case s_t::mr: // select_r sent, received ACK. Need read/readl or start/stop/stop_start
+                    case s_t::mr_read: // recevied byte ok. Need read/readl
+                        return i2c_state::mr;
+                    case s_t::mr_readl: // nack sent to slave after receiving byte, stop restart or stop/start will be transmitted, mr
+                        return i2c_state::done;
+                    default:
+                        return i2c_state::ready;
+                    // // TODO: Slave thingy
+                    // case s_t::sr:
+                    //     // received own sla-w, ACK returned, will receive bytes and ACK/NACK, sr
+                    //     break;
+                    // case s_t::sr_la:
+                    //     // arbitration lost in master sla-r/w, slave address matched
+                    //     break;
+                    // case s_t::sr_cast:
+                    //     // broadcast has been received, ACK returned, will receive bytes and ACK/NACK, sr
+                    //     break;
+                    // case s_t::sr_cast_la:
+                    //     // arbitration lost in master sla-r/w, sla+w broadcast, will receive bytes and ACK/NACK, sr
+                    //     break;
+                    // case s_t::sr_read:
+                    //     // own data has been received, ACK returned, will receive bytes and ACK/NACK, sr
+                    //     break;
+                    // case s_t::sr_readl:
+                    //     // own data has been received, NACK returned, reseting TWI, sr
+                    //     break;
+                    // case s_t::sr_read_cast:
+                    //     // broadcast data has been received, ACK returned, will receive bytes and ACK/NACK, sr
+                    //     break;
+                    // case s_t::sr_readl_cast:
+                    //     // broadcast data has been received, NACK returned, reseting TWI, sr
+                    //     break;
+                    // case s_t::sr_stop_restart:
+                    //     // stop or start has been received while still addressed, reseting TWI, sr
+                    //     break;
+                    // case s_t::st:
+                    //     // received own sla-r, ACK returned, will send bytes, st
+                    //     break;
+                    // case s_t::st_la:
+                    //     // arbitration lost in master sla-r/w, slave address matched
+                    //     break;
+                    // case s_t::st_write:
+                    //     // data byte was transmitted and ACK has been received, will send bytes, st
+                    //     break;
+                    // case s_t::st_writel:
+                    //     // data byte was transmitted and NACK has been received, reseting TWI, st
+                    //     break;
+                    // case s_t::st_writel_ack:
+                    //     // last data byte was transmitted and ACK has been received, reseting TWI, st
+                    //     break;
+                    // case s_t::ready:
+                    //     // no errors, ok state?
+                    //     break;
+                }
+            }
+
+            static inline i2c_state get_state(){
+                return fsm();
+            }
+
         
             // -------------------------- target interface
             // write 1 byte, for transmitter communication

@@ -40,7 +40,7 @@ enum class tw_s: std::uint8_t{
     m_collision       = 0x38, // another master took of the bus unexpectedly in select_w, select_r or write/readl. Need fail or start.
     mr                = 0x40, // select_r sent, received ACK. Need read/readl or start/stop/stop_start
     mr_nack           = 0x48, // select_r sent, received NACK. Need read, readlast, repeated start, stop, stop_start
-    mr_read           = 0x50, // recevied byte ok. ACK or NACK will be send, mr
+    mr_read           = 0x50, // recevied byte ok. Need read/readl
     mr_readl          = 0x58, // nack sent to slave after receiving byte, stop restart or stop/start will be transmitted, mr
     // slave statuses
     // st = slave transmit
