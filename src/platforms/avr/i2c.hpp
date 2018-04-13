@@ -9,14 +9,23 @@
 namespace fasthal{
     enum class i2c_state{    
         ready = 0, // nothing is happening on i2c 
-        select, // after start - waiting select_w or select_r 
+        select, // after start - waiting select_w or select_r, really meaningless
         mt, // in mt mode - can write or stop/start
-        mr, // in mr mode - can read
-        done, // done operation (usually mr)
-        error // some error occured (TODO: Detailed)
+        mr, // in mr mode - can read only
+        done, // done operation (usually mr). can stop/start
+        error // some error occured (TODO: Detailed). can stop only
     };
 
-    namespace details{
+    static constexpr auto i2c_mt = integral_constant<bool, false>{};
+    static constexpr auto i2c_mr = integral_constant<bool, true>{};
+
+    namespace details{        
+        template<typename... TStates>
+        static inline bool i2c_state_any(i2c_state state, TStates... states){
+            return (...|| (state == states));
+        }
+
+
         template<unsigned VNum>
         struct i2c_impl{
             static constexpr bool available = false;
@@ -97,8 +106,13 @@ namespace fasthal{
                 wait_lo(_i2c.stop);
             }
 
+            static inline void stop(){
+                control(set(_i2c.stop));
+                wait_stop();
+            }
+
             static i2c_state fsm(){
-                auto s = _read(_i2c.status);
+                auto s = read_(_i2c.status);
                 using s_t = decltype(s);
                 switch(s){
                     case s_t::bus_fail: // HW error on bus (invalid START/STOP condition). Need for bus restart.
@@ -173,26 +187,28 @@ namespace fasthal{
                 return fsm();
             }
 
-        
             // -------------------------- target interface
             // write 1 byte, for transmitter communication
             static inline bool try_write(std::uint8_t c){
-                // TODO: Check conditions
+                // Check MT mode, but discard bytes from transmitter
+                if (get_state() != i2c_state::mt) return true;
                 write(c);
                 wait();
-                // TODO: Check conditions
+                // no errors here, right?
                 return true;
             }
 
             // tries to write something from transmitter
             static inline void try_write_sync(){
                 static_assert(lazy::async_tx, "Not async i2c, shouldn't be here");
+                // TODO
                 //try_irq_force(uart_t::irq_txr);
             }
 
-            // called by transmitter if it has some data
+            // called by transmitter if it has some data to write next
             static inline void write_async(){
                 static_assert(lazy::async_tx, "Not async i2c, shouldn't be here");
+                // TODO
                 //enable_(uart_t::irq_txr);
             }
 
@@ -203,6 +219,8 @@ namespace fasthal{
             // read for sync receiver
             static std::uint8_t read(){
                 // TODO: Check start condition
+                if (get_state() != i2c_state::mt) return 0;
+                // we don't check programmer issues with not telling how many bytes to read, etc.
                 // Ask for next byte
                 _i2c.bytesToRead--;                
                 control(enable(_i2c.ack, _i2c.bytesToRead != 0));
@@ -258,46 +276,43 @@ namespace fasthal{
             apply(end()); 
         }
 
-        // begin master transfer
-        template<typename TAddress>
-        static bool mt_start(TAddress address){
-            // TODO: Check begin condition
-            auto sla = details::i2c_build_sla<false>(address);
+        // start MT or MR
+        template<bool VRead, typename TAddress>
+        static bool start(TAddress address, integral_constant<bool, VRead> mode, bsize_t willRead = 0) {
+            // check start state
+            // select can't be here really according to our fsm
+            if (details::i2c_state_any(_f.get_state(), i2c_state::error, i2c_state::mr))
+                return false;
+
             _f.control(set(_i2c.start));
             _f.wait();
-            // check started
+            // check started (TODO: do we need it? there should be no errors after start, it's really async)
+            if (_f.get_state() != i2c_state::select) return false;
+
+            if constexpr(VRead)
+                _i2c.bytesToRead = willRead;
+            
+            auto sla = details::i2c_build_sla<VRead>(address);
             _f.write(sla);
             _f.wait();
-            // check select
-
-            // TODO: Check end condition
-            return true;
-        }
-
-        // begin master receive
-        template<typename TAddress>
-        static bool mr_start(TAddress address, bsize_t size){
-            // TODO: Check begin condition
-            auto sla = details::i2c_build_sla<true>(address);
-            _f.control(set(_i2c.start));
-            _f.wait();
-            // check started
-            _i2c.bytesToRead = size;
-            _f.write(sla);
-            _f.wait();
-            // check select
-
-            // TODO: Check end condition
-            return true;
+            
+            // check select state
+            constexpr auto ok_state = VRead ? i2c_state::mr : i2c_state::mt;
+            return _f.get_state() == ok_state;
         }
 
         // stop master operation
         static bool stop(){
-            // TODO: Check begin condition, return something more meaningful
-            _f.control(set(_i2c.stop));
-            _f.wait_stop();
-            // TODO: Check end condition
-            return true;
+            auto state = _f.get_state();
+            if (!details::i2c_state_any(state, 
+                    i2c_state::mt, 
+                    i2c_state::done,
+                    i2c_state::error))
+                return false;
+            _f.stop();
+            // End condition should be fine 
+            // return false if error happended somewhere up there
+            return state != i2c_state::error;
         }
     };
 

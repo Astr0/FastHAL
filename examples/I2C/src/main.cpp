@@ -74,7 +74,7 @@ static constexpr auto address = i2c_address_v<0x23>;
 
 bool bh1750_set_mode(std::uint8_t mode){
     // select BH1750 write
-    if (!i2c0.mt_start(address))
+    if (!i2c0.start(address, i2c_mt))
         return false;
     // write mode command
     write(i2c0.tx, mode);
@@ -88,7 +88,7 @@ bool bh1750_set_mode(std::uint8_t mode){
 std::uint16_t bh1750_read(std::uint8_t mode){
     if (!bh1750_set_mode(mode))
         return 0;
-    if (!i2c0.mr_start(address, 2))
+    if (!i2c0.start(address, i2c_mr, 2))
         return 0;
     auto result = std::uint16_t{ read(i2c0.rx) };
     result = (result << 8) | read(i2c0.rx);    
