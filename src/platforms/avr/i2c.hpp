@@ -225,7 +225,8 @@ namespace fasthal{
                 _i2c.bytesToRead--;                
                 control(enable(_i2c.ack, _i2c.bytesToRead != 0));
                 wait();
-
+                
+                // even if state is wrong, we should return some garbage data (check what's wrong on start/stop next time)
                 return read_(_i2c.data);
             }
         };
