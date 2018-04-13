@@ -93,33 +93,31 @@ void bh1750_set_mode(std::uint8_t mode, bool sendStop = true){
     delay_ms(120);
 }
 
-// i2c_status bh1750_set_mode_(std::uint8_t mode, bool stop = true){
-//     // work in transactions that either fail or complete    
+i2c_status bh1750_set_mode_(std::uint8_t mode){
+    // work in transactions that either fail or complete    
     
-//     // no errors here, but error may be recorded
-//     start(i2c);
-//     select_w(i2c, address);
-//     write(i2c, mode);
-//     return stop
-//         ? stop(i2c) 
-//         : status(i2c);
-// }
+    // no errors here, but error may be recorded
+    start_w(i2c, address);
+    // select_w(i2c, address);
+    write(i2c, mode);
+    return stop(i2c);
+}
 
-// std::uint16_t bh1750_read_(std::uint8_t mode){
-//     if (!bh1750_set_mode(mode, false))
-//         return 0;
-//     // no errors here
-//     stop_start(i2c);
-//     select_r(i2c, address, 2);
-//     // no errors
-//     std::uint16_t result = read(i2c) << 8;
-//     // and here no errors
-//     result |= read(i2c);
-//     auto status = stop(i2c);
-//     // return some error value in case of fail
-//     result = status ? (result * 10) / 12 : 0;
-//     return result;
-// }
+std::uint16_t bh1750_read_(std::uint8_t mode){
+    if (!bh1750_set_mode(mode, false))
+        return 0;
+    // no errors here
+    //stop_start(i2c);
+    start_r(i2c, address, 2);
+    // no errors
+    std::uint16_t result = read(i2c) << 8;
+    // and here no errors
+    result |= read(i2c);
+    auto status = stop(i2c);
+    // return some error value in case of fail
+    result = status ? (result * 10) / 12 : 0;
+    return result;
+}
 
 std::uint16_t bh1750_read(std::uint8_t mode){
     bh1750_set_mode(mode, false);
