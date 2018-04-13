@@ -35,16 +35,15 @@ void testWrite(T writer, uint8_t read) {
     flush(writer);
 }
 
-
 #ifdef TX_SIZE
-static constexpr auto uart0tx = ring_buffer_transmitter<uart<0>, TX_SIZE>{};
-FH_UART_TX(0, uart0tx);
+static constexpr auto uart0 = uart<0, ring_buffer_transmitter<TX_SIZE>::type, sync_receiver>{};
+FH_UART_TX(0, uart0);
 #ifdef UART1
 static constexpr auto uart1tx = ring_buffer_transmitter<uart<1>, TX_SIZE>{};
 FH_UART_TX(1, uart1tx);
 #endif
 #else
-static constexpr auto uart0tx = sync_transmitter<uart<0>>{};
+static constexpr auto uart0 = uart<0, sync_transmitter, sync_receiver>{};
 #ifdef UART1
 static constexpr auto uart1tx = sync_transmitter<uart<1>>{};
 #endif
@@ -53,9 +52,9 @@ static constexpr auto uart1tx = sync_transmitter<uart<1>>{};
 int main(){
 	apply(
         enable(irq),
-        begin(uart0)
+        uart0.begin()
         #ifdef UART1
-        , begin(uart1, baud_v<115000>)
+        , uart1.begin(baud_v<115000>)
         #endif
     );    
     //begin_(uart1, baud_v<115000>);
@@ -63,10 +62,10 @@ int main(){
 	while (true){
         auto read = read_(portC);
         
-        testWrite(uart0tx, read);
+        testWrite(uart0.tx, read);
         //testWrite2(bw, read);
         #ifdef UART1
-        testWrite(uart1tx, read);
+        testWrite(uart1.tx, read);
         #endif
 	}
 }
