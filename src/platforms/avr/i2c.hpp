@@ -218,15 +218,14 @@ namespace fasthal{
             // -------------------------- source interface
             // read for sync receiver
             static std::uint8_t read(){
-                // TODO: Check start condition
-                if (get_state() != i2c_state::mt) return 0;
+                // Check start condition
+                if (get_state() != i2c_state::mr) return 0;
                 // we don't check programmer issues with not telling how many bytes to read, etc.
                 // Ask for next byte
                 _i2c.bytesToRead--;                
                 control(enable(_i2c.ack, _i2c.bytesToRead != 0));
                 wait();
 
-                // TODO: Check status
                 return read_(_i2c.data);
             }
         };
@@ -278,16 +277,17 @@ namespace fasthal{
 
         // start MT or MR
         template<bool VRead, typename TAddress>
-        static bool start(TAddress address, integral_constant<bool, VRead> mode, bsize_t willRead = 0) {
+        static i2c_state start(TAddress address, integral_constant<bool, VRead> mode, bsize_t willRead = 0) {
             // check start state
             // select can't be here really according to our fsm
-            if (details::i2c_state_any(_f.get_state(), i2c_state::error, i2c_state::mr))
-                return false;
+            auto state = _f.get_state();
+            if (details::i2c_state_any(state, i2c_state::error, i2c_state::mr))
+                return state;
 
             _f.control(set(_i2c.start));
             _f.wait();
-            // check started (TODO: do we need it? there should be no errors after start, it's really async)
-            if (_f.get_state() != i2c_state::select) return false;
+            // don't check started. there should be no errors after start, it blocks
+            // if (_f.get_state() != i2c_state::select) return false;
 
             if constexpr(VRead)
                 _i2c.bytesToRead = willRead;
@@ -296,23 +296,22 @@ namespace fasthal{
             _f.write(sla);
             _f.wait();
             
-            // check select state
-            constexpr auto ok_state = VRead ? i2c_state::mr : i2c_state::mt;
-            return _f.get_state() == ok_state;
+            // return state
+            return _f.get_state();
         }
 
         // stop master operation
-        static bool stop(){
+        static i2c_state stop(){
             auto state = _f.get_state();
             if (!details::i2c_state_any(state, 
                     i2c_state::mt, 
                     i2c_state::done,
                     i2c_state::error))
-                return false;
+                return state;
             _f.stop();
             // End condition should be fine 
             // return false if error happended somewhere up there
-            return state != i2c_state::error;
+            return state == i2c_state::error ? i2c_state::error : i2c_state::done;
         }
     };
 
