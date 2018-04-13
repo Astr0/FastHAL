@@ -230,13 +230,12 @@ namespace fasthal{
 			// return = 4 cycles 
 		}
 
-		void delay_ms_us_impl(time_t ms);
-		// void delay_ms_us_impl(time_t ms){ 
-		// 	while (ms > 0){
-		// 		delay_us_impl(999); // some compensation for while loop...
-		// 		ms--;
-		// 	}
-		// }
+		void delay_ms_us_impl(time_t ms){ 
+			while (ms > 0){
+				delay_us_impl(999); // some compensation for while loop...
+				ms--;
+			}
+		}
 	}
 
 	template<class TTimer, typename TTimer::cs_t VClock, typename TTimer::wgm_t VWgm>

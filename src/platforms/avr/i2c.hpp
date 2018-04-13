@@ -1,81 +1,8 @@
 #ifndef FH_AVR_I2C_H_
 #define FH_AVR_I2C_H_
 
-// I2C should
-// read/write as master with some kind of error reporting
-// interrupt/fail on slave transmit/receive and call some kind of callback to handle it
-// support streaming protocol
-// use little to no RAM and code, buffered on non-buffered mode
-
-
-// Master Trasfer state machine (start+select_w)
-// ***** state: action
-// ready: start
-// m_start: select_w
-// m_restart: select_w, select_r
-// mt: write, repeated start, stop, stop_start
-// mt_nack: write, repeated start, stop, stop_start
-// mt_write: write, repeated start, stop, stop_start
-// mt_write_nack: write, repeated start, stop, stop_start
-// m_collision: enter not-addressed-slave (fail), start
-// ***** action > states
-// start -> m_start, m_restart
-// select_w -> mt, mt_nack, m_collision
-// write -> mt_write, mt_write_nack, m_collision
-// stop -> ready
-// stop_start -> m_start
-// fail -> ready??
-
-// Master Receive state machine (start+select_r)
-// ***** state: action
-// ready: start
-// m_start: select_r
-// m_restart: select_w, select_r
-// m_collision: enter not-addressed-slave (fail), start
-// mr: read, readlast, repeated start, stop, stop_start
-// mr_nack: read, readlast, repeated start, stop, stop_start
-// mr_read: read, readlast
-// mr_readl: repeated start, stop, stop_start
-// ***** action > states
-// start -> m_start, m_restart
-// select_r -> mr, mr_nack, m_collision
-// read -> mr_read
-// readlast -> mr_readl, m_collision
-// stop -> ready
-// stop_start -> m_start
-// fail -> ready??
-
-// Slave Transfer state machine (TWAR initialized, TWEN=1, TWEA = 1, TWSTA = 0, TWSTO = 0) or state=recv_sla_r_lp. Sets TWINT
-// ***** state: action
-// st: writelast, write
-// st_lp: writelast, write
-// st_write: writelast, write
-// st_writel: enter not-addressed-slave disable recognition (fail_nack), enter not-addressed-slave enable recognition (fail_ack), start (ack/nack)
-// st_writel_ack: fail(ack/nack), start (ack/nack)
-
-// Slave Receive state machine (TWAR initialized, TWEN=1, TWEA = 1, TWSTA = 0, TWSTO = 0) or state=. Sets TWINT
-// ***** state: action
-// sr: read, readlast
-// sr_la: read, readlast
-// sr_cast: read, readlast
-// sr_cast_la: read, readlast
-// sr_read: read, readlast
-// sr_readl: fail(ack/nack), start(ack/nack)
-// sr_read_cast: read, readlast
-// sr_readl_cast: fail(ack/nack), start(ack/nack)
-// sr_stop_restart: fail(ack/nack), start(ack/nack)
-
-// global statuses
-// ready: something's ok goin on (transfer or wait), no actions
-// bus_fail: Illegal start/stop condition, stop to reset TWI module (no stop is really sent on bus)
-
-
 #include "registers.hpp"
-
-#if 1==1//def FH_HAS_I2C0
-
-#include "interrupts.hpp"
-#include "../../std/std_types.hpp"
+#include "../../streams/sync_streams.hpp"
 
 namespace fasthal{
     namespace details{
@@ -84,7 +11,7 @@ namespace fasthal{
             static constexpr bool available = false;
         };
 
-        // enable, reset, ready for i2c
+        // enable, reset, ready for i2c impl
         template<unsigned VNum>
         struct func_fieldbit_impl<i2c_impl<VNum>>:
             func_fieldbit_enable<decltype(i2c_impl<VNum>::enable)>,
@@ -114,47 +41,104 @@ namespace fasthal{
             auto result = i2c_calc_twbr(VFreq, VPs);
             return integral_constant<std::uint8_t, result>{};
         }
-
-        // general case
-        template<typename TRead, typename TAddress>
-        inline constexpr auto i2c_build_sla(TRead read, TAddress address){
-            auto result = static_cast<std::uint8_t>(static_cast<std::uint8_t>(address) << 1);
-            if (read)
-                result |= 1;
-            return result;
-        }
-        // optimized for known mode
+        
         template<bool VRead, typename TAddress>
-        inline constexpr auto i2c_build_sla(integral_constant<bool, VRead> read, TAddress address){
+        inline constexpr auto i2c_build_sla(TAddress address){
             auto result = static_cast<std::uint8_t>(static_cast<std::uint8_t>(address) << 1);
-            if constexpr (VRead)
-                result |= 1;
-            return result;            
-        }   
-        // optimized for known mode and address
+            return VRead ? result | 1 : result;
+        }
         template<bool VRead, typename TAddress, TAddress VAddress>
-        inline constexpr auto i2c_build_sla(integral_constant<bool, VRead> read, integral_constant<TAddress, VAddress> address){
-            constexpr auto result = i2c_build_sla(VRead, VAddress);
+        inline constexpr auto i2c_build_sla(integral_constant<TAddress, VAddress> address){
+            constexpr auto result = i2c_build_sla<VRead>(VAddress);
             return integral_constant<decltype(result), result>{};
-        }   
+        }
 
         template<unsigned VNum>
-        static constexpr auto i2c_control(i2c_impl<VNum> i2c){
-            return combine(
-                clear(i2c.control),
-                enable(i2c),
-                reset(i2c)
-            );
-        }
+        struct i2c_func{
+            static constexpr auto _i2c = details::i2c_impl<VNum>{};
+            static_assert(_i2c.available, "I2C not available");
 
-        template<unsigned VNum, typename T>
-        static void i2c_write(i2c_impl<VNum> i2c, T v){
-            apply(
-                write(i2c.data, v),
-                details::i2c_control(i2c)
-            );
-            wait_(i2c);  
-        }
+            template<typename... T>
+            static inline void control(T... actions){
+                apply(
+                    clear(_i2c.control), 
+                    enable(_i2c),
+                    reset(_i2c),
+                    actions...);
+            }
+
+            static inline void write(std::uint8_t v){
+                write_(_i2c.data, v),
+                control();
+            }     
+
+            static inline void wait(){
+                wait_(_i2c);
+            }
+            static inline void wait_stop(){
+                wait_lo(_i2c.stop);
+            }
+        };
+
+        // transmitter target, don't depend on transmitter!
+        template<unsigned VNum, template<typename> typename TTrans>
+        struct i2c_tx_impl{
+            static constexpr auto _i2c = i2c_impl<VNum>{};
+            static constexpr auto _f = i2c_func<VNum>{};
+
+            struct lazy{
+                using trans_t = TTrans<i2c_tx_impl<VNum, TTrans>>;
+                static constexpr auto async_tx = trans_t::async;
+            };
+       
+            // write 1 byte, for transmitter communication
+            static inline bool try_write(std::uint8_t c){
+                // TODO: Check conditions
+                _f.write(c);
+                _f.wait();
+                // TODO: Check conditions
+                return true;
+            }
+
+             // tries to write something from transmitter
+            static inline void try_write_sync(){
+                static_assert(lazy::async_tx, "Not async i2c, shouldn't be here");
+                //try_irq_force(uart_t::irq_txr);
+            }
+
+            // called by transmitter if it has some data
+            static inline void write_async(){
+                static_assert(lazy::async_tx, "Not async i2c, shouldn't be here");
+                //enable_(uart_t::irq_txr);
+            }
+
+            static inline void flush() {
+                // TODO
+            }
+        };
+
+        template<unsigned VNum, template<typename> typename TRecv>
+        struct i2c_rx_impl{
+            static constexpr auto _i2c = i2c_impl<VNum>{};
+            static constexpr auto _f = i2c_func<VNum>{};
+
+            struct lazy{
+                using recv_t = TRecv<i2c_rx_impl<VNum, TRecv>>;
+                //static constexpr auto async_rx = recv_t::async;
+            };
+
+            // read for sync receiver
+            static std::uint8_t read(){
+                // TODO: Check start condition
+                // Ask for next byte
+                _i2c.bytesToRead--;                
+                _f.control(enable(_i2c.ack, _i2c.bytesToRead != 0));
+                _f.wait();
+
+                // TODO: Check status
+                return read_(_i2c.data);
+            }
+        };
     }
 
     using i2c_address_t = std::uint8_t;
@@ -165,154 +149,89 @@ namespace fasthal{
     constexpr auto i2c_freq_v = integral_constant<std::uint32_t, V>{};
     constexpr auto i2c_freq_def = i2c_freq_v<100000L>;
 
-    constexpr auto i2c_write = integral_constant<bool, false>{};
-    constexpr auto i2c_read = integral_constant<bool, true>{};
-    
-    constexpr auto i2c_more = integral_constant<bool, true>{};
-    constexpr auto i2c_last = integral_constant<bool, false>{};
+    template<unsigned VNum, template<typename> typename TTrans = sync_transmitter, template<typename> typename TRecv = sync_receiver>
+    struct i2c{
+        static constexpr auto _i2c = details::i2c_impl<VNum>{};
+        static_assert(_i2c.available, "I2C not available");
+        static constexpr auto _f = details::i2c_func<VNum>{};
 
-    // master begin
-    template<unsigned VNum, typename TFreq = decltype(i2c_freq_def), typename TPs = decltype(avr::tw_ps::def)>
-    inline constexpr auto begin(details::i2c_impl<VNum> i2c, TFreq freq = i2c_freq_def, TPs ps = avr::tw_ps::def){
-        auto _twbr = details::i2c_calc_twbr(freq, ps);
-        return combine(
-            // set twbr
-            write(i2c.rate, _twbr),
-            clear(i2c.control),
-            // set ps
-            write(i2c.ps, ps),
-            // enable
-            //write()
-            enable(i2c)
-            // enable interrupt?
-            //enable(i2c.irq),
-            // enable ack
-            //enable(i2c.ack)
-        );
-    }
-    template<unsigned VNum, typename TFreq = decltype(i2c_freq_def), typename TPs = decltype(avr::tw_ps::def)>
-    inline void begin_(details::i2c_impl<VNum> i2c, TFreq freq = i2c_freq_def, TPs ps = avr::tw_ps::def){
-        apply(begin(i2c, freq, ps));
-    }
+        using tx_impl_t = details::i2c_tx_impl<VNum, TTrans>;
+        using trans_t = TTrans<tx_impl_t>;
+        static constexpr auto tx = trans_t{};
 
-    // end i2c
-    template<unsigned VNum>
-    inline constexpr auto end(details::i2c_impl<VNum> i2c){
-        // TODO: Just clear the register?
-        return combine(
-            // disable
-            disable(i2c)
-            // disable interrupt
-            //disable(i2c.irq),
-            // disable ack
-            //disable(i2c.ack)
-        );
-    }
-    template<unsigned VNum>
-    inline void end_(details::i2c_impl<VNum> i2c) { 
-        apply(end(i2c)); 
-    }
+        using rx_impl_t = details::i2c_rx_impl<VNum, TRecv>;
+        using recv_t = TRecv<rx_impl_t>;
+        static constexpr auto rx = recv_t{};
 
-    // master start 
-    template<unsigned VNum>
-    void start(details::i2c_impl<VNum> i2c){
-        // TODO: Check start condition
-        apply(
-            details::i2c_control(i2c),
-            set(i2c.start)
-        );
-        wait_(i2c);
-        // TODO: check for error?
-    }
+        // begin
+        template<typename TFreq = decltype(i2c_freq_def), typename TPs = decltype(avr::tw_ps::def)>
+        static inline constexpr auto begin(TFreq freq = i2c_freq_def, TPs ps = avr::tw_ps::def){
+            return combine(
+                write(_i2c.rate, details::i2c_calc_twbr(freq, ps)),
+                clear(_i2c.control),
+                write(_i2c.ps, ps),
+                enable(_i2c)
+                //enable(i2c.irq),
+                //enable(i2c.ack)
+            );
+        }
+        template<typename TFreq = decltype(i2c_freq_def), typename TPs = decltype(avr::tw_ps::def)>
+        static inline void begin_(TFreq freq = i2c_freq_def, TPs ps = avr::tw_ps::def){
+            apply(begin(freq, ps));
+        }
 
-    // master stop 
-    template<unsigned VNum>
-    void stop(details::i2c_impl<VNum> i2c){
-        // TODO: Check stop condition?
-        apply(
-            details::i2c_control(i2c),
-            set(i2c.stop)
-        );
-        wait_lo(i2c.stop);
-        // TODO: Check for error?
-    }
+        // end i2c
+        static inline constexpr auto end(){            
+            return clear(_i2c.control);
+        }
+        static inline void end_() { 
+            apply(end()); 
+        }
 
-    // master stop & start
-    template<unsigned VNum>
-    void stop_start(details::i2c_impl<VNum> i2c){
-        // TODO: Check stop condition?
-        apply(
-            details::i2c_control(i2c),
-            set(i2c.stop),
-            set(i2c.start)
-        );
-        wait_lo(i2c.stop);
-        // TODO: Check for error?
-    }
+        // begin master transfer
+        template<typename TAddress>
+        static bool mt_start(TAddress address){
+            // TODO: Check begin condition
+            auto sla = details::i2c_build_sla<false>(address);
+            _f.control(set(_i2c.start));
+            _f.wait();
+            // check started
+            _f.write(sla);
+            _f.wait();
+            // check select
 
-    // master select device and mode
-    template<unsigned VNum, typename TRead, typename TAddress>
-    void select(details::i2c_impl<VNum> i2c, TRead read, TAddress address){
-        // TODO: Check select condition?
-        auto sla = details::i2c_build_sla(read, address);        
-        details::i2c_write(i2c, sla);
-        // TODO: Check for error?
-    }
+            // TODO: Check end condition
+            return true;
+        }
 
-    // write
-    template<unsigned VNum, typename T>
-    void write(details::i2c_impl<VNum> i2c, T v){        
-        // TODO: Check start conditions
-        details::i2c_write(i2c, v);
-        // TODO: Check for error?
-    }
+        // begin master receive
+        template<typename TAddress>
+        static bool mr_start(TAddress address, bsize_t size){
+            // TODO: Check begin condition
+            auto sla = details::i2c_build_sla<true>(address);
+            _f.control(set(_i2c.start));
+            _f.wait();
+            // check started
+            _i2c.bytesToRead = size;
+            _f.write(sla);
+            _f.wait();
+            // check select
 
-    // read - more - more reads expected, last - it was last read
-    template<unsigned VNum, typename TMore = decltype(i2c_more)>
-    auto read(details::i2c_impl<VNum> i2c, TMore more = i2c_more){
-        // TODO: Check start condition
-        // Ask for next byte
-        apply(
-            details::i2c_control(i2c),
-            enable(i2c.ack, more)
-        );
-        wait_(i2c);
-        // TODO: Check status
-        return read_(i2c.data);
-    }
+            // TODO: Check end condition
+            return true;
+        }
 
-    #ifdef FH_HAS_I2C0
+        // stop master operation
+        static bool stop(){
+            // TODO: Check begin condition, return something more meaningful
+            _f.control(set(_i2c.stop));
+            _f.wait_stop();
+            // TODO: Check end condition
+            return true;
+        }
+    };
 
-    namespace details{
-        template<>
-        struct i2c_impl<0>{
-            static constexpr bool available = true;
-            static constexpr auto ps = ::fasthal::avr::twps0;
-            static constexpr auto rate = ::fasthal::avr::twbr0;
-            static constexpr auto status = ::fasthal::avr::tws0;
-            static constexpr auto data = ::fasthal::avr::twdr0;
-            static constexpr auto control = ::fasthal::avr::twcr0;
-            
-            static constexpr auto enable = ::fasthal::avr::twen0;
-            static constexpr auto ready = ::fasthal::avr::twint0;
-            static constexpr auto ack = ::fasthal::avr::twea0;
-            static constexpr auto start = ::fasthal::avr::twsta0;
-            static constexpr auto stop = ::fasthal::avr::twsto0;
-            
-            static constexpr auto irq = irq_i2c0;
-        };
-
-        // enable for i2c.ack
-        template<>
-        struct func_fieldbit_impl<std::base_type_t<decltype(::fasthal::avr::twea0)>>:
-            func_fieldbit_enable<decltype(::fasthal::avr::twea0)>
-            { };
-    }
-    constexpr auto i2c0 = details::i2c_impl<0>{};
-    
-    #endif
-}
-
-#endif
+    #include "i2c_impl.hpp"
+};
 
 #endif
