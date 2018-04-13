@@ -60,10 +60,8 @@
 using namespace fasthal;
 using namespace fasthal::duino;
 
-static constexpr auto i2c = i2c0;
-
-static constexpr auto uart0tx = ring_buffer_transmitter<uart<0>, 32>{};
-FH_UART_TX(0, uart0tx);
+static constexpr auto i2c0 = i2c<0>{};
+static constexpr auto uart0 = uart<0>{};
 
 // void debugi2c(const char* why){
 //     print(uart0tx, why);
@@ -76,11 +74,11 @@ static constexpr auto address = i2c_address_v<0x23>;
 
 bool bh1750_set_mode(std::uint8_t mode){
     // select BH1750 write
-    if (!start_w(i2c, address))
+    if (!i2c0.mt_start(address))
         return false;
     // write mode command
-    write(i2c, mode);
-    if (!stop(i2c))
+    write(i2c0.mt, mode);
+    if (!i2c0.stop())
         return false;
     // wait 
     delay_ms(120);
@@ -90,10 +88,10 @@ bool bh1750_set_mode(std::uint8_t mode){
 std::uint16_t bh1750_read(std::uint8_t mode){
     if (!bh1750_set_mode(mode))
         return 0;
-    if (!start_r(i2c, address, 2))
+    if (!i2c0.mr_start(address, 2))
         return 0;
-    std::uint16_t result = (read(i2c) << 8) | read(i2c);
-    if (!stop(i2c))
+    std::uint16_t result = (read(i2c0.mr) << 8) | read(i2c0.mr);
+    if (!i2c0.stop())
         return 0;
     return (result * 10) / 12;
 }
@@ -104,23 +102,23 @@ int main(){
         set(ino<SDA>),
         set(ino<SCL>),
         //Init i2c in master mode
-        begin(i2c),
+        i2c0.begin(),
         //init uart
-        begin(uart0)
+        uart0.begin()
     );
 
     // wake up?
     bh1750_set_mode(0x0);
 
-    println(uart0tx, "BH1750 Test begin");
+    println(uart0.tx, "BH1750 Test begin");
 
     while (1){
         //bh1750_set_mode(std::uint8_t{0x10});
         //delay_ms(180);
         auto light = bh1750_read(0x10);
-        print(uart0tx, "Lux: ");
-        print(uart0tx, light);
-        println(uart0tx, " lx");
+        print(uart0.tx, "Lux: ");
+        print(uart0.tx, light);
+        println(uart0.tx, " lx");
         delay_ms(1000);
     }
 }
