@@ -10,6 +10,7 @@
 #include "../../mp/const_list.hpp"
 #include "../../utils/ringbuffer.hpp"
 #include "../../streams/stream.hpp"
+#include "../../streams/sync_streams.hpp"
 
 namespace fasthal{
     // serial config
@@ -178,7 +179,7 @@ namespace fasthal{
     }
 
     // Trans factory and Recv factory
-    template<unsigned VNum, template <typename> typename TTrans, template <typename> typename TRecv>
+    template<unsigned VNum, template <typename> typename TTrans = sync_transmitter, template <typename> typename TRecv = sync_receiver>
     struct uart: details::uart_impl<VNum> {
         using uart_t = details::uart_impl<VNum>;
         static_assert(uart_t::available, "UART not available");
