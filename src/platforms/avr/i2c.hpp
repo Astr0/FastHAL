@@ -4,6 +4,8 @@
 #include "registers.hpp"
 #include "../../streams/sync_streams.hpp"
 
+// don't check that programmer is stupid, check for error conditions
+
 namespace fasthal{
     namespace details{
         template<unsigned VNum>
@@ -53,10 +55,17 @@ namespace fasthal{
             return integral_constant<decltype(result), result>{};
         }
 
-        template<unsigned VNum>
+        // transmitter target, don't depend on transmitter!
+        template<unsigned VNum, template<typename> typename TTrans, template<typename> typename TRecv>
         struct i2c_func{
-            static constexpr auto _i2c = details::i2c_impl<VNum>{};
+            static constexpr auto _i2c = i2c_impl<VNum>{};
             static_assert(_i2c.available, "I2C not available");
+            
+            struct lazy{
+                using trans_t = TTrans<i2c_func<VNum, TTrans, TRecv>>;
+                static constexpr auto async_tx = trans_t::async;
+                using recv_t = TRecv<i2c_func<VNum, TTrans, TRecv>>;                
+            };
 
             template<typename... T>
             static inline void control(T... actions){
@@ -78,29 +87,18 @@ namespace fasthal{
             static inline void wait_stop(){
                 wait_lo(_i2c.stop);
             }
-        };
-
-        // transmitter target, don't depend on transmitter!
-        template<unsigned VNum, template<typename> typename TTrans>
-        struct i2c_tx_impl{
-            static constexpr auto _i2c = i2c_impl<VNum>{};
-            static constexpr auto _f = i2c_func<VNum>{};
-
-            struct lazy{
-                using trans_t = TTrans<i2c_tx_impl<VNum, TTrans>>;
-                static constexpr auto async_tx = trans_t::async;
-            };
-       
+        
+            // -------------------------- target interface
             // write 1 byte, for transmitter communication
             static inline bool try_write(std::uint8_t c){
                 // TODO: Check conditions
-                _f.write(c);
-                _f.wait();
+                write(c);
+                wait();
                 // TODO: Check conditions
                 return true;
             }
 
-             // tries to write something from transmitter
+            // tries to write something from transmitter
             static inline void try_write_sync(){
                 static_assert(lazy::async_tx, "Not async i2c, shouldn't be here");
                 //try_irq_force(uart_t::irq_txr);
@@ -115,25 +113,14 @@ namespace fasthal{
             static inline void flush() {
                 // TODO
             }
-        };
-
-        template<unsigned VNum, template<typename> typename TRecv>
-        struct i2c_rx_impl{
-            static constexpr auto _i2c = i2c_impl<VNum>{};
-            static constexpr auto _f = i2c_func<VNum>{};
-
-            struct lazy{
-                using recv_t = TRecv<i2c_rx_impl<VNum, TRecv>>;
-                //static constexpr auto async_rx = recv_t::async;
-            };
-
+            // -------------------------- source interface
             // read for sync receiver
             static std::uint8_t read(){
                 // TODO: Check start condition
                 // Ask for next byte
                 _i2c.bytesToRead--;                
-                _f.control(enable(_i2c.ack, _i2c.bytesToRead != 0));
-                _f.wait();
+                control(enable(_i2c.ack, _i2c.bytesToRead != 0));
+                wait();
 
                 // TODO: Check status
                 return read_(_i2c.data);
@@ -153,15 +140,12 @@ namespace fasthal{
     struct i2c{
         static constexpr auto _i2c = details::i2c_impl<VNum>{};
         static_assert(_i2c.available, "I2C not available");
-        static constexpr auto _f = details::i2c_func<VNum>{};
+        using func_t = details::i2c_func<VNum, TTrans, TRecv>;
 
-        using tx_impl_t = details::i2c_tx_impl<VNum, TTrans>;
-        using trans_t = TTrans<tx_impl_t>;
-        static constexpr auto tx = trans_t{};
+        static constexpr auto _f = func_t{};
 
-        using rx_impl_t = details::i2c_rx_impl<VNum, TRecv>;
-        using recv_t = TRecv<rx_impl_t>;
-        static constexpr auto rx = recv_t{};
+        static constexpr auto tx = TTrans<func_t>{};
+        static constexpr auto rx =  TRecv<func_t>{};
 
         // begin
         template<typename TFreq = decltype(i2c_freq_def), typename TPs = decltype(avr::tw_ps::def)>
