@@ -470,8 +470,8 @@ namespace fasthal{
             if (state() != i2c_state::mr) return 0;
             // we don't check programmer issues with not telling how many bytes to read, etc.
             // Ask for next byte
-            _i2c.rx_ask(--_bytesLeft);
-            //_i2c.wait();
+            _i2c.rx_ask(--_bytesLeft);            
+            while (!_i2c.ready());            
             
             // even if state is wrong, we should return some garbage data (check what's wrong on start/stop next time)
             return _i2c.rx();

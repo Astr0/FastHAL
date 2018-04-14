@@ -60,6 +60,7 @@
 using namespace fasthal;
 using namespace fasthal::duino;
 
+static constexpr auto uart0 = uart<0>{};
 static constexpr auto uart0tx = uart_sync_tx<0>{};
 static constexpr auto i2c0 = i2c<0>{};
 
@@ -109,8 +110,7 @@ std::uint16_t bh1750_read(std::uint8_t mode){
          return 0;
 
     auto mr = start_mr_sync(i2c0, address, 2);
-    auto result = std::uint16_t{ read(mr) };
-    result = (result << 8) | read(mr);
+    auto result = read_u16(mr);
     return mr ? ((result * 10) / 12) : 0;
 }
 
