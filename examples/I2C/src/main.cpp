@@ -61,10 +61,10 @@ using namespace fasthal;
 using namespace fasthal::duino;
 
 static constexpr auto i2c0 = i2c<0>{};
-static constexpr auto uart0 = uart<0>{};
+static constexpr auto uart0tx = uart_sync_tx<0>{};
 
 void debugi2c(const char* why, i2c_state state){
-    static constexpr auto tx = uart0.tx;
+    static constexpr auto tx = uart0tx;
     print(tx, why);
     print(tx, '=');
     switch(state){
@@ -146,15 +146,15 @@ int main(){
     // wake up?
     bh1750_set_mode(0x0);
 
-    println(uart0.tx, "BH1750 Test begin");
+    println(uart0tx, "BH1750 Test begin");
 
     while (1){
         //bh1750_set_mode(std::uint8_t{0x10});
         //delay_ms(180);
         auto light = bh1750_read(0x10);
-        print(uart0.tx, "Lux: ");
-        print(uart0.tx, light);
-        println(uart0.tx, " lx");
+        print(uart0tx, "Lux: ");
+        print(uart0tx, light);
+        println(uart0tx, " lx");
         delay_ms(1000);
     }
 }
