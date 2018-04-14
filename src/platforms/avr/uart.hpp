@@ -12,6 +12,9 @@
 #include "../../streams/stream.hpp"
 #include "../../streams/sync_streams.hpp"
 
+#define FH_UART_TX(NUM, HANDLER) FH_ISR(FH_IRQ_TXR ## NUM, HANDLER);
+#define FH_UART_RX(NUM, HANDLER) FH_ISR(FH_IRQ_RXC ## NUM, HANDLER);
+
 namespace fasthal{
     // serial config
     enum class serial_config{
@@ -104,8 +107,8 @@ namespace fasthal{
         using uart_t = details::uart_impl<VNum>;
         static_assert(uart_t::available, "UART not available");
     public:
-        static constexpr auto async_tx = details::has_defaut_isr<uart_t::irq_txr.number>;
-        static constexpr auto async_rx = details::has_defaut_isr<uart_t::irq_txc.number>;
+        static constexpr auto async_tx = details::has_isr<uart_t::irq_txr.number>;
+        static constexpr auto async_rx = details::has_isr<uart_t::irq_txc.number>;
 
         // -------------------- begin
         template<typename TBaud = decltype(baud_def), typename TConfig = decltype(serial_config_v<serial_config::def>)>

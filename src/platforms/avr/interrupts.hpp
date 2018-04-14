@@ -39,7 +39,9 @@ namespace fasthal{
     };
 
     // enable ISR by declaring __vector_<vector> and forwarding to handler
-    #define FH_ISR(vector) ISR(_VECTOR(vector)) { isr<vector>(); }    
+    #define FH_ISR(VECTOR, HANDLER)\
+    namespace fasthal::details{ template<> struct isr_handler<VECTOR>{ static inline void handle() { HANDLER(); } }; }\
+    ISR(_VECTOR(VECTOR)) { isr<VECTOR>(); }    
 
     // interrupts normalization...
     #include "interrupts_impl/uart_irq.hpp"
