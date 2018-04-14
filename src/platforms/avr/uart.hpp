@@ -181,7 +181,7 @@ namespace fasthal{
         }
         // ---------------------- rx
         static inline bool rx_done(){ return read_(uart_t::rxc); }
-        static inline bool rx_error() { return read_(uart_t::upe); }
+        static inline bool rx_ok() { return !read_(uart_t::upe); }
         static inline std::uint8_t rx() { return read_(uart_t::udre); }
     };
 
@@ -203,11 +203,11 @@ namespace fasthal{
     static inline bool try_rx(uart<VNum> uart, Tfunc callback){
         if (!uart.rx_done())
             return false;
-        auto error = uart.rx_error();
+        auto ok = uart.rx_ok();
         auto v = uart.rx();
-        if (error) return false;
-        callback(v);
-        return true;
+        if (ok) 
+            callback(v);
+        return ok;
     }
     
     #include "uart_impl.hpp"

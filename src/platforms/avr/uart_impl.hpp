@@ -27,14 +27,14 @@ static constexpr auto uart##NUM = uart<NUM>{};
 #define FH_UART_TX(NUM, HANDLER)\
 namespace fasthal::details{\
     template<>\
-    struct default_isr<UART.irq_txr.number>{ static inline void handle() { HANDLER(); } };\
+    struct default_isr<uart_impl<NUM>::irq_txr.number>{ static inline void handle() { HANDLER(); } };\
 }\
 FH_ISR(FH_IRQ_TXR ## NUM);
 
 #define FH_UART_RX(NUM, HANDLER)\
 namespace fasthal::details{\
     template<>\
-    struct default_isr<UART.irq_rxc.number>{ static inline void handle() { HANDLER(); } };\
+    struct default_isr<uart_impl<NUM>::irq_rxc.number>{ static inline void handle() { HANDLER(); } };\
 }\
 FH_ISR(FH_IRQ_RXC ## NUM);
 
