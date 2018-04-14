@@ -11,7 +11,7 @@ namespace fasthal{
         class flash_str;
 
         template<class T, details::enable_if_ostream<T> dummy = nullptr>
-        void write_data_only(T ostream, const flash_str* text) {
+        void write_data_only(T& ostream, const flash_str* text) {
             
             auto p = reinterpret_cast<PGM_P>(text);
             char c;
@@ -21,18 +21,18 @@ namespace fasthal{
     }
 
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    void write(T ostream, const details::flash_str* str) {
+    void write(T& ostream, const details::flash_str* str) {
         details::write_data_only(ostream, str);
         write(ostream, '\0');
     }
 
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    void print(T ostream, const details::flash_str* str) {
+    void print(T& ostream, const details::flash_str* str) {
         details::write_data_only(ostream, str);
     }
 
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    void println(T ostream, const details::flash_str* str) {
+    void println(T& ostream, const details::flash_str* str) {
         print(ostream, str);
         println(ostream);
     }

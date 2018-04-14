@@ -158,7 +158,7 @@ namespace fasthal{
 
     namespace details{
         template<typename TStream, typename T, details::enable_if_ostream<TStream> dummy = nullptr>
-        void print_float(TStream ostream, T n, std::uint8_t digits) {
+        void print_float(TStream& ostream, T n, std::uint8_t digits) {
             if (isnan(n)) print(ostream, "nan");
             else if (isinf(n)) print(ostream, "inf");
             else if (n > 4294967295.0) print(ostream, "ovf");
