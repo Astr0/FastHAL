@@ -73,6 +73,7 @@ FH_DECLARE_REGISTER_ONLY(twsr0, TWSR);
 constexpr auto twps0 = mField<(1 << TWPS0) | (1 << TWPS1), tw_ps>(twsr0);
 // status
 constexpr auto tws0 = mField<(std::uint8_t)(~((1 << TWPS0) | (1 << TWPS1))), tw_s>(twsr0);
+constexpr auto tws0_ps0 = mField<(std::uint8_t)(0xFF), tw_s>(twsr0);
 #endif
 
 // control register

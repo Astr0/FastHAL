@@ -86,6 +86,7 @@ namespace details{
         static constexpr auto ps = ::fasthal::avr::twps0;
         static constexpr auto rate = ::fasthal::avr::twbr0;
         static constexpr auto status = ::fasthal::avr::tws0;
+        static constexpr auto status0 = ::fasthal::avr::tws0_ps0;
         static constexpr auto data = ::fasthal::avr::twdr0;
         static constexpr auto control = ::fasthal::avr::twcr0;
         
@@ -96,12 +97,7 @@ namespace details{
         static constexpr auto stop = ::fasthal::avr::twsto0;
         
         static constexpr auto irq = irq_i2c0;
-
-        static bsize_t bytesToRead;
-        //static i2c_state state;
     };
-
-    bsize_t i2c_impl<0>::bytesToRead{};
 
     // enable for i2c.ack
     template<>
@@ -109,7 +105,4 @@ namespace details{
         func_fieldbit_enable<decltype(::fasthal::avr::twea0)>
         { };
 }
-//static i2c_state details::i2c_impl<0>::state = i2c_state::off;
-//constexpr auto i2c0 = details::i2c_impl<0>{};
-
 #endif

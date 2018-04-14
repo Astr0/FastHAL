@@ -60,8 +60,8 @@
 using namespace fasthal;
 using namespace fasthal::duino;
 
-static constexpr auto i2c0 = i2c<0>{};
 static constexpr auto uart0tx = uart_sync_tx<0>{};
+static constexpr auto i2c0 = i2c<0>{};
 
 void debugi2c(const char* why, i2c_state state){
     static constexpr auto tx = uart0tx;
@@ -86,6 +86,9 @@ void debugi2c(const char* why, i2c_state state){
         case i2c_state::error:
             print(tx, "error");
             break;
+        case i2c_state::nack:
+            print(tx, "nack");
+            break;
         default:
             print(tx, '?');
             break;
@@ -96,40 +99,95 @@ void debugi2c(const char* why, i2c_state state){
 static constexpr auto address = i2c_address_v<0x23>;
 
 bool bh1750_set_mode(std::uint8_t mode){
-    // select BH1750 write
-    auto state = i2c0.start(address, i2c_mt);
-    if (state != i2c_state::mt){
-        debugi2c("start_m", state);
+    // TODO: Nice
+    delay_ms(100);
+    i2c0.start();
+    i2c0.wait();
+    debugi2c("st", i2c0.state());
+    i2c0.select(i2c_write, address);
+    i2c0.wait();
+    auto state = i2c0.state();    
+    debugi2c("sel", i2c0.state());
+    if (state != i2c_state::mt) {
+        i2c0.stop();
+        i2c0.wait_stop();
         return false;
     }
-    // write mode command
-    write(i2c0.tx, mode);
-    state = i2c0.stop();
-    if (state != i2c_state::done){
-        debugi2c("stop_m", state);
+    i2c0.tx(mode);    
+    i2c0.wait();
+    state = i2c0.state();
+    debugi2c("tx", state);
+    if (state != i2c_state::mt) {
+        i2c0.stop();
+        i2c0.wait_stop();
         return false;
     }
-    // don't wait for errors
-    // delay_ms(120);
+    i2c0.stop();
+    i2c0.wait_stop();
+    debugi2c("sto", i2c0.state());
+    delay_ms(120);
     return true;
+    // // select BH1750 write
+    // auto state = i2c0.start(address, i2c_mt);
+    // if (state != i2c_state::mt){
+    //     debugi2c("start_m", state);
+    //     return false;
+    // }
+    // // write mode command
+    // write(i2c0.tx, mode);
+    // state = i2c0.stop();
+    // if (state != i2c_state::done){
+    //     debugi2c("stop_m", state);
+    //     return false;
+    // }
+    // // don't wait for errors
+    // // delay_ms(120);
+    // return true;
 }
 
 std::uint16_t bh1750_read(std::uint8_t mode){
     if (!bh1750_set_mode(mode))
-        return 0;
-    auto state = i2c0.start(address, i2c_mr, 2);
-    if (state != i2c_state::mr){
-        debugi2c("start_r", state);
-        return 0;
-    }
-    auto result = std::uint16_t{ read(i2c0.rx) };
-    result = (result << 8) | read(i2c0.rx);    
-    state = i2c0.stop();
-    if (state != i2c_state::done){
-        debugi2c("stop_r", state);
-        return 0;
-    }
-    return (result * 10) / 12;
+         return 0;
+    i2c0.start();
+    i2c0.wait();
+    println(uart0tx, "st");
+
+    
+    i2c0.select(i2c_read, address);
+    i2c0.wait();
+    println(uart0tx, "sel");
+
+    
+    i2c0.rx_ask();
+    i2c0.wait();
+    auto result = std::uint16_t{ i2c0.rx() };
+    println(uart0tx, "rx");
+
+    i2c0.rx_ask(i2c_last);
+    i2c0.wait();
+    result = (result << 8) | i2c0.rx();
+    println(uart0tx, "rx_l");
+
+    i2c0.stop();
+    result = (result * 10) / 12;
+    i2c0.wait_stop();
+    println(uart0tx, "sto");
+
+    return result;    
+
+    // auto state = i2c0.start(address, i2c_mr, 2);
+    // if (state != i2c_state::mr){
+    //     debugi2c("start_r", state);
+    //     return 0;
+    // }
+    // auto result = std::uint16_t{ read(i2c0.rx) };
+    // result = (result << 8) | read(i2c0.rx);    
+    // state = i2c0.stop();
+    // if (state != i2c_state::done){
+    //     debugi2c("stop_r", state);
+    //     return 0;
+    // }
+    // return (result * 10) / 12;
 }
 
 int main(){    
@@ -143,10 +201,11 @@ int main(){
         uart0.begin()
     );
 
+    println(uart0tx, "BH1750 Test begin");
+
     // wake up?
     bh1750_set_mode(0x0);
-
-    println(uart0tx, "BH1750 Test begin");
+    println(uart0tx, "mode set");
 
     while (1){
         //bh1750_set_mode(std::uint8_t{0x10});
