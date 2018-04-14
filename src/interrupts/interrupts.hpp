@@ -14,13 +14,18 @@ namespace fasthal{
 
         template<unsigned VNumber>
         static constexpr bool has_isr = std::is_same_v<decltype(details::isr_handler<VNumber>::handle()), void>;
+
+        template<unsigned VNumber>
+        inline void isr(){
+            static_assert(details::has_isr<VNumber>, "No handler for ISR");
+            details::isr_handler<VNumber>::handle();
+        }
     }
-    
-    template<unsigned VNumber>
-    inline void isr(){
-        static_assert(details::has_isr<VNumber>, "No handler for ISR");
-        details::isr_handler<VNumber>::handle();
-    }
+
+    template <unsigned VNum>
+    struct interrupt{
+        static constexpr auto number = VNum;
+    };        
 }
 
 #endif

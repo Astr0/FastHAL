@@ -33,15 +33,10 @@ namespace fasthal{
         }
     };
 
-    template <unsigned VNum>
-    struct interrupt{
-        static constexpr auto number = VNum;
-    };
-
     // enable ISR by declaring __vector_<vector> and forwarding to handler
     #define FH_ISR(VECTOR, HANDLER)\
     namespace fasthal::details{ template<> struct isr_handler<VECTOR>{ static inline void handle() { HANDLER(); } }; }\
-    ISR(_VECTOR(VECTOR)) { isr<VECTOR>(); }    
+    ISR(_VECTOR(VECTOR)) { fasthal::details::isr<VECTOR>(); }    
 
     // interrupts normalization...
     #include "interrupts_impl/uart_irq.hpp"
@@ -51,14 +46,14 @@ namespace fasthal{
     template<unsigned VNum>
     inline void try_irq(interrupt<VNum> i){
         if (!enabled_(irq) && enabled_(i) && ready_(i))
-            isr<VNum>();
+            details::isr<VNum>();
     }
 
     // runs irq if it's ready, regarding of enabled state, but global interrupts disabled
     template<unsigned VNum>
     inline void try_irq_force(interrupt<VNum> i){
         if (!enabled_(irq) && ready_(i))
-            isr<VNum>();
+            details::isr<VNum>();
     }
 }
 
