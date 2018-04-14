@@ -201,10 +201,10 @@ namespace fasthal{
         uart.tx(v);
     }
 
-    template<unsigned VNum>
-    static inline void tx_done_wait(uart<VNum> uart){
-        while (!uart.tx_done()) ;
-    }
+    // template<unsigned VNum>
+    // static inline void tx_done_wait(uart<VNum> uart){
+    //     while (!uart.tx_done()) ;
+    // }
 
     template<unsigned VNum, typename Tfunc>
     // if rx can be done - do rx

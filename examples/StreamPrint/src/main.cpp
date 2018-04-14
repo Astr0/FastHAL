@@ -18,6 +18,8 @@ void testPrint(T writer, uint8_t read){
     println(writer, (double)read);
 }
 
+static constexpr auto uart0 = uart<0>{};
+
 int main(){
 	apply(
         enable(irq),

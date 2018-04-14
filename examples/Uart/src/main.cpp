@@ -1,4 +1,4 @@
-#define MODE 6
+#define MODE 1
 // 1 - echo sync
 // 2 - a...z sync
 // 3 - echo async
@@ -15,11 +15,13 @@
 
 using namespace fasthal;
 
+static constexpr auto uart0 = uart<0>{};
+
 int main(){
     enable_(irq);
     #if (MODE == 5 || MODE == 6)
     Serial.begin(9600);
-    #elif
+    #else
     uart0.begin_(baud_v<9600>);
     #endif
 

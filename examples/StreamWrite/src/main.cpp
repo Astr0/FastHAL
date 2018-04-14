@@ -13,6 +13,8 @@ struct test{
 };
 test a;
 
+static constexpr auto uart0 = uart<0>{};
+
 template<typename T>
 void testWrite(T writer, uint8_t read) {
     write(writer, _FLASH("Hello from Arduino:"));

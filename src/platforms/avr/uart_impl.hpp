@@ -21,8 +21,8 @@ namespace details{\
     template<> struct func_fieldbit_impl<std::base_type_t<decltype(avr::u2x ## NUM)>>: func_fieldbit_enable<decltype(avr::u2x ## NUM)>{};\
     template<> struct func_fieldbit_impl<std::base_type_t<decltype(avr::txen ## NUM)>>: func_fieldbit_enable<decltype(avr::txen ## NUM)>{};\
     template<> struct func_fieldbit_impl<std::base_type_t<decltype(avr::rxen ## NUM)>>: func_fieldbit_enable<decltype(avr::rxen ## NUM)>{};\
-}\
-static constexpr auto uart##NUM = uart<NUM>{};
+}
+//static constexpr auto uart##NUM = uart<NUM>{};
 
 
 #ifdef FH_HAS_UART0
