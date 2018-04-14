@@ -6,6 +6,9 @@
 
 namespace fasthal{
     using std::integral_constant;
+
+    #define FH_CONST(x) (integral_constant<decltype(x), x>{})
+    
     // buffer size
     using bsize_t = std::uint8_t;
 
@@ -31,5 +34,10 @@ namespace fasthal{
         constexpr auto empty(){ return _len == 0; }
         auto next(){ --_len; return *_buf++; }
     };
+
+    // used somewhere
+    namespace details{
+        struct not_implemented{};
+    }
 }
 #endif

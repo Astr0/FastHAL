@@ -72,8 +72,8 @@ namespace fasthal{
         constexpr auto inline calc_uart_baud(integral_constant<TBaud, VBaud> baud){
             constexpr auto result = calc_uart_baud(VBaud);
             return mp::make_const_list(
-                integral_constant<std::uint16_t, mp::get<0>(result)>{}, 
-                integral_constant<bool, mp::get<1>(result)>{}
+                FH_CONST(mp::get<0>(result)), 
+                FH_CONST(mp::get<1>(result))
                 );
         }
 
@@ -88,102 +88,25 @@ namespace fasthal{
 
         template<typename TConfig, TConfig VConfig>
         constexpr auto calc_uart_config(integral_constant<TConfig, VConfig> config){
-            constexpr auto config_ = calc_uart_config(VConfig);
-            return integral_constant<std::uint8_t, config_>{};
+            return FH_CONST(calc_uart_config(VConfig));
         }
-
 
         template<unsigned VNum>
         struct uart_impl{
             static constexpr auto available = false;
             static constexpr auto number = VNum;
         };
-
-        // transmitter target, don't depend on transmitter!
-        template<unsigned VNum, template<typename> typename TTrans>
-        struct uart_tx_impl{
-            using uart_t = uart_impl<VNum>;
-
-            struct lazy{
-                using trans_t = TTrans<uart_tx_impl<VNum, TTrans>>;
-                static constexpr auto async_tx = trans_t::async;
-            };
-            
-            static inline void tx(std::uint8_t c) {
-                // write udr
-                write_(uart_t::udr, c);
-                // clear txc by setting
-                set_(uart_t::txc);
-            }
-
-            // write 1 byte, for transmitter communication
-            static inline bool try_write(std::uint8_t c){
-                #ifdef FH_UART_FLUSH_SAFE
-                // enable TX
-                enable_(uart_t::txen);
-                #endif
-
-                if (read_(uart_t::udre)){
-                    tx(c);
-                    return true;
-                }
-                return false;
-            }
-
-             // tries to write something from transmitter
-            static inline void try_write_sync(){
-                static_assert(lazy::async_tx, "Not async uart, shouldn't be here");
-                try_irq_force(uart_t::irq_txr);
-            }
-
-            // called by transmitter if it has some data
-            static inline void write_async(){
-                static_assert(lazy::async_tx, "Not async uart, shouldn't be here");
-                enable_(uart_t::irq_txr);
-            }
-
-            
-
-            static inline void txr_irq()
-            {
-                static_assert(lazy::async_tx, "Not async UART Transmitter");
-                auto c = lazy::trans_t::next();
-
-                tx(c.byte);
-
-                // not ok, disable async transmit
-                if (c.last)
-                    disable_(uart_t::irq_txr);
-            }
-        };
     }
 
-    struct uart_handler{
-        // controls tx irq, if true - tx will be async and call tx_done on handler
-        static constexpr bool async_tx = false;
-        // controls rx irq, if true - rx will be async and call rx_done on handler
-        static constexpr bool async_rx = false;
-        // check if something was written so flush won't hang =/
-        static constexpr bool safe_flush = false;
-    };
-
-    template<unsigned VNum, class THandler = uart_handler>
-    class uart: details::uart_impl<VNum> {
+    template<unsigned VNum>
+    class uart: details::uart_impl<VNum>
+    {
         using uart_t = details::uart_impl<VNum>;
         static_assert(uart_t::available, "UART not available");
-
-        using handler_t = THandler;
-        static constexpr auto async_tx = handler_t::async_tx;
-        static constexpr auto async_rx = handler_t::async_rx;
-        static constexpr auto safe_flush = handler_t::safe_flush;
-
-        static inline void do_tx(std::uint8_t c) {
-            // write udr
-            write_(uart_t::udr, c);
-            // clear txc by setting
-            set_(uart_t::txc);
-        }        
     public:
+        static constexpr auto async_tx = details::has_defaut_isr<uart_t::irq_txr.number>;
+        static constexpr auto async_rx = details::has_defaut_isr<uart_t::irq_txc.number>;
+
         // -------------------- begin
         template<typename TBaud = decltype(baud_def), typename TConfig = decltype(serial_config_v<serial_config::def>)>
         static constexpr auto inline begin(TBaud baud = baud_def, TConfig config = serial_config_v<serial_config::def>){            
@@ -201,8 +124,8 @@ namespace fasthal{
                 // enable u2x
                 enable(uart_t::u2x, u2x_),
 
-                // disable tx for safe flush - we will use it to check if anything written
-                enable(uart_t::txen, integral_constant<bool, !safe_flush>{}), 
+                // enable tx
+                enable(uart_t::txen), 
 
                 // disable tx ready irq
                 disable(uart_t::irq_txr),
@@ -210,7 +133,6 @@ namespace fasthal{
                 // enable rx
                 enable(uart_t::rxen),
                 // enable rx ready irq
-                // TODO: If enabled
                 enable(uart_t::irq_rxc, integral_constant<bool, async_rx>{})
             );
         }
@@ -234,101 +156,42 @@ namespace fasthal{
         static inline void end_(){ apply(end()); }
 
         // ---------------------- tx
-        static inline void tx(std::uint8_t b){
-            static_assert(!async_tx, "only for sync tx");
-
-            if constexpr(safe_flush){
-                // enable TX
-                enable_(uart_t::txen);
-            }
-            
-            while (!read_(uart_t::udre));
-            
-            do_tx(b);
-        }
-
-        static bool tx(buffer_view buf){
-            if constexpr(async_tx){
-                // TODO: do async stuff
-            } else{
-                while (!buf.empty()) 
-                    tx(buf.next());
-                return true;
+        // does tx, does not checks ready
+        static inline void tx(std::uint8_t v){
+            // write udr
+            write_(uart_t::udr, v);
+            if constexpr(!async_tx){
+                // clear txc by setting. This is automatically done by interrupt in async mode
+                set_(uart_t::txc);
             }
         }
-
-        static inline void flush() {        
-            if constexpr(safe_flush){
-                // If we have never written a byte, no need to flush. This special
-                // case is needed since there is no way to force the TXC (transmit
-                // complete) bit to 1 during initialization
-                if (!enabled_(uart_t::txen))
-                    return;
-            }
-
-            // wait for TX completed
-            if constexpr(async_tx) {
-                // buffered mode
-                // write data buffer empty interrupt enabled (we have data in write buffer)
-                // or transmission not complete (no data in write buffer, but it's not actually transmitted)
-                while (enabled_(uart_t::irq_txr) || read_(uart_t::txc))
-                    try_irq_force(uart_t::irq_txr);
-            } else{
-                // wait for TX completed
-                while (!read_(uart_t::txc));
-            }
+        static inline bool tx_ready(){ return read_(uart_t::udre); }        
+        static inline bool tx_done(){ return read_(uart_t::txc); }
+        static inline void tx_start() { 
+            static_assert(async_tx, "Not async TX");
+            enable_(uart_t::irq_txr);             
         }
-
-        // --------------------------------- RX
-        static constexpr bool available(){
-            static_assert(!async_rx, "only for sync rx");
-
-            // check if we have something
-            if (!read_(uart_t::rxc))
-                return false;
-            // check if it's ok. upe 0 == ok
-            if (!read_(uart_t::upe))
-                return true;
-            // discard error data and return false
-            read_(uart_t::udr);
-            return false;   
+        static inline void tx_stop() { 
+            static_assert(async_tx, "Not async TX");
+            disable_(uart_t::irq_txr);
         }
-
-        template<bool dirty = false>
-        static auto rx(){
-            static_assert(!async_rx, "only for sync rx");
-
-            if constexpr(!dirty){
-                while (!available());
-            }
-            return read_(uart_t::udr);
+        static inline bool tx_started() { 
+            static_assert(async_tx, "Not async TX");
+            return enabled_(uart_t::irq_txr); 
         }
+        // ---------------------- rx
+        static inline bool rx_done(){ return read_(uart_t::rxc); }
+        static inline bool rx_error() { return read_(uart_t::upe); }
+        static inline std::uint8_t rx() { return read_(uart_t::udre); }
     };
+
+    // some "extension methods"
+    template<unsigned VNum>
+    static inline void tx_sync(uart<VNum> uart, std::uint8_t v) { 
+        while (!uart.tx_ready());
+        uart.tx(v);
+    }
     
     #include "uart_impl.hpp"
-
-    // ************************* RX **************************
-
-    // namespace details{
-    //     template<class T>
-    //     inline void uart_rxc_irq()
-    //     {
-    //         static_assert(uart_has_buf<T, false>, "No UART RX buffer");
-
-    //         if (read_(T::upe))
-    //         {
-    //             // we have parity error, discard value
-    //             read_(T::udr);
-    //         } else{
-    //             // read 
-    //             auto v = read_(T::udr);
-    //             uart_buf<T, false>::buffer.try_write(v);
-    //         }
-    //     }
-    // }
-
-
-
-
 }
 #endif
