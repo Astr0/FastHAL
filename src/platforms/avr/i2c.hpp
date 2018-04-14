@@ -111,7 +111,7 @@ namespace fasthal{
         //             case s_t::bus_fail: // HW error on bus (invalid START/STOP condition). Need for bus restart.
         //             case s_t::mt_nack: // select_w sent, received NACK. Need write or start/stop/stop_start
         //             case s_t::mt_write_nack: // MT write, received NACK. Need write or start/stop/stop_start
-        //             case s_t::m_collision: // another master took of the bus unexpectedly in select_w, select_r or write/readl. Need fail or start.
+        //             case s_t::m_la: // another master took of the bus unexpectedly in select_w, select_r or write/readl. Need fail or start.
         //             case s_t::mr_nack: // select_r sent, received NACK. Need read, readlast, repeated start, stop, stop_start
         //                 return i2c_state::error;
         //             case s_t::m_start: // Entered START. Need select_w or select_r
@@ -302,7 +302,7 @@ namespace fasthal{
             using s_t = decltype(s);
             switch(s){
                 case s_t::bus_fail: // HW error on bus (invalid START/STOP condition). Need for bus restart.
-                case s_t::m_collision: // another master took of the bus unexpectedly in select_w, select_r or write/readl. Need fail or start.
+                case s_t::m_la: // another master took of the bus unexpectedly in select_w, select_r or write/readl. Need fail or start.
                     return i2c_state::error;
                 case s_t::mt_nack: // select_w sent, received NACK. Need write or start/stop/stop_start
                 case s_t::mt_write_nack: // MT write, received NACK. Need write or start/stop/stop_start

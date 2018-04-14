@@ -37,7 +37,7 @@ enum class tw_s: std::uint8_t{
     mt_nack           = 0x20, // select_w sent, received NACK. Need write or start/stop/stop_start
     mt_write          = 0x28, // MT write, received ACK. Need write or start/stop/stop_start
     mt_write_nack     = 0x30, // MT write, received NACK. Need write or start/stop/stop_start
-    m_collision       = 0x38, // another master took of the bus unexpectedly in select_w, select_r or write/readl. Need fail or start.
+    m_la              = 0x38, // another master took of the bus unexpectedly in select_w, select_r or write/readl. Need fail or start.
     mr                = 0x40, // select_r sent, received ACK. Need read/readl or start/stop/stop_start
     mr_nack           = 0x48, // select_r sent, received NACK. Need read, readlast, repeated start, stop, stop_start
     mr_read           = 0x50, // recevied byte ok. Need read/readl

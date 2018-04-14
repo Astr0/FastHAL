@@ -14,11 +14,11 @@
 // mt_nack: write, repeated start, stop, stop_start
 // mt_write: write, repeated start, stop, stop_start
 // mt_write_nack: write, repeated start, stop, stop_start
-// m_collision: enter not-addressed-slave (fail), start
+// m_la: enter not-addressed-slave (fail), start
 // ***** action > states
 // start -> m_start, m_restart
-// select_w -> mt, mt_nack, m_collision
-// write -> mt_write, mt_write_nack, m_collision
+// select_w -> mt, mt_nack, m_la
+// write -> mt_write, mt_write_nack, m_la
 // stop -> ready
 // stop_start -> m_start
 // fail -> ready??
@@ -28,16 +28,16 @@
 // ready: start
 // m_start: select_r
 // m_restart: select_w, select_r
-// m_collision: enter not-addressed-slave (fail), start
+// m_la: enter not-addressed-slave (fail), start
 // mr: read, readlast, repeated start, stop, stop_start
 // mr_nack: read, readlast, repeated start, stop, stop_start
 // mr_read: read, readlast
 // mr_readl: repeated start, stop, stop_start
 // ***** action > states
 // start -> m_start, m_restart
-// select_r -> mr, mr_nack, m_collision
+// select_r -> mr, mr_nack, m_la
 // read -> mr_read
-// readlast -> mr_readl, m_collision
+// readlast -> mr_readl, m_la
 // stop -> ready
 // stop_start -> m_start
 // fail -> ready??
@@ -70,7 +70,7 @@
 // API
 // I2C can be in modes: Ready (ok or something failed and stopped), MT, MR, ST, SR
 // Master API
-// start() - from states ready, mt, mt_nack, write, write_nack, m_collision, mr, mr_nack, mr_readl, st_writel, st_writel_ack, st_readl, st_readl_cast, sr_stop_restart
+// start() - from states ready, mt, mt_nack, write, write_nack, m_la, mr, mr_nack, mr_readl, st_writel, st_writel_ack, st_readl, st_readl_cast, sr_stop_restart
 // stop() - from states bus_fail, mt, mt_nack, mt_write, mt_write_nack, mr, mr_nack, mr_readl
 // write() - from states mt, mt_nack, mt_write, mt_write_nack, st, st_lp, st_write
 // read() - from states mr, mr_nack, mr_read, sr, sr_la, sr_cast, sr_cast_la, sr_read, sr_read_cast
