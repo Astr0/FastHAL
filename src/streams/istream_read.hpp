@@ -38,7 +38,8 @@ namespace fasthal{
     template<class T, details::enable_if_istream<T> dummy = nullptr>
     auto read_u16(T& istream) {
         auto c = std::uint16_t { read_u8(istream) };
-        return (c << 8) | read_u8(istream);
+        c = (c << 8) | read_u8(istream);
+        return c;
     }
 
     // int16
@@ -51,7 +52,8 @@ namespace fasthal{
     template<class T, details::enable_if_istream<T> dummy = nullptr>
     auto read_u32(T& istream) {
         auto c = std::uint32_t{ read_u16(istream) };
-        return (c << 16) | read_u16(istream);
+        c  = (c << 16) | read_u16(istream);
+        return c;
     }    
     
     // int32

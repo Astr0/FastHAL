@@ -107,11 +107,11 @@ bool bh1750_set_mode(std::uint8_t mode){
 
 std::uint16_t bh1750_read(std::uint8_t mode){
     if (!bh1750_set_mode(mode))
-         return 0;
+         return 0U;
 
     auto mr = start_mr_sync(i2c0, address, 2);
     auto result = read_u16(mr);
-    return mr ? ((result * 10) / 12) : 0;
+    return mr ? ((result * 10U) / 12U) : 0U;
 }
 
 int main(){    
