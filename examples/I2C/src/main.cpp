@@ -111,8 +111,7 @@ std::uint16_t bh1750_read(std::uint8_t mode){
     auto mr = start_mr_sync(i2c0, address, 2);
     auto result = std::uint16_t{ read(mr) };
     result = (result << 8) | read(mr);
-    if (!mr) return 0;
-    return (result * 10) / 12;
+    return mr ? ((result * 10) / 12) : 0;
 }
 
 int main(){    

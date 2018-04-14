@@ -280,10 +280,8 @@ namespace fasthal{
 
         // ------------------------------ waiting
         static inline bool ready() { return read_(_i2c.ready); }
-        static inline void wait(){ while(!ready()); }
         // todo: do we need it?
         static inline bool stopping() { return read_(_i2c.stop); }
-        static inline void wait_stop(){ while(stopping()); }
 
         // ------------------------------ tx/rx
         static inline void tx(std::uint8_t b) { write_(_i2c.data, b); i2c_control(); }
@@ -377,42 +375,33 @@ namespace fasthal{
     // ***************************************************** "extension methods"
     // start master operation
     template<unsigned VNum, class TConfig, bool VRead, typename TAddress>
-    static i2c_state try_start(i2c<VNum, TConfig> i, integral_constant<bool, VRead> mode, TAddress address) {
+    static void try_start(i2c<VNum, TConfig> i, integral_constant<bool, VRead> mode, TAddress address) {
         // check start state
         // select can't be here really according to our fsm
-        auto state = i.state();
-        if (details::i2c_state_any(state, i2c_state::error, i2c_state::mr))
-            return state;
+        if (details::i2c_state_any(i.state(), i2c_state::error, i2c_state::mr))
+            return;
 
         i.start();
-        i.wait();
+        while (!i.ready());
         // don't check started. there should be no errors after start, it blocks
         // if (_f.get_state() != i2c_state::select) return false;
 
         i.select(mode, address);
-        i.wait();
-        
-        // return state
-        // TODO: optimize, it should not return state...
-        return i.state();
+        while (!i.ready());
     }
 
     // stop master operation
     template<unsigned VNum, class TConfig>
-    static i2c_state try_stop(i2c<VNum, TConfig> i){
-        auto state = i.state();
-        if (!details::i2c_state_any(state, 
+    static void try_stop(i2c<VNum, TConfig> i){
+        if (!details::i2c_state_any(i.state(), 
                 i2c_state::mt, 
                 i2c_state::mr_done,
                 i2c_state::nack,
                 i2c_state::error))
-            return state;
+            return;
         i.stop();
-        i.wait_stop();
-        // End condition should be fine 
-        return i2c_state::ready;
+        while (i.stopping());
     }
-
 
     // **********************************  sync mt ostream
     template <class TI2c>
@@ -429,15 +418,12 @@ namespace fasthal{
         static inline auto state(){ return _i2c.state(); }
         static inline auto ok(){ return state() == i2c_state::mt; };
 
-        inline operator bool(){
-            return ok();
-        }
+        inline operator bool(){ return ok(); }
 
         static void write(std::uint8_t b){
-            if (ok()){
-                _i2c.tx(b);
-                _i2c.wait();
-            }
+            if (!ok()) return;
+            _i2c.tx(b);
+            while (!_i2c.ready());
         }
 
         ~i2c_mt_sync() {
@@ -485,7 +471,7 @@ namespace fasthal{
             // we don't check programmer issues with not telling how many bytes to read, etc.
             // Ask for next byte
             _i2c.rx_ask(--_bytesLeft);
-            _i2c.wait();
+            //_i2c.wait();
             
             // even if state is wrong, we should return some garbage data (check what's wrong on start/stop next time)
             return _i2c.rx();
