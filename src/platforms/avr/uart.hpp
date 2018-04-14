@@ -106,10 +106,13 @@ namespace fasthal{
     {
         using uart_t = details::uart_impl<VNum>;
         static_assert(uart_t::available, "UART not available");
-    public:
-        static constexpr auto async_tx = details::has_isr<uart_t::irq_txr.number>;
-        static constexpr auto async_rx = details::has_isr<uart_t::irq_txc.number>;
 
+        struct lazy{
+            static constexpr auto async_tx = details::has_isr<uart_t::irq_txr.number>;
+            static constexpr auto async_rx = details::has_isr<uart_t::irq_txc.number>;
+        };
+
+    public:
         // -------------------- begin
         template<typename TBaud = decltype(baud_def), typename TConfig = decltype(serial_config_v<serial_config::def>)>
         static constexpr auto inline begin(TBaud baud = baud_def, TConfig config = serial_config_v<serial_config::def>){            
@@ -136,7 +139,7 @@ namespace fasthal{
                 // enable rx
                 enable(uart_t::rxen),
                 // enable rx ready irq
-                enable(uart_t::irq_rxc, integral_constant<bool, async_rx>{})
+                enable(uart_t::irq_rxc, integral_constant<bool, lazy::async_rx>{})
             );
         }
 
@@ -163,7 +166,7 @@ namespace fasthal{
         static inline void tx(std::uint8_t v){
             // write udr
             write_(uart_t::udr, v);
-            if constexpr(!async_tx){
+            if constexpr(!lazy::async_tx){
                 // clear txc by setting. This is automatically done by interrupt in async mode
                 set_(uart_t::txc);
             }
@@ -171,15 +174,15 @@ namespace fasthal{
         static inline bool tx_ready(){ return read_(uart_t::udre); }        
         static inline bool tx_done(){ return read_(uart_t::txc); }
         static inline void tx_start() { 
-            static_assert(async_tx, "Not async TX");
+            static_assert(lazy::async_tx, "Not async TX");
             enable_(uart_t::irq_txr);             
         }
         static inline void tx_stop() { 
-            static_assert(async_tx, "Not async TX");
+            static_assert(lazy::async_tx, "Not async TX");
             disable_(uart_t::irq_txr);
         }
         static inline bool tx_started() { 
-            static_assert(async_tx, "Not async TX");
+            static_assert(lazy::async_tx, "Not async TX");
             return enabled_(uart_t::irq_txr); 
         }
         // ---------------------- rx
