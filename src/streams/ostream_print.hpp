@@ -32,9 +32,9 @@ namespace fasthal{
             return size + 1;
         }
        
-        template<typename TStream, typename T, unsigned VBase = 10, details::enable_if_ostream<TStream> dummy = nullptr>
-        void print_number(TStream ostream, T n, integral_constant<unsigned, VBase>) {
-            static constexpr auto size = print_number_buffer_size<T, VBase>();
+        template<typename T, typename TNumber, unsigned VBase = 10, details::enable_if_ostream<T> dummy = nullptr>
+        void print_number(T& ostream, TNumber n, integral_constant<unsigned, VBase>) {
+            static constexpr auto size = print_number_buffer_size<TNumber, VBase>();
             char buf[size]; // Assumes 8-bit chars plus zero byte.
             char *str = &buf[sizeof(buf)];
 
@@ -55,12 +55,12 @@ namespace fasthal{
         }        
     }
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    void print(T ostream, char c){
+    void print(T& ostream, char c){
         write(ostream, c);
     }
 
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    void println(T ostream){ 
+    void println(T& ostream){ 
         // constexpr std::uint8_t buf[2] = {'\r', '\n'};
         // write(ostream, buf, 2);
         write(ostream, '\r');
@@ -68,51 +68,51 @@ namespace fasthal{
     }
 
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    void print(T ostream, const char* text){
+    void print(T& ostream, const char* text){
         details::write_data_only(ostream, text);
     }
 
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    void println(T ostream, const char* text){
+    void println(T& ostream, const char* text){
         print(ostream, text);
         println(ostream);
     }
 
     template<class T, unsigned VBase = 10, details::enable_if_ostream<T> dummy = nullptr>
-    void print(T ostream, std::uint8_t n, numberbase_t<VBase> base = numberbase_def){
+    void print(T& ostream, std::uint8_t n, numberbase_t<VBase> base = numberbase_def){
         details::print_number(ostream, n, base);
     }
 
     template<class T, unsigned VBase = 10, details::enable_if_ostream<T> dummy = nullptr>
-    void println(T ostream, std::uint8_t n, numberbase_t<VBase> base = numberbase_def){
+    void println(T& ostream, std::uint8_t n, numberbase_t<VBase> base = numberbase_def){
         print(ostream, n, base);
         println(ostream);
     }
 
     template<class T, unsigned VBase = 10, details::enable_if_ostream<T> dummy = nullptr>
-    void print(T ostream, std::uint16_t n, numberbase_t<VBase> base = numberbase_def){
+    void print(T& ostream, std::uint16_t n, numberbase_t<VBase> base = numberbase_def){
         details::print_number(ostream, n, base);
     }
 
     template<class T, unsigned VBase = 10, details::enable_if_ostream<T> dummy = nullptr>
-    void println(T ostream, std::uint16_t n, numberbase_t<VBase> base = numberbase_def){
+    void println(T& ostream, std::uint16_t n, numberbase_t<VBase> base = numberbase_def){
         print(ostream, n, base);
         println(ostream);
     }
 
     template<class T, unsigned VBase = 10, details::enable_if_ostream<T> dummy = nullptr>
-    void print(T ostream, std::uint32_t n, numberbase_t<VBase> base = numberbase_def){
+    void print(T& ostream, std::uint32_t n, numberbase_t<VBase> base = numberbase_def){
         details::print_number(ostream, n, base);
     }
 
     template<class T, unsigned VBase = 10, details::enable_if_ostream<T> dummy = nullptr>
-    void println(T ostream, std::uint32_t n, numberbase_t<VBase> base = numberbase_def){
+    void println(T& ostream, std::uint32_t n, numberbase_t<VBase> base = numberbase_def){
         print(ostream, n, base);
         println(ostream);
     }
 
     template<class T, unsigned VBase = 10, details::enable_if_ostream<T> dummy = nullptr>
-    void print(T ostream, std::int8_t n, numberbase_t<VBase> base = numberbase_def){
+    void print(T& ostream, std::int8_t n, numberbase_t<VBase> base = numberbase_def){
         if (n < 0){
             write(ostream, '-');
             n = -n;
@@ -121,13 +121,13 @@ namespace fasthal{
     }
 
     template<class T, unsigned VBase = 10, details::enable_if_ostream<T> dummy = nullptr>
-    void println(T ostream, std::int8_t n, numberbase_t<VBase> base = numberbase_def){
+    void println(T& ostream, std::int8_t n, numberbase_t<VBase> base = numberbase_def){
         print(ostream, n, base);
         println(ostream);
     }
 
     template<class T, unsigned VBase = 10, details::enable_if_ostream<T> dummy = nullptr>
-    void print(T ostream, std::int16_t n, numberbase_t<VBase> base = numberbase_def){
+    void print(T& ostream, std::int16_t n, numberbase_t<VBase> base = numberbase_def){
         if (n < 0){
             write(ostream, '-');
             n = -n;
@@ -136,13 +136,13 @@ namespace fasthal{
     }
 
     template<class T, unsigned VBase = 10, details::enable_if_ostream<T> dummy = nullptr>
-    void println(T ostream, std::int16_t n, numberbase_t<VBase> base = numberbase_def){
+    void println(T& ostream, std::int16_t n, numberbase_t<VBase> base = numberbase_def){
         print(ostream, n, base);
         println(ostream);
     }
 
     template<class T, unsigned VBase = 10, details::enable_if_ostream<T> dummy = nullptr>
-    void print(T ostream, std::int32_t n, numberbase_t<VBase> base = numberbase_def){
+    void print(T& ostream, std::int32_t n, numberbase_t<VBase> base = numberbase_def){
         if (n < 0){
             write(ostream, '-');
             n = -n;
@@ -151,7 +151,7 @@ namespace fasthal{
     }
 
     template<class T, unsigned VBase = 10, details::enable_if_ostream<T> dummy = nullptr>
-    void println(T ostream, std::int32_t n, numberbase_t<VBase> base = numberbase_def){
+    void println(T& ostream, std::int32_t n, numberbase_t<VBase> base = numberbase_def){
         print(ostream, n, base);
         println(ostream);
     }
@@ -199,23 +199,23 @@ namespace fasthal{
     }
 
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    void print(T ostream, float n, std::uint8_t digits = 2) {
+    void print(T& ostream, float n, std::uint8_t digits = 2) {
         details::print_float(ostream, n, digits);
     }
 
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    void println(T ostream, float n, std::uint8_t digits = 2) {
+    void println(T& ostream, float n, std::uint8_t digits = 2) {
         print(ostream, n, digits);
         println(ostream);
     }
     
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    void print(T ostream, double n, std::uint8_t digits = 2) {
+    void print(T& ostream, double n, std::uint8_t digits = 2) {
         details::print_float(ostream, n, digits);
     }
 
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    void println(T ostream, double n, std::uint8_t digits = 2) {
+    void println(T& ostream, double n, std::uint8_t digits = 2) {
         print(ostream, n, digits);
         println(ostream);
     }
