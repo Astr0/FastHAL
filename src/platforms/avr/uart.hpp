@@ -187,9 +187,27 @@ namespace fasthal{
 
     // some "extension methods"
     template<unsigned VNum>
+    // blocking TX
     static inline void tx_sync(uart<VNum> uart, std::uint8_t v) { 
         while (!uart.tx_ready());
         uart.tx(v);
+    }
+
+    template<unsigned VNum>
+    static inline void tx_done_wait(uart<VNum> uart){
+        while (!uart.tx_done()) ;
+    }
+
+    template<unsigned VNum, typename Tfunc>
+    // if rx can be done - do rx
+    static inline bool try_rx(uart<VNum> uart, Tfunc callback){
+        if (!uart.rx_done())
+            return false;
+        auto error = uart.rx_error();
+        auto v = uart.rx();
+        if (error) return false;
+        callback(v);
+        return true;
     }
     
     #include "uart_impl.hpp"

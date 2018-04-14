@@ -8,18 +8,13 @@ int main(){
     enable_(irq);
     uart0.begin_(baud_v<9600>);
     while (true){
-        if (uart0.rx_done()){
-            auto error = uart0.rx_error();
-            auto v = uart0.rx();
-            if (!error)
-                tx_sync(uart0, v);
-        }
-        
-        // for(auto x = 'a'; x <= 'z'; ++x)
-        //     uart0.tx(x);
-        // uart0.tx(10);
-        // uart0.tx(13);
-        // uart0.flush();
+        // try_rx(uart0, [](auto c){ tx_sync(uart0, c); });
+
+        for(auto x = 'a'; x <= 'z'; ++x)
+            tx_sync(uart0, x);
+        tx_sync(uart0, 10);
+        tx_sync(uart0, 13);
+        tx_done_wait(uart0);
     }
 
     // Serial.begin(9600);
