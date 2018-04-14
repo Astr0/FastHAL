@@ -100,7 +100,7 @@ static constexpr auto address = i2c_address_v<0x23>;
 
 bool bh1750_set_mode(std::uint8_t mode){
     auto mt = start_mt_sync(i2c0, address);
-    write(mt, mode);
+    write(mt, mode);    
     return mt;
 }
 
@@ -126,15 +126,13 @@ int main(){
         uart0.begin()
     );
 
-    println(uart0tx, "BH1750 Test begin");
+    //println(uart0tx, "BH1750 Test begin");
 
     // wake up?
     bh1750_set_mode(0x0);
-    println(uart0tx, "mode set");
+    //println(uart0tx, "mode set");
 
     while (1){
-        //bh1750_set_mode(std::uint8_t{0x10});
-        //delay_ms(180);
         auto light = bh1750_read(0x10);
         print(uart0tx, "Lux: ");
         print(uart0tx, light);
