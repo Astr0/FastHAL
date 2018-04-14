@@ -113,6 +113,8 @@ namespace fasthal{
         };
 
     public:
+        static constexpr auto number = VNum;
+
         // -------------------- begin
         template<typename TBaud = decltype(baud_def), typename TConfig = decltype(serial_config_v<serial_config::def>)>
         static constexpr auto inline begin(TBaud baud = baud_def, TConfig config = serial_config_v<serial_config::def>){            
@@ -215,6 +217,15 @@ namespace fasthal{
             callback(v);
         return ok;
     }
+
+    // sync tx ostream
+    template<unsigned VNum>
+    struct uart_sync_tx{};
+    namespace details{
+        template<unsigned VNum> struct is_ostream_impl<uart_sync_tx<VNum>>: std::true_type{};
+    }
+    template<unsigned VNum>
+    void write(uart_sync_tx<VNum> uartw, std::uint8_t c){ tx_sync(uart<VNum>{}, c); }
     
     #include "uart_impl.hpp"
 }
