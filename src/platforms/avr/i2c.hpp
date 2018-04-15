@@ -9,18 +9,20 @@
 #define FH_I2C(NUM, HANDLER) FH_ISR(FH_IRQ_I2C ## NUM, HANDLER);
 
 namespace fasthal{
-    namespace avr{
-        // prescaler
-        enum class tw_ps: std::uint8_t{
-            _1 = 0
-            , _4 =  (0 << TWPS1) | (1 << TWPS0)
-            , _16 = (1 << TWPS1) | (0 << TWPS0)
-            , _64 = (1 << TWPS1) | (1 << TWPS0)
-            , def = _1
-        };
+    // prescaler
+    enum class i2c_ps: std::uint8_t{
+        _1 = 0
+        , _4 =  (0 << TWPS1) | (1 << TWPS0)
+        , _16 = (1 << TWPS1) | (0 << TWPS0)
+        , _64 = (1 << TWPS1) | (1 << TWPS0)
+        , def = _1
+    };
+    template<i2c_ps V>
+    static constexpr auto i2c_ps_v = integral_constant<i2c_ps, V>{};
 
-        template<tw_ps V>
-        static constexpr auto twps_v = integral_constant<tw_ps, V>{};
+    namespace avr{
+
+
 
         // status
         enum class tw_s: std::uint8_t{
@@ -97,26 +99,25 @@ namespace fasthal{
             func_fieldbit_ready_reset<decltype(i2c_impl<VNum>::ready)>
             { };
 
-        inline constexpr std::uint8_t twi_ps_value(avr::tw_ps ps){
-            using ps_t = avr::tw_ps;
+        inline constexpr std::uint8_t i2c_ps_value(i2c_ps ps){
             switch (ps){
-                case ps_t::_1 : return 1;
-                case ps_t::_4 : return 4;
-                case ps_t::_16 : return 16;
-                case ps_t::_64 : return 64;
+                case i2c_ps::_1 : return 1;
+                case i2c_ps::_4 : return 4;
+                case i2c_ps::_16 : return 16;
+                case i2c_ps::_64 : return 64;
                 default: return 0;
             }
         }
 
         template<typename TFreq, typename TPs>
         inline constexpr std::uint8_t i2c_calc_twbr(TFreq freq, TPs ps){
-            auto psv = twi_ps_value(ps);
+            auto psv = i2c_ps_value(ps);
             
             return ((F_CPU / freq) - 16) / (2 * psv);
         }
 
-        template<typename TFreq, TFreq VFreq, avr::tw_ps VPs>
-        inline constexpr auto i2c_calc_twbr(integral_constant<TFreq, VFreq> freq, integral_constant<avr::tw_ps, VPs> ps) {
+        template<typename TFreq, TFreq VFreq, i2c_ps VPs>
+        inline constexpr auto i2c_calc_twbr(integral_constant<TFreq, VFreq> freq, integral_constant<i2c_ps, VPs> ps) {
             constexpr auto result = i2c_calc_twbr(VFreq, VPs);
             return integral_constant<std::uint8_t, result>{};
         }
@@ -255,9 +256,9 @@ namespace fasthal{
         }
     public:
         // ------------------------------ begin
-        template<typename TFreq = decltype(i2c_freq_def), typename TPs = decltype(avr::twps_v<avr::tw_ps::def>)>
-        static inline constexpr auto begin(TFreq freq = i2c_freq_def, TPs ps = avr::twps_v<avr::tw_ps::def>){
-            static_assert(!TConfig::ps_def || std::is_same_v<TPs, decltype(avr::twps_v<avr::tw_ps::def>)>, "Only TS_PS def can be used in VPsDef mode");
+        template<typename TFreq = decltype(i2c_freq_def), typename TPs = decltype(i2c_ps_v<i2c_ps::def>)>
+        static inline constexpr auto begin(TFreq freq = i2c_freq_def, TPs ps = i2c_ps_v<i2c_ps::def>){
+            static_assert(!TConfig::ps_def || std::is_same_v<TPs, decltype(i2c_ps_v<i2c_ps::def>)>, "Only default presclar can be used in VPsDef mode");
             return combine(
                 write(_i2c.rate, details::i2c_calc_twbr(freq, ps)),
                 clear(_i2c.control),
@@ -268,8 +269,8 @@ namespace fasthal{
                 //enable(i2c.ack)
             );
         }
-        template<typename TFreq = decltype(i2c_freq_def), typename TPs = decltype(avr::tw_ps::def)>
-        static inline void begin_(TFreq freq = i2c_freq_def, TPs ps = avr::tw_ps::def){
+        template<typename TFreq = decltype(i2c_freq_def), typename TPs = decltype(i2c_ps_v<i2c_ps::def>)>
+        static inline void begin_(TFreq freq = i2c_freq_def, TPs ps = i2c_ps_v<i2c_ps::def>){
             apply(begin(freq, ps));
         }
 
