@@ -13,7 +13,8 @@ constexpr auto led = ino<13>;
 // constexpr auto uart0 = uart<0>{};
 // constexpr auto uart0tx = uart_sync_tx<0>{};
 
-auto kernel = ::fasthal::sys_kernel<4>{};
+
+auto kernel = ::fasthal::sys_kernel<2>{};
 
 void blinkLed(){
     toggle_(led);
@@ -35,11 +36,14 @@ int main(){
         , time.begin()        
         , enable(irq)
     );
+    // auto start = time_ms();
     // while (true){
     //     toggle_(led);
-    //     delay_ms(500);
+    //     while (time_ms() - start < 500);
+    //     start = time_ms();
     // }
-    kernel.setTimeout(0, blinkLed);
+    //kernel.setTimeout(0, blinkLed);
     //kernel.setTimeout(5000, printStuff);
+    blinkLed();
     kernel.run();
 }

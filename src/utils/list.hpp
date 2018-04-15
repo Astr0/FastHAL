@@ -10,8 +10,6 @@ namespace fasthal{
         static constexpr auto capacity = VCapacity;
         using index_t = brigand::number_type<VCapacity>;
     private:
-        
-
         index_t _size;
         T _list[capacity];
     public:
