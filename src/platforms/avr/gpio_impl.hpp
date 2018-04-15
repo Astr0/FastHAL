@@ -1,5 +1,5 @@
 #define FH_DECLARE_AVR_GPIO_PIN(CODE, PORTN, PINN) \
-static constexpr auto pin ## CODE ## PINN = details::avr_pin<PORTN, PINN>{};
+static constexpr auto gpio ## CODE ## PINN = details::avr_pin<PORTN, PINN>{};
 
 #define FH_DECLARE_AVR_GPIO_PORT(CODE, PORTN)\
 namespace avr{\

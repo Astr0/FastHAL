@@ -20,6 +20,8 @@ namespace fasthal{
             static_assert(details::has_isr<VNumber>, "No handler for ISR");
             details::isr_handler<VNumber>::handle();
         }
+
+        struct no_irq;
     }
 
     template <unsigned VNum>

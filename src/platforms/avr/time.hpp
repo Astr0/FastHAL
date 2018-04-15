@@ -188,8 +188,6 @@ namespace fasthal{
 
 		// handle_irq_tov
 		inline void operator()(){
-			toggle_(pinB5);
-			//pritnt(uart_sync_tx<0>{}, 'tov');
 			auto m = _ms;
 			auto f = _frac;
 
