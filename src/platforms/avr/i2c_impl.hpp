@@ -99,8 +99,8 @@ FH_DECLARE_REGISTER_ONLY(twsr0, TWSR);
 // prescaler
 constexpr auto twps0 = mField<(1 << TWPS0) | (1 << TWPS1), i2c_ps>(twsr0);
 // status
-constexpr auto tws0 = mField<(std::uint8_t)(~((1 << TWPS0) | (1 << TWPS1))), tw_s>(twsr0);
-constexpr auto tws0_ps0 = mField<(std::uint8_t)(0xFF), tw_s>(twsr0);
+constexpr auto tws0 = mField<(std::uint8_t)(~((1 << TWPS0) | (1 << TWPS1))), i2c_s>(twsr0);
+constexpr auto tws0_ps0 = mField<(std::uint8_t)(0xFF), i2c_s>(twsr0);
 #endif
 
 // control register
@@ -166,8 +166,7 @@ namespace details{
     template<>
     struct i2c_impl<0>{
         static constexpr bool available = true;
-        using status_t = avr::tw_s;
-
+        
         static constexpr auto ps = ::fasthal::avr::twps0;
         static constexpr auto rate = ::fasthal::avr::twbr0;
         static constexpr auto status = ::fasthal::avr::tws0;
