@@ -1,7 +1,6 @@
 //#define FH_TIME_ARDUINO
 #define FH_TIME 1
 #define FH_TIME_WGM pwm_pcdef
-#define FH_UART0_TX 64
 
 #ifdef FH_TIME_ARDUINO
 #include <Arduino.h>
@@ -13,12 +12,15 @@ using namespace fasthal;
 using namespace fasthal::duino;
 
 static constexpr auto led = ino<LED_BUILTIN>;
+static constexpr auto uart0 = uart<0>{};
+static constexpr auto uart0tx = uart_sync_tx<0>{};
+//auto time = avr_time<timer<0>>{};
 
 void setup(){
     apply(
         enable(irq)
         ,makeOutput(led)
-        ,begin(uart0)
+        ,uart0.begin()
         #ifdef FH_TIME
         ,begin(time)
         #endif
@@ -30,10 +32,10 @@ void loop(){
     auto us = time_us();
     if (us > ms)
         toggle_(led);
-    print(uart0, "My time: ");
-    print(uart0, ms);
-    printc(uart0, ' ');
-    println(uart0, us);
+    print(uart0tx, "My time: ");
+    print(uart0tx, ms);
+    print(uart0tx, ' ');
+    println(uart0tx, us);
     // delay_us approximation (doesn't count for loop cycles)
     if (read_(led)) {
         for (auto i = 0; i < 1000; ++i)
