@@ -3,6 +3,9 @@
 using namespace fasthal;
 
 static constexpr auto ledPin = pinB5;
+static constexpr auto timer0 = timer<0>{};
+static constexpr auto timer1 = timer<1>{};
+static constexpr auto timer2 = timer<2>{};
 
 void test_timer0(){
 	apply(
@@ -62,6 +65,7 @@ void test_timer2(){
 
 
 int main(){
+	timer0.begin_();
 	makeOutput_(ledPin);
 	test_timer0();
 	test_timer1();

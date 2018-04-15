@@ -390,7 +390,7 @@ namespace details{
 		#endif
 	};
 }
-static constexpr auto timer3 = details::timer_impl<3>{};
+// static constexpr auto timer3 = details::timer_impl<3>{};
 
 
 #endif // defined TCCR

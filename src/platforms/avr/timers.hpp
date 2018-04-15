@@ -318,42 +318,39 @@ namespace fasthal{
     #include "timers/timer4.hpp"
     #include "timers/timer5.hpp"
 
-    template<unsigned VNum, 
-        typename TTimer = details::timer_impl<VNum>,
-        typename Tcs = integral_constant<typename TTimer::cs_t, TTimer::cs_t::def>, 
-        typename Twgm = integral_constant<typename TTimer::wgm_t, TTimer::wgm_t::pwm_def>>
-    inline constexpr auto begin(details::timer_impl<VNum> timer, 
-        Tcs cs = integral_constant<typename TTimer::cs_t, TTimer::cs_t::def>{}, 
-        Twgm wgm = integral_constant<typename TTimer::wgm_t, TTimer::wgm_t::pwm_def>{}){
-        return combine(
-            write(timer.cs, cs),
-            write(timer.wgm, wgm)
-        );
-    }
+    template<unsigned VNum>
+    struct timer: details::timer_impl<VNum>{
+        using timer_t = details::timer_impl<VNum>;
+        static_assert(timer_t::available, "Timer not available");
+        
+        using cs_t = typename timer_t::cs_t;
+        using wgm_t = typename timer_t::wgm_t;
 
-    template<unsigned VNum, 
-        typename TTimer = details::timer_impl<VNum>,
-        typename Tcs = integral_constant<typename TTimer::cs_t, TTimer::cs_t::def>, 
-        typename Twgm = integral_constant<typename TTimer::wgm_t, TTimer::wgm_t::pwm_def>>
-    inline void begin_(details::timer_impl<VNum> timer, 
-        Tcs cs = integral_constant<typename TTimer::cs_t, TTimer::cs_t::def>{}, 
-        Twgm wgm = integral_constant<typename TTimer::wgm_t, TTimer::wgm_t::pwm_def>{}){
-            apply(begin(timer, cs, wgm));
-    }
+        template<
+            typename Tcs = integral_constant<cs_t, cs_t::def>, 
+            typename Twgm = integral_constant<wgm_t, wgm_t::pwm_def>>
+        static inline constexpr auto begin(
+            Tcs cs = integral_constant<cs_t, cs_t::def>{}, 
+            Twgm wgm = integral_constant<wgm_t, wgm_t::pwm_def>{}){
+            return combine(
+                write(timer_t::cs, cs),
+                write(timer_t::wgm, wgm)
+            );
+        }
 
-    // template<unsigned VNum, typename Tcs, typename Twgm, typename TTimer = details::timer_impl<VNum>>
-    // inline constexpr auto begin(details::timer_impl<VNum> timer, 
-    //     Tcs cs = integral_constant<TTimer::cs_t, TTimer::cs_t::def>{}, 
-    //     Twgm = integral_constant<TTimer::wgm_t, TTimer::wgm_t::pwm_def>{}){
-    //     return combine(
-    //         write(timer.cs, cs),
-    //         write(timer.wgm, wgm)
-    //     );
-    // }
+        template<
+            typename Tcs = integral_constant<cs_t, cs_t::def>, 
+            typename Twgm = integral_constant<wgm_t, wgm_t::pwm_def>>
+        static inline void begin_(
+            Tcs cs = integral_constant<cs_t, cs_t::def>{}, 
+            Twgm wgm = integral_constant<wgm_t, wgm_t::pwm_def>{}){
+                apply(begin(cs, wgm));
+        }
+    };
 
     // from OC to timer
     template<unsigned VNum, unsigned VComp>
-    inline constexpr auto timer(details::timer_oc_impl<VNum, VComp> oc){
+    inline constexpr auto oc_timer(details::timer_oc_impl<VNum, VComp> oc){
         return details::timer_impl<VNum>{};
     }
 
@@ -392,7 +389,7 @@ namespace fasthal{
 
     // from OC to timer
     template<class T, typename TOC = typename details::func_fieldbit<T>::toc_t>
-    inline constexpr auto timer(T func){
+    inline constexpr auto oc_timer(T func){
         return timer(TOC{});
     }
 

@@ -143,7 +143,7 @@ namespace fasthal{
 		}
 	}
 
-	template<class TTimer = decltype(timer0), typename TTimer::cs_t VClock = TTimer::cs_t::def, typename TTimer::wgm_t VWgm = TTimer::wgm_t::pwm_fastdef>
+	template<class TTimer = timer<0>, typename TTimer::cs_t VClock = TTimer::cs_t::def, typename TTimer::wgm_t VWgm = TTimer::wgm_t::pwm_fastdef>
 	struct timer_time{
 		using tcnt_t = field_data_type<decltype(TTimer::tcnt)>;
 		//static_assert(sizeof(tcnt_t) == 1, "Only 8 bit timers are supported");
@@ -240,7 +240,7 @@ namespace fasthal{
 	template<class TTimer, typename TTimer::cs_t VClock, typename TTimer::wgm_t VWgm>
 	inline constexpr auto begin(timer_time<TTimer, VClock, VWgm> t){
 		return combine(
-			begin(TTimer{}, integral_constant<typename TTimer::cs_t, VClock>{}, integral_constant<typename TTimer::wgm_t, VWgm>{}),
+			TTimer::begin(integral_constant<typename TTimer::cs_t, VClock>{}, integral_constant<typename TTimer::wgm_t, VWgm>{}),
 			enable(TTimer::irq_tov)
 		);
 	}
@@ -258,7 +258,7 @@ namespace fasthal{
 	#define FH_TIME_WGM pwm_fastdef
 	#endif
 
-	static auto time = timer_time<details::timer_impl<FH_TIME>, details::timer_impl<FH_TIME>::cs_t::FH_TIME_CS, details::timer_impl<FH_TIME>::wgm_t::FH_TIME_WGM>{};
+	static auto time = timer_time<timer<FH_TIME>, timer<FH_TIME>::cs_t::FH_TIME_CS, timer<FH_TIME>::wgm_t::FH_TIME_WGM>{};
 
 	inline time_t time_ms(){ return time.time_ms(); }
 	inline time_t time_us(){ return time.time_us(); }
