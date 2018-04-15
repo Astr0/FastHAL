@@ -51,11 +51,7 @@ namespace fasthal{
 	namespace details{
 		template<class TAccess>
 		struct is_field_impl<::fasthal::avr::details::avr_register<TAccess>>: std::true_type{};
-	}
-    
-	namespace avr{
-		#include "registers_impl/twi_reg.hpp"
-	}
+	}    
 }    
 
 //#undef FASTHAL_DECLAREREGISTER
