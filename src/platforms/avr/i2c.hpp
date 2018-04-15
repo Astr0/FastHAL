@@ -2,9 +2,11 @@
 #define FH_AVR_I2C_H_
 
 #include "registers.hpp"
+#include "interrupts.hpp"
 #include "../../streams/sync_streams.hpp"
 
 // don't check that programmer is stupid, check for error conditions
+#define FH_I2C(NUM, HANDLER) FH_ISR(FH_IRQ_I2C ## NUM, HANDLER);
 
 namespace fasthal{
     enum class i2c_s{    

@@ -2,6 +2,17 @@
 static constexpr auto pin ## CODE ## PINN = details::avr_pin<PORTN, PINN>{};
 
 #define FH_DECLARE_AVR_GPIO_PORT(CODE, PORTN)\
+namespace avr{\
+    FH_DECLARE_REGISTER(port ## CODE, PORT ## CODE)\
+    FH_DECLARE_REGISTER(pin ## CODE, PIN ## CODE)\
+    FH_DECLARE_REGISTER(ddr ## CODE, DDR ## CODE)\
+    template<>\
+    struct gpio_registers<PORTN>{\
+        static constexpr auto port = port ## CODE;\
+        static constexpr auto pin = pin ## CODE;\
+        static constexpr auto ddr = ddr ## CODE;\
+    };\
+}\
 FH_DECLARE_AVR_GPIO_PIN(CODE, PORTN, 0);\
 FH_DECLARE_AVR_GPIO_PIN(CODE, PORTN, 1);\
 FH_DECLARE_AVR_GPIO_PIN(CODE, PORTN, 2);\

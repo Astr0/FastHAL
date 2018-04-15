@@ -3,6 +3,7 @@
 
 #include "../../fields/gpio.hpp"
 #include "../../fields/fieldbit.hpp"
+#include "registers.hpp"
 
 namespace fasthal{
     namespace details{

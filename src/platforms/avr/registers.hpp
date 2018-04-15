@@ -1,9 +1,7 @@
 // nice ports abstraction
 
-#pragma once
-
-#ifndef FH_AVR_REGISTERS_H_
-#define FH_AVR_REGISTERS_H_
+#ifndef FH_AVR_REGISTER_H_
+#define FH_AVR_REGISTER_H_
 
 #include <avr/io.h>
 #include "../../utils/functions.h"
@@ -56,7 +54,6 @@ namespace fasthal{
 	}
     
 	namespace avr{
-		#include "registers_impl/gpio_reg.hpp"
 		#include "registers_impl/adc_reg.hpp"
 		#include "registers_impl/irq_reg.hpp"
 		#include "registers_impl/uart_reg.hpp"
