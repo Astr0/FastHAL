@@ -4,7 +4,11 @@
 #include "../std/std_types.hpp"
 
 namespace fasthal{
+    #ifdef FH_TIME_T
+    using time_t = FH_TIME_T;
+    #else
     using time_t = std::uint32_t;
+    #endif
 
     namespace details{
         template<bool VImplemented = true>

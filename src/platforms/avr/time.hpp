@@ -148,6 +148,30 @@ namespace fasthal{
 		struct global_time_impl: details::avr_delay_time{};
 	}
 
+	template<class TTimer = timer<0>>
+	struct timer_tov_time: details::avr_delay_time {
+		using timer_t = TTimer;
+		using cs_t = typename timer_t::cs_t;
+		using wgm_t = typename timer_t::wgm_t;
+
+		volatile time_t _overflows;
+
+        static inline constexpr auto begin(){ return enable(timer_t::irq_tov); }
+
+        static inline void begin_() { apply(begin()); }		
+
+		// handle_irq_tov
+		inline void operator()(){
+			_overflows++;
+		}
+
+		inline time_t ms() { 
+			auto lock = no_irq{};
+			return _overflows; 
+		}
+		inline time_t us() { return ms() * 1000; }
+	};
+
 	template<class TTimer = timer<0>, typename TTimer::cs_t VClock = TTimer::cs_t::def, typename TTimer::wgm_t VWgm = TTimer::wgm_t::pwm_fastdef>
 	struct timer_time: details::avr_delay_time{
 		using timer_t = TTimer;
