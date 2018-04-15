@@ -110,11 +110,11 @@ std::uint8_t bh1750_read(std::uint8_t mode){
          return 0;
 
     auto mr = start_mr_sync(i2c0, address, 2);
-    read_u8(mr);
-    auto result = read_u8(mr);
-    return mr ? result : 0;
-    //auto result = read_u16(mr);
-    //return mr ? ((result * 10U) / 12U) : 0U;
+    // read_u8(mr);
+    // auto result = read_u8(mr);
+    // return mr ? result : 0;
+    auto result = read_u16(mr);
+    return mr ? ((result * 10U) / 12U) : 0U;
 }
 
 int main(){    
@@ -125,7 +125,7 @@ int main(){
         //Init i2c in master mode
         , i2c0.begin()
         //init uart
-        //, uart0.begin()
+        , uart0.begin()
     );
 
     //println(uart0tx, "BH1750 Test begin");
@@ -135,11 +135,11 @@ int main(){
     //println(uart0tx, "mode set");
 
     while (1){
-        //auto light = bh1750_read(0x10);
+        auto light = bh1750_read(0x10);
         //TCNT0 = light;
-        //print(uart0tx, "Lux: ");
-        //print(uart0tx, light);
-        //println(uart0tx, " lx");
+        print(uart0tx, "Lux: ");
+        print(uart0tx, light);
+        println(uart0tx, " lx");
         //delay_ms(1000);
     }
 }

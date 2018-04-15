@@ -47,6 +47,12 @@ namespace fasthal{
         //ac.raw = raw_data;
         return ac.data;
     }
+
+    template<typename T, typename... TValues>
+    static inline bool is_any(T test, TValues... values){
+        return (...|| (test == values));
+    }
+
 }
 
 #endif
