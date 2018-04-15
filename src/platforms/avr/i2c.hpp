@@ -247,6 +247,7 @@ namespace fasthal{
                 clear(_i2c.control), 
                 enable(_i2c),
                 reset(_i2c),
+                enable(_i2c.irq, integral_constant<bool, lazy::async>{}),
                 actions...);
         }
     public:
@@ -258,8 +259,8 @@ namespace fasthal{
                 write(_i2c.rate, details::i2c_calc_twbr(freq, ps)),
                 clear(_i2c.control),
                 write(_i2c.ps, ps),
-                enable(_i2c)
-                // enable(_i2c.irq, integral_constant<bool, lazy::async>{})
+                enable(_i2c),
+                enable(_i2c.irq, integral_constant<bool, lazy::async>{})
                 // TODO: Slave mode
                 //enable(i2c.ack)
             );

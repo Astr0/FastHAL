@@ -45,6 +45,8 @@ namespace fasthal{
             _irq = read_(irq);
             cli();
         }
+        
+        no_irq(const no_irq&) = delete;
 
         inline ~no_irq(){
             write_(irq, _irq);
