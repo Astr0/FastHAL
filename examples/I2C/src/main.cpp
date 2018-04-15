@@ -64,38 +64,38 @@ static constexpr auto uart0 = uart<0>{};
 static constexpr auto uart0tx = uart_sync_tx<0>{};
 static constexpr auto i2c0 = i2c<0>{};
 
-void debugi2c(const char* why, i2c_state state){
-    static constexpr auto tx = uart0tx;
-    print(tx, why);
-    print(tx, '=');
-    switch(state){
-        case i2c_state::ready:
-            print(tx, "ready");
-            break;
-        case i2c_state::select:
-            print(tx, "select");
-            break;
-        case i2c_state::mt:
-            print(tx, "mt");
-            break;
-        case i2c_state::mr:
-            print(tx, "mr");
-            break;
-        case i2c_state::mr_done:
-            print(tx, "mr_done");
-            break;
-        case i2c_state::error:
-            print(tx, "error");
-            break;
-        case i2c_state::nack:
-            print(tx, "nack");
-            break;
-        default:
-            print(tx, '?');
-            break;
-    }
-    println(tx);
-}
+// void debugi2c(const char* why, i2c_state state){
+//     static constexpr auto tx = uart0tx;
+//     print(tx, why);
+//     print(tx, '=');
+//     switch(state){
+//         case i2c_state::ready:
+//             print(tx, "ready");
+//             break;
+//         case i2c_state::select:
+//             print(tx, "select");
+//             break;
+//         case i2c_state::mt:
+//             print(tx, "mt");
+//             break;
+//         case i2c_state::mr:
+//             print(tx, "mr");
+//             break;
+//         case i2c_state::mr_done:
+//             print(tx, "mr_done");
+//             break;
+//         case i2c_state::error:
+//             print(tx, "error");
+//             break;
+//         case i2c_state::nack:
+//             print(tx, "nack");
+//             break;
+//         default:
+//             print(tx, '?');
+//             break;
+//     }
+//     println(tx);
+// }
 
 static constexpr auto address = i2c_address_v<0x23>;
 
@@ -105,24 +105,27 @@ bool bh1750_set_mode(std::uint8_t mode){
     return mt;
 }
 
-std::uint16_t bh1750_read(std::uint8_t mode){
+std::uint8_t bh1750_read(std::uint8_t mode){
     if (!bh1750_set_mode(mode))
-         return 0U;
+         return 0;
 
     auto mr = start_mr_sync(i2c0, address, 2);
-    auto result = read_u16(mr);
-    return mr ? ((result * 10U) / 12U) : 0U;
+    read_u8(mr);
+    auto result = read_u8(mr);
+    return mr ? result : 0;
+    //auto result = read_u16(mr);
+    //return mr ? ((result * 10U) / 12U) : 0U;
 }
 
 int main(){    
     apply(
         // activate internal pull ups for i2c
-        set(ino<SDA>),
-        set(ino<SCL>),
+        set(ino<SDA>)
+        , set(ino<SCL>)
         //Init i2c in master mode
-        i2c0.begin(),
+        , i2c0.begin()
         //init uart
-        uart0.begin()
+        //, uart0.begin()
     );
 
     //println(uart0tx, "BH1750 Test begin");
@@ -132,10 +135,11 @@ int main(){
     //println(uart0tx, "mode set");
 
     while (1){
-        auto light = bh1750_read(0x10);
-        print(uart0tx, "Lux: ");
-        print(uart0tx, light);
-        println(uart0tx, " lx");
-        delay_ms(1000);
+        //auto light = bh1750_read(0x10);
+        //TCNT0 = light;
+        //print(uart0tx, "Lux: ");
+        //print(uart0tx, light);
+        //println(uart0tx, " lx");
+        //delay_ms(1000);
     }
 }
