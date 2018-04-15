@@ -1,3 +1,8 @@
+namespace avr{
+    #include "uart_reg.hpp"
+}
+#include "uart_irq.hpp"
+
 #define FH_DECLARE_AVR_UART(NUM)\
 namespace details{\
     template<>\

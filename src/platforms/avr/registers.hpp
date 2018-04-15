@@ -54,9 +54,6 @@ namespace fasthal{
 	}
     
 	namespace avr{
-		#include "registers_impl/adc_reg.hpp"
-		#include "registers_impl/irq_reg.hpp"
-		#include "registers_impl/uart_reg.hpp"
 		#include "registers_impl/twi_reg.hpp"
 	}
 }    

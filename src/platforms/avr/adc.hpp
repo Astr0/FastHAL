@@ -3,15 +3,17 @@
 
 #include <avr/io.h>
 #include "registers.hpp"
-
-#ifdef FH_HAS_ADC
-
 #include "../../fields/fields.hpp"
 #include "../../fields/func_fieldbit.hpp"
 #include "../../utils/functions.h"
 #include "../../std/std_fake.hpp"
 
 namespace fasthal{
+	namespace avr{
+		#include "adc_impl.hpp"
+	}
+
+	#ifdef FH_HAS_ADC
 	//static constexpr auto adc = avr::adc;
 	namespace details{
 		struct adc_impl{
@@ -111,8 +113,7 @@ namespace fasthal{
 	constexpr auto convert8_(T adMux){
 		return convert8_(adc, TMux{});
 	}
+	#endif
 }
-
-#endif // ADC stuff
 
 #endif

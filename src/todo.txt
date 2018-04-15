@@ -20,8 +20,10 @@
 + func pwm
 + time stuff (millis, micros, delay). allow set WGM, get tov value based on wgm, support phase correct modes
 + print, write progmem stuff
++ I2C - ok stuff, prescaler 0 mode to speed things up (most commonly used). 
 
-* I2C - ok stuff, prescaler 0 mode to speed things up (most commonly used). Polling and IRQ modes.
+* Polling and IRQ modes.
+* ADC api similar to others
 * power modes (sleep/standby, etc.)
 * device drivers
 

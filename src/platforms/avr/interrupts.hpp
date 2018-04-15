@@ -7,9 +7,27 @@
 #include "../../utils/functions.h"
 #include "../../std/std_fake.hpp"
 #include <avr/interrupt.h>
-//#ifdef FH_HAS_IRQ
 
 namespace fasthal{    
+    namespace avr{
+        #ifdef SREG
+        // Interrupts constrol register
+        FH_DECLARE_REGISTER_ONLY(sreg, SREG);
+
+        // interrupts enabled flag
+        #ifdef SREG_I
+        constexpr auto sreg_i = fieldBit<SREG_I>(sreg);
+        #endif
+
+        #endif
+
+        #if defined(SREG) && defined(SREG_I)
+        #define FH_HAS_IRQ
+        #endif
+    }
+    //#ifdef FH_HAS_IRQ
+    #if true
+
     constexpr auto irq = avr::sreg;
 
     namespace details{
@@ -39,7 +57,6 @@ namespace fasthal{
     ISR(_VECTOR(VECTOR)) { fasthal::details::isr<VECTOR>(); }    
 
     // interrupts normalization...
-    #include "interrupts_impl/uart_irq.hpp"
     #include "interrupts_impl/twi_irq.hpp"
 
     // runs irq if it's ready and enabled, but global interrupts disabled
@@ -55,7 +72,8 @@ namespace fasthal{
         if (!enabled_(irq) && ready_(i))
             details::isr<VNum>();
     }
+
+    #endif
 }
 
-//#endif
 #endif
