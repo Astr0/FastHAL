@@ -135,7 +135,7 @@ namespace fasthal{
             _128    = 0b101,
             _256    = 0b110,
             _1024   = 0b111,
-            def    = 64
+            def    = _64
         };
 
         // wave generation mode
