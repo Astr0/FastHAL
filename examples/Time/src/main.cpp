@@ -1,18 +1,15 @@
-//#define FH_TIME_ARDUINO
-//#define FH_TIME 1
-//#define FH_TIME_WGM pwm_pcdef
-
-#ifdef FH_TIME_ARDUINO
 #include <Arduino.h>
-#endif
-
 #include "fastduino.hpp"
 
 using namespace fasthal;
 using namespace fasthal::duino;
 
+#ifndef Arduino_h
 auto time = timer_time<timer<0>>{};
 FH_TIME(0, time);
+#else
+auto time = arduino_time{};
+#endif
 auto time2 = timer_time<timer<2>>{};
 FH_TIME(2, time2);
 
@@ -27,7 +24,9 @@ void setup(){
     apply(
         makeOutput(led)
         ,uart0.begin()
+        #ifndef Arduino_h
         ,time.begin()
+        #endif
         ,time2.begin()
         ,enable(irq)
     );
@@ -60,7 +59,7 @@ void loop(){
     }
 }
 
-#ifndef FH_TIME_ARDUINO
+#ifndef Arduino_h
 
 int main(){
     setup();
