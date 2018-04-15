@@ -35,6 +35,10 @@ int main(){
         , time.begin()        
         , enable(irq)
     );
+    // while (true){
+    //     toggle_(led);
+    //     delay_ms(500);
+    // }
     kernel.setTimeout(0, blinkLed);
     //kernel.setTimeout(5000, printStuff);
     kernel.run();
