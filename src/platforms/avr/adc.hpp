@@ -9,9 +9,7 @@
 #include "../../std/std_fake.hpp"
 
 namespace fasthal{
-	namespace avr{
-		#include "adc_impl.hpp"
-	}
+	#include "adc_impl.hpp"
 
 	#ifdef FH_HAS_ADC
 	//static constexpr auto adc = avr::adc;
@@ -47,10 +45,10 @@ namespace fasthal{
 	}	
 
 	template<
-		typename TRef = decltype(avr::ad_ref::def),
+		typename TRef = decltype(ad_ref::def),
 		typename TMode8 = integral_constant<bool, false>,
-		typename TAdps = decltype(avr::ad_ps::def)>
-	inline constexpr auto begin(details::adc_impl adc, TRef ref = avr::ad_ref::def, TMode8 mode8 = integral_constant<bool, false>{}, TAdps ps = avr::ad_ps::def){
+		typename TAdps = decltype(ad_ps::def)>
+	inline constexpr auto begin(details::adc_impl adc, TRef ref = ad_ref::def, TMode8 mode8 = integral_constant<bool, false>{}, TAdps ps = ad_ps::def){
 		return combine(
 			write(adc.refs, ref),
 			write(adc.ps, ps),
@@ -59,10 +57,10 @@ namespace fasthal{
 		);
 	}
 	template<
-		typename TRef = decltype(avr::ad_ref::def),
+		typename TRef = decltype(ad_ref::def),
 		typename TMode8 = integral_constant<bool, false>,
-		typename TAdps = decltype(avr::ad_ps::def)>
-	inline void begin_(details::adc_impl adc, TRef ref = avr::ad_ref::def, TMode8 mode8 = integral_constant<bool, false>{}, TAdps ps = avr::ad_ps::def){
+		typename TAdps = decltype(ad_ps::def)>
+	inline void begin_(details::adc_impl adc, TRef ref = ad_ref::def, TMode8 mode8 = integral_constant<bool, false>{}, TAdps ps = ad_ps::def){
 		apply(begin(adc, ref, mode8, ps));
 	}
 
