@@ -110,9 +110,6 @@ std::uint8_t bh1750_read(std::uint8_t mode){
          return 0;
 
     auto mr = start_mr_sync(i2c0, address, 2);
-    // read_u8(mr);
-    // auto result = read_u8(mr);
-    // return mr ? result : 0;
     auto result = read_u16(mr);
     return mr ? ((result * 10U) / 12U) : 0U;
 }
@@ -128,18 +125,14 @@ int main(){
         , uart0.begin()
     );
 
-    //println(uart0tx, "BH1750 Test begin");
-
     // wake up?
     bh1750_set_mode(0x0);
-    //println(uart0tx, "mode set");
 
     while (1){
         auto light = bh1750_read(0x10);
-        //TCNT0 = light;
         print(uart0tx, "Lux: ");
         print(uart0tx, light);
         println(uart0tx, " lx");
-        //delay_ms(1000);
+        delay_ms(1000);
     }
 }
