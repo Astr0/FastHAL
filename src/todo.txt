@@ -22,9 +22,11 @@
 + print, write progmem stuff
 + I2C - ok stuff, prescaler 0 mode to speed things up (most commonly used). 
 
-* Polling and IRQ modes.
+* "miniRTOS" - javascript like setTimeout(), setInterval()
+* for uart, i2c and other async interfaces some nice async wrapper api like nodejs
 * ADC api similar to others
 * power modes (sleep/standby, etc.)
+* SPI
 * device drivers
 
 * add value type checks for port/fieldbit/other methods to restict templates and bring some type safety
