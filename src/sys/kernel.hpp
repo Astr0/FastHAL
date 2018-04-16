@@ -6,8 +6,6 @@
 #include "../utils/list.hpp"
 
 namespace fasthal{
-    using task_t = void (*)();
-
     namespace details{
         template<class TTimer = details::global_time_impl<>>
         struct sys_kernel_timer{
@@ -16,8 +14,10 @@ namespace fasthal{
     }
 
     template<std::size_t VMaxTasks,
+        typename TTask = void (*)(),
         class TTimer = details::sys_kernel_timer<>>
     struct sys_kernel{
+        using task_t = TTask;
         using timer_t = TTimer;
         using time_t = decltype(timer_t::now());
         using index_t = brigand::number_type<VMaxTasks>;
