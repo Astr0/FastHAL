@@ -13,7 +13,7 @@ constexpr auto led = ino<13>;
 constexpr auto uart0 = uart<0>{};
 constexpr auto uart0tx = uart_sync_tx<0>{};
 
-auto kernel = ::fasthal::sys_kernel<3>{};
+auto kernel = sys_kernel<3>{};
 
 void blinkLed(){
     println(uart0tx, "blink");
