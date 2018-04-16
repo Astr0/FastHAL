@@ -201,11 +201,6 @@ namespace fasthal{
         uart.tx(v);
     }
 
-    // template<unsigned VNum>
-    // static inline void tx_done_wait(uart<VNum> uart){
-    //     while (!uart.tx_done()) ;
-    // }
-
     template<unsigned VNum, typename Tfunc>
     // if rx can be done - do rx
     static inline bool try_rx(uart<VNum> uart, Tfunc callback){
@@ -219,14 +214,33 @@ namespace fasthal{
     }
 
     // sync tx ostream
-    template<unsigned VNum>
+    template<class TUart>
     struct uart_sync_tx{};
     namespace details{
-        template<unsigned VNum> struct is_ostream_impl<uart_sync_tx<VNum>>: std::true_type{};
+        template<class TUart> struct is_ostream_impl<uart_sync_tx<TUart>>: std::true_type{};
     }
-    template<unsigned VNum>
-    void write(uart_sync_tx<VNum> uartw, std::uint8_t c){ tx_sync(uart<VNum>{}, c); }
+    template<class TUart>
+    void write(uart_sync_tx<TUart> uartw, std::uint8_t c){ tx_sync(uart<TUart>{}, c); }    
     
+    // buffered tx ostream
+    template<class TUart, unsigned VSize>
+    class uart_buf_tx{
+        ring_buffer<VSize> _buf;
+    public:
+        void write(std::uint8_t c){
+
+        }
+        void flush(){
+            
+        }
+    };
+    namespace details{
+        template<class TUart, unsigned VSize> 
+        struct is_ostream_impl<uart_buf_tx<TUart>>: std::true_type{};
+    }
+    template<class TUart, unsigned VSize>
+    void write(uart_buf_tx<TUart, VSize>& uartw, std::uint8_t c){ uartw.write(c); }    
+
     #include "uart_impl.hpp"
 }
 #endif
