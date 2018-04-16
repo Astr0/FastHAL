@@ -166,8 +166,7 @@ namespace fasthal{
 		}
 
 		inline time_t ms() { 
-			auto lock = no_irq{};
-			return _overflows; 
+			return atomic_read(_overflows);
 		}
 		inline time_t us() { return ms() * 1000; }
 	};

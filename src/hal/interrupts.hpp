@@ -21,13 +21,25 @@ namespace fasthal{
             details::isr_handler<VNumber>::handle();
         }
 
-        struct no_irq;
+        constexpr bool requires_atomic(std::size_t size);
     }
+
+    struct no_irq;
 
     template <unsigned VNum>
     struct interrupt{
         static constexpr auto number = VNum;
-    };        
+    };
+
+    template<typename T>
+    T atomic_read(T& v){
+        if constexpr(details::requires_atomic(sizeof(T))){
+            auto lock = no_irq{};
+            return v;
+        } else{
+            return v;
+        }
+    }
 }
 
 #endif

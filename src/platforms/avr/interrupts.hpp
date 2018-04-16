@@ -34,7 +34,11 @@ namespace fasthal{
         using irq_t = std::base_type_t<decltype(irq)>;
 
         // enable/disable IRQ
-		template<> struct func_fieldbit_impl<details::irq_t>: func_fieldbit_enable<decltype(avr::sreg_i)>{};        
+		template<> struct func_fieldbit_impl<details::irq_t>: func_fieldbit_enable<decltype(avr::sreg_i)>{};   
+
+        constexpr bool requires_atomic(std::size_t size){
+            return size > 1;
+        }
     }
 
     class no_irq{

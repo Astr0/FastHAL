@@ -28,9 +28,12 @@ namespace fasthal{
         struct task_due{
             time_t due;
             task_t task;
+
+            constexpr task_due(time_t _due, task_t _task): due(_due), task(_task){}
+            constexpr task_due(){}
         };
 
-        volatile bool _changed;
+        //volatile bool _changed;
         volatile index_t _size;
         task_due _tasks[capacity];
         //time_t _due[capacity];
@@ -58,7 +61,9 @@ namespace fasthal{
 
             // wait for time
             time_t elapsed;
-            while (((elapsed = now() - last) < wait) && !_changed);
+            auto sz = atomic_read(_size);
+            // don't read atomic - if something changes - it changes сase of volatile
+            while (((elapsed = now() - last) < wait) && (sz == _size));
 
             return elapsed;
         }
@@ -68,7 +73,7 @@ namespace fasthal{
         }
 
         void execute(time_t last, time_t elapsed){
-            auto i = &_tasks[_size];
+            auto i = &_tasks[atomic_read(_size)];
             task_t task;
             while (i-- != _tasks){
                 {
@@ -89,7 +94,7 @@ namespace fasthal{
             if (_size == capacity)
                 return false;
             _tasks[_size++] = task_due { timeout, task };
-            _changed = true;
+            // _changed = true;
             //println(debug, "add");
             return true;
         }
@@ -100,7 +105,7 @@ namespace fasthal{
             while (i-- != _tasks)
                 if (i->task == task){
                     remove_at(i);
-                    _changed = true;
+                    // _changed = true;
                     return true;
                 }
             return false;
@@ -110,7 +115,7 @@ namespace fasthal{
             time_t last = 0;                        
             while (true){
                 // reset changed since we'll find next due
-                _changed = false;
+                // _changed = false;
                 auto elapsed = wait_next_timeout_or_change(last);
                 // ok, probably elapsed more than time to next due, lets do some tasks!
                 // add if (_changed) continue; to speed up things if changed
