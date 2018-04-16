@@ -10,7 +10,7 @@ FH_USE_TIME(time);
 
 
 constexpr auto led = ino<13>;
-// constexpr auto uart0 = uart<0>{};
+constexpr auto uart0 = uart<0>{};
 // constexpr auto uart0tx = uart_sync_tx<0>{};
 
 
