@@ -54,6 +54,8 @@ namespace fasthal{
         }        
 
         time_t wait_next_timeout_or_change(time_t last){
+            // don't read atomic - if something changes - it changes сause of volatile
+            auto sz = _size;
             // time to next task from start
             auto wait = next_timeout(last);
             //print(debug, "next:");
@@ -61,8 +63,6 @@ namespace fasthal{
 
             // wait for time
             time_t elapsed;
-            auto sz = atomic_read(_size);
-            // don't read atomic - if something changes - it changes сase of volatile
             while (((elapsed = now() - last) < wait) && (sz == _size));
 
             return elapsed;
