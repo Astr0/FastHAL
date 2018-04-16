@@ -22,8 +22,8 @@ void blinkLed(){
     // kernel.setTimeout(v ? 500 : 1000, blinkLed);
     toggle_(led);
     kernel.setTimeout(500, blinkLed);
-    if (PORTC != 0)
-        kernel.clearTimeout(blinkLed);
+    // if (PORTC != 0)
+    //     kernel.clearTimeout(blinkLed);
 }
 
 // void printStuff(){
