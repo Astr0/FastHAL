@@ -37,10 +37,7 @@ namespace fasthal{
 
             constexpr task_due(time_t _due, task_t _task): due(_due), task(_task){}
             constexpr task_due(){}
-            void reset(time_t _due, task_t _task) {
-                due = _due;
-                task = _task;
-            }
+            constexpr task_due(const task_due& other): due(other.due), task(other.task) {}
         };
 
         //volatile bool _changed;
