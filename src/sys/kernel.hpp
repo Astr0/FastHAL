@@ -25,6 +25,11 @@ namespace fasthal{
 
         static auto now() { return timer_t::now(); }
 
+        // struct task_due{
+        //     time_t due;
+        //     task_t task;
+        // }
+
         volatile bool _changed;
         volatile index_t _size;
         task_t _tasks[capacity];
@@ -81,10 +86,10 @@ namespace fasthal{
 
         void remove_at(index_t i){
             auto sz = --_size;
-            if (i < sz){
+            //if (i < sz){
                 _tasks[i] = _tasks[sz];
                 _due[i] = _due[sz];
-            }
+            //}
         }
     public:
         bool setTimeout(time_t timeout, task_t task){
