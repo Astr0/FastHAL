@@ -81,35 +81,43 @@ FH_I2C(0, i2c0_h);
 
 uint16_t bh1750_last_light;
 
-// void bh1750_read();
+void bh1750_read();
 
-// void bh1750_read_done(){
-//     // check ok        
-//     auto result = read_u16(i2c0_h);
-//     i2c0_h.stop();
-//     bh1750_last_light = i2c0_h ? ((result * 10U) / 12U) : 0U;
-//     bh1750_read();
-// }
+void bh1750_read_done(){
+    auto done = i2c0_h.master_done();
+    // if (done)
+    // {
+    //     println(uart0tx, "read done");
+    // } else{
+    //     println(uart0tx, "read failed");
+    // }
+    // check ok        
+    auto result = read_u16(i2c0_h);
+    i2c0_h.stop();
+    bh1750_last_light = done ? ((result * 10U) / 12U) : 0U;
+    // something's here
+    bh1750_read();
+}
 
-// void bh1750_read(){
-//     i2c0_h.start_mr(address, 2, bh1750_read_done);
-// }
+void bh1750_read(){
+     i2c0_h.start_mr(address, 2, bh1750_read_done);
+}
 
 void bh1750_set_mode(std::uint8_t mode);
 
 void bh1750_mode_set(){
-    if (!i2c0_h.master_done()){
-        print(uart0tx, "mode error: ");
-        println(uart0tx, static_cast<std::uint8_t>(i2c0_h.state()));
-        // stop bus
-        i2c0_h.stop();
-        bh1750_set_mode(0x10);
+    auto done = i2c0_h.master_done();
+    // stop bus
+    i2c0_h.stop();
+    if (done){
+        //println(uart0tx, "mode set");
+        bh1750_read();
     } else {
-        i2c0_h.stop();
-        println(uart0tx, "mode set");
+        // print(uart0tx, "mode error: ");
+        // println(uart0tx, static_cast<std::uint8_t>(i2c0_h.state()));
+        bh1750_set_mode(0x10);
     }
-    // check if everything went fine
-    //bh1750_read();
+    // check if everything went fine    
 }
 
 void bh1750_set_mode(std::uint8_t mode){
