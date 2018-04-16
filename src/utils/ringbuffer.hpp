@@ -29,6 +29,7 @@ namespace fasthal{
         // doesn't makes much sense to NoInterrupt here since after no interrupt things may change
         // tail is read second so it will return <= real available
         inline index_t size(){ return _write - _read; }
+        inline index_t available() { return capacity - size(); }
         inline bool empty(){ return _write == _read; }
         inline bool full(){return size() == capacity;}
  

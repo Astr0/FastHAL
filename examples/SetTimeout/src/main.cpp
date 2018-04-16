@@ -11,27 +11,35 @@ FH_USE_TIME(time);
 
 constexpr auto led = ino<13>;
 constexpr auto uart0 = uart<0>{};
-constexpr auto uart0tx = uart_sync_tx<0>{};
+auto uart0tx = uart_buf_tx<uart<0>, 32>{};
+FH_UART_TX(0, uart0tx);
 
 auto kernel = sys_kernel<3>{};
 
 void blinkLed(){
     println(uart0tx, "blink");
-    auto v = read_(led);
-    set_(led, !v);
-    kernel.setTimeout(v ? 500 : 1000, blinkLed);
+    toggle_(led);
+    kernel.setTimeout(500, blinkLed);
 }
 
-void printStuff(){
-    print(uart0tx, "I'm here: ");
-    println(uart0tx, time_ms());
-    kernel.setTimeout(5000, printStuff);
+void printStuff1(){
+    if (uart0tx.available() < 16){
+        println(uart0tx, "1:cya");        
+    } else {
+        print(uart0tx, "time1: ");
+        println(uart0tx, time_ms());
+    }
+    kernel.setTimeout(1000, printStuff1);
 }
 
 void printStuff2(){
-    print(uart0tx, "and here: ");
-    println(uart0tx, time_ms());
-    kernel.setTimeout(2000, printStuff2);
+     if (uart0tx.available() < 16){
+        println(uart0tx, "2:cya");        
+    } else {
+        print(uart0tx, "time2: ");
+        println(uart0tx, time_ms());
+    }
+    kernel.setTimeout(3000, printStuff2);
 }
 
 int main(){
@@ -51,7 +59,7 @@ int main(){
     //kernel.setTimeout(0, blinkLed);
     //kernel.setTimeout(5000, printStuff);
     blinkLed();
-    printStuff();    
+    printStuff1();    
     printStuff2();
     kernel.run();
 }

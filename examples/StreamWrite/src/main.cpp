@@ -1,3 +1,5 @@
+#define MODE 1
+
 #include "fasthal.hpp"
 
 #define _FLASH(x) x
@@ -13,10 +15,16 @@ struct test{
 };
 test a;
 
-static constexpr auto uart0 = uart<0>{};
+constexpr auto uart0 = uart<0>{};
+#if (MODE == 0)
+static constexpr auto uart0tx = uart_sync_tx<decltype(uart0)>{};
+#else
+static auto uart0tx = uart_buf_tx<decltype(uart0), 32>{};
+FH_UART_TX(0, uart0tx);
+#endif
 
 template<typename T>
-void testWrite(T writer, uint8_t read) {
+void testWrite(T& writer, uint8_t read) {
     write(writer, _FLASH("Hello from Arduino:"));
     write(writer, read);
     write(writer, _FLASH("uint32_t: "));
@@ -31,13 +39,13 @@ void testWrite(T writer, uint8_t read) {
 }
 
 int main(){
-	apply(
-        enable(irq),
+	apply(        
         uart0.begin()
+        , enable(irq)
     );    
 	while (true){
         auto read = read_(portC);
         
-        testWrite(uart_sync_tx<0>{}, read);
+        testWrite(uart0tx, read);
 	}
 }

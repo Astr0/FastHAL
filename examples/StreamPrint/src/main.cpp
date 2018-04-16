@@ -1,3 +1,6 @@
+#define MODE 1
+// 0 - sync
+// 1 - async
 #include "fasthal.hpp"
 
 //#define _FLASH(x) FH_FLASH(x)
@@ -7,7 +10,7 @@ using namespace fasthal;
 using namespace fasthal::avr;
 
 template<typename T>
-void testPrint(T writer, uint8_t read){
+void testPrint(T& writer, uint8_t read){
     print(writer, _FLASH("Hello from Arduino:"));
     println(writer, read);
     print(writer, _FLASH("uint32_t: "));
@@ -19,17 +22,26 @@ void testPrint(T writer, uint8_t read){
 }
 
 static constexpr auto uart0 = uart<0>{};
+#if (MODE == 0)
+static constexpr auto uart0tx = uart_sync_tx<uart<0>>{};
+#else
+auto uart0tx = uart_buf_tx<uart<0>, 32>{};
+FH_UART_TX(0, uart0tx);
+#endif
+
 
 int main(){
-	apply(
-        enable(irq),
+	apply(        
         uart0.begin()
+        , enable(irq)
     );    
 
     std::uint8_t i = 0;
 	while (true){
         auto read = i++;
         
-        testPrint(uart_sync_tx<0>{}, read);
+        testPrint(uart0tx, read);
+
+        delay_ms(1000);
 	}
 }
