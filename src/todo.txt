@@ -21,8 +21,8 @@
 + time stuff (millis, micros, delay). allow set WGM, get tov value based on wgm, support phase correct modes
 + print, write progmem stuff
 + I2C - ok stuff, prescaler 0 mode to speed things up (most commonly used). 
++ "miniRTOS" - javascript like setTimeout(), setInterval() - using setTimeout()
 
-* "miniRTOS" - javascript like setTimeout(), setInterval()
 * for uart, i2c and other async interfaces some nice async wrapper api like nodejs
 * ADC api similar to others
 * power modes (sleep/standby, etc.)

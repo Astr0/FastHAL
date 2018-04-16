@@ -11,32 +11,33 @@ FH_USE_TIME(time);
 
 constexpr auto led = ino<13>;
 constexpr auto uart0 = uart<0>{};
-// constexpr auto uart0tx = uart_sync_tx<0>{};
+constexpr auto uart0tx = uart_sync_tx<0>{};
 
-auto kernel = ::fasthal::sys_kernel<2>{};
+auto kernel = ::fasthal::sys_kernel<3>{};
 
 void blinkLed(){
-    //println(uart0tx, "blink");
-    // auto v = read_(led);
-    // set_(led, !v);
-    // kernel.setTimeout(v ? 500 : 1000, blinkLed);
-    toggle_(led);
-    kernel.setTimeout(500, blinkLed);
-    // if (PORTC != 0)
-    //     kernel.clearTimeout(blinkLed);
+    println(uart0tx, "blink");
+    auto v = read_(led);
+    set_(led, !v);
+    kernel.setTimeout(v ? 500 : 1000, blinkLed);
 }
 
-// void printStuff(){
-//     print(uart0tx, "I'm here: ");
-//     println(uart0tx, time_ms());
-//     kernel.setTimeout(5000, printStuff);
-// }
+void printStuff(){
+    print(uart0tx, "I'm here: ");
+    println(uart0tx, time_ms());
+    kernel.setTimeout(5000, printStuff);
+}
 
+void printStuff2(){
+    print(uart0tx, "and here: ");
+    println(uart0tx, time_ms());
+    kernel.setTimeout(2000, printStuff2);
+}
 
 int main(){
     apply(
         makeOutput(led)
-        //, uart0.begin()
+        , uart0.begin()
         , timer<0>::begin()
         , time.begin()        
         , enable(irq)
@@ -50,5 +51,7 @@ int main(){
     //kernel.setTimeout(0, blinkLed);
     //kernel.setTimeout(5000, printStuff);
     blinkLed();
+    printStuff();    
+    printStuff2();
     kernel.run();
 }
