@@ -204,7 +204,13 @@ namespace fasthal{
         static inline void stop(){ i2c_control(set(_i2c.stop)); }
         static inline void stop_start(){ i2c_control(set(_i2c.start), set(_i2c.stop)); }
         template<bool VRead, typename TAddress>
-        static inline void select(integral_constant<bool, VRead> mode, TAddress address) { tx(details::i2c_build_sla<VRead>(address)); }
+        static inline void select(integral_constant<bool, VRead> mode, TAddress address) { tx(details::i2c_build_sla<VRead>(address)); }        
+
+        // ------------------------------ irq
+        static inline void try_irq_sync(){
+            static_assert(lazy::async, "Not async");
+            try_irq_force(_i2c.irq);
+        }
 
         // ------------------------------ state
         static i2c_state state(){ return i2c_state { read_(_status) }; }
@@ -324,27 +330,6 @@ namespace fasthal{
     static auto start_mr_sync(i2c<VNum, TConfig> i, TAddress address, bsize_t bytes){
         return i2c_mr_sync<i2c<VNum, TConfig>>{ address, bytes };
     }
-
-    template<class TI2c, unsigned VSize>
-    class i2c_buf{
-    public:
-        // start MT 
-        template<typename TAddress>
-        bool mt(TAddress address){
-            return false;
-        }
-        
-        // // start MR 
-        // template<typename TAddress>
-        // bool mr(TAddress address, bsize_t bytes, callback){
-        //     return false;
-        // }
-
-        // buffered write
-        void write(std::uint8_t v){
-        }
-
-    };
 
     #include "i2c_impl.hpp"
 };

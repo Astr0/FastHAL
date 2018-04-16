@@ -1,6 +1,7 @@
-#define MODE 1
+#define MODE 2
 // 0 - sync
 // 1 - irq
+// 2 - buffered
 #include "fastduino.hpp"
 
 using namespace fasthal;
@@ -26,7 +27,7 @@ std::uint16_t bh1750_read(std::uint8_t mode){
     auto result = read_u16(mr);
     return mr ? ((result * 10U) / 12U) : 0U;
 }
-#else
+#elif (MODE == 1)
 uint16_t bh1750_last_light;
 bool bh1750_mode_set;
 uint16_t bh1750_current;
@@ -73,25 +74,69 @@ void handle_i2c(){
 
 FH_I2C(0, handle_i2c);
 
+#else
+
+auto i2c0_h = i2c_buf<decltype(i2c0), 16>{};
+FH_I2C(0, i2c0_h);
+
+uint16_t bh1750_last_light;
+
+// void bh1750_read();
+
+// void bh1750_read_done(){
+//     // check ok        
+//     auto result = read_u16(i2c0_h);
+//     i2c0_h.stop();
+//     bh1750_last_light = i2c0_h ? ((result * 10U) / 12U) : 0U;
+//     bh1750_read();
+// }
+
+// void bh1750_read(){
+//     i2c0_h.start_mr(address, 2, bh1750_read_done);
+// }
+
+void bh1750_set_mode(std::uint8_t mode);
+
+void bh1750_mode_set(){
+    if (!i2c0_h.master_done()){
+        print(uart0tx, "mode error: ");
+        println(uart0tx, static_cast<std::uint8_t>(i2c0_h.state()));
+        // stop bus
+        i2c0_h.stop();
+        bh1750_set_mode(0x10);
+    } else {
+        i2c0_h.stop();
+        println(uart0tx, "mode set");
+    }
+    // check if everything went fine
+    //bh1750_read();
+}
+
+void bh1750_set_mode(std::uint8_t mode){
+    i2c0_h.start_mt(address);
+    write(i2c0_h, mode);    
+    i2c0_h.flush(bh1750_mode_set);
+}
+
 #endif
 
 int main(){    
-    apply(
-        enable(irq)
+    apply(        
         // activate internal pull ups for i2c
-        , set(ino<SDA>)
+        set(ino<SDA>)
         , set(ino<SCL>)
         //Init i2c in master mode
         , i2c0.begin()
         //init uart
         , uart0.begin()
+        , enable(irq)
     );
 
-    #if (MODE == 0)
+    #if (MODE == 1)
+    i2c0.start();
+    #else
     // set mode
     bh1750_set_mode(0x10);
-    #else
-    i2c0.start();
     #endif
 
     while (1){

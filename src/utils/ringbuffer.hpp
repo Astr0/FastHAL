@@ -40,9 +40,13 @@ namespace fasthal{
             return empty() ? 0 : read_dirty();; 
         }
 
+        void write_dirty(data_t c){
+            _buffer[mask(_write++)] = c;
+        }
+
         bool try_write(data_t c){            
             if (full()) return false;
-            _buffer[mask(_write++)] = c;
+            write_dirty(c);
             return true;
         }
         
