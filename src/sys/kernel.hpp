@@ -62,13 +62,12 @@ namespace fasthal{
 
             return elapsed;
         }
+        
+        inline void remove_at(task_due* i){
+            *i = _tasks[--_size];
+        }
 
         void execute(time_t last, time_t elapsed){
-            // index_t i;
-            // {
-            //     auto lock = no_irq{};
-            //     i = _size;
-            // }
             auto i = &_tasks[_size];
             task_t task;
             while (i-- != _tasks){
@@ -77,21 +76,12 @@ namespace fasthal{
                     if (i->due - last > elapsed)
                         continue;
                     task = i->task;
-                    *i = _tasks[--_size];
-                    //remove_at(i);                                        
+                    remove_at(i);                                        
                 }
                 //println(debug, "exec");
                 task();
             }
         }
-
-        // void remove_at(index_t i){
-        //     auto sz = --_size;
-        //     //if (i < sz){
-        //         _tasks[i] = _tasks[sz];
-        //         _due[i] = _due[sz];
-        //     //}
-        // }
     public:
         bool setTimeout(time_t timeout, task_t task){
             timeout += timer_t::now();
@@ -99,8 +89,6 @@ namespace fasthal{
             if (_size == capacity)
                 return false;
             _tasks[_size++] = task_due { timeout, task };
-            // _tasks[_size] = task;
-            // _due[_size++] = timeout;
             _changed = true;
             //println(debug, "add");
             return true;
@@ -111,8 +99,7 @@ namespace fasthal{
             auto i = &_tasks[_size];
             while (i-- != _tasks)
                 if (i->task == task){
-                    *i = _tasks[--_size];
-                    //remove_at(i);
+                    remove_at(i);
                     _changed = true;
                     return true;
                 }

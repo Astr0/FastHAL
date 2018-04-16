@@ -17,8 +17,11 @@ constexpr auto uart0 = uart<0>{};
 auto kernel = ::fasthal::sys_kernel<2>{};
 
 void blinkLed(){
-    toggle_(led);
     //println(uart0tx, "blink");
+    // auto v = read_(led);
+    // set_(led, !v);
+    // kernel.setTimeout(v ? 500 : 1000, blinkLed);
+    toggle_(led);
     kernel.setTimeout(500, blinkLed);
 }
 
