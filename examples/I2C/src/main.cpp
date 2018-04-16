@@ -7,7 +7,7 @@ using namespace fasthal;
 using namespace fasthal::duino;
 
 static constexpr auto uart0 = uart<0>{};
-static constexpr auto uart0tx = uart_sync_tx<0>{};
+static constexpr auto uart0tx = uart_sync_tx<uart<0>>{};
 static constexpr auto i2c0 = i2c<0>{};
 static constexpr auto address = i2c_address_v<0x23>;
 

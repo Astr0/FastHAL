@@ -57,16 +57,6 @@ namespace fasthal{
         ready             = 0xF8  // no errors, ok state?
     };
 
-    // enum class i2c_s{    
-    //     ready = 0, // nothing is happening on i2c 
-    //     select, // after start - waiting select_w or select_r, really meaningless
-    //     mt, // in mt mode - can write or stop/start
-    //     mr, // in mr mode - can read only
-    //     mr_done, // done operation (usually mr). can stop/start
-    //     error, // some error occured (TODO: Detailed). can stop only
-    //     nack // received NACK for select or MT
-    // };    
-
     static constexpr auto i2c_mt = integral_constant<bool, false>{};
     static constexpr auto i2c_mr = integral_constant<bool, true>{};
 
@@ -129,88 +119,12 @@ namespace fasthal{
             return FH_CONST(i2c_build_sla<VRead>(VAddress));
         }
 
-        // constexpr auto i2c_state_norm(avr::tw_s s){
-        //     using s_t = avr::tw_s;
-
-        //     switch(s){
-        //         case s_t::bus_fail: // HW error on bus (invalid START/STOP condition). Need for bus restart.
-        //         case s_t::m_la: // another master took of the bus unexpectedly in select_w, select_r or write/readl. Need fail or start.
-        //             return i2c_s::error;
-        //         case s_t::mt_nack: // select_w sent, received NACK. Need write or start/stop/stop_start
-        //         case s_t::mt_write_nack: // MT write, received NACK. Need write or start/stop/stop_start
-        //         case s_t::mr_nack: // select_r sent, received NACK. Need read, readlast, repeated start, stop, stop_start
-        //             return i2c_s::nack;
-        //         case s_t::m_start: // Entered START. Need select_w or select_r
-        //         case s_t::m_restart: // Entered repeated START. Need select_w or select_r
-        //             return i2c_s::select;
-        //         case s_t::mt: // select_w sent, received ACK. Need write or start/stop/stop_start
-        //         case s_t::mt_write: // MT write, received ACK. Need write or start/stop/stop_start
-        //             return i2c_s::mt;
-        //         case s_t::mr: // select_r sent, received ACK. Need read/readl or start/stop/stop_start
-        //         case s_t::mr_read: // recevied byte ok. Need read/readl
-        //             return i2c_s::mr;
-        //         case s_t::mr_readl: // nack sent to slave after receiving byte, stop restart or stop/start will be transmitted, mr
-        //             return i2c_s::mr_done;
-        //         default:
-        //             return i2c_s::ready;
-        //         // // TODO: Slave thingy
-        //         // case s_t::sr:
-        //         //     // received own sla-w, ACK returned, will receive bytes and ACK/NACK, sr
-        //         //     break;
-        //         // case s_t::sr_la:
-        //         //     // arbitration lost in master sla-r/w, slave address matched
-        //         //     break;
-        //         // case s_t::sr_cast:
-        //         //     // broadcast has been received, ACK returned, will receive bytes and ACK/NACK, sr
-        //         //     break;
-        //         // case s_t::sr_cast_la:
-        //         //     // arbitration lost in master sla-r/w, sla+w broadcast, will receive bytes and ACK/NACK, sr
-        //         //     break;
-        //         // case s_t::sr_read:
-        //         //     // own data has been received, ACK returned, will receive bytes and ACK/NACK, sr
-        //         //     break;
-        //         // case s_t::sr_readl:
-        //         //     // own data has been received, NACK returned, reseting TWI, sr
-        //         //     break;
-        //         // case s_t::sr_read_cast:
-        //         //     // broadcast data has been received, ACK returned, will receive bytes and ACK/NACK, sr
-        //         //     break;
-        //         // case s_t::sr_readl_cast:
-        //         //     // broadcast data has been received, NACK returned, reseting TWI, sr
-        //         //     break;
-        //         // case s_t::sr_stop_restart:
-        //         //     // stop or start has been received while still addressed, reseting TWI, sr
-        //         //     break;
-        //         // case s_t::st:
-        //         //     // received own sla-r, ACK returned, will send bytes, st
-        //         //     break;
-        //         // case s_t::st_la:
-        //         //     // arbitration lost in master sla-r/w, slave address matched
-        //         //     break;
-        //         // case s_t::st_write:
-        //         //     // data byte was transmitted and ACK has been received, will send bytes, st
-        //         //     break;
-        //         // case s_t::st_writel:
-        //         //     // data byte was transmitted and NACK has been received, reseting TWI, st
-        //         //     break;
-        //         // case s_t::st_writel_ack:
-        //         //     // last data byte was transmitted and ACK has been received, reseting TWI, st
-        //         //     break;
-        //         // case s_t::ready:
-        //         //     // no errors, ok state?
-        //         //     break;
-        //     }
-        // }
     }
 
     class i2c_state{
         i2c_s _state;
     public:
         i2c_state(i2c_s state): _state(state) {}
-        
-        // s_t raw() { return _raw; }
-        // template<typename... TStates>
-        // bool raw_any(TStates... states) { return is_any(_raw, states...); }
 
         i2c_s state(){ return _state; }
         template<typename... TStates>
@@ -411,6 +325,26 @@ namespace fasthal{
         return i2c_mr_sync<i2c<VNum, TConfig>>{ address, bytes };
     }
 
+    template<class TI2c, unsigned VSize>
+    class i2c_buf{
+    public:
+        // start MT 
+        template<typename TAddress>
+        bool mt(TAddress address){
+            return false;
+        }
+        
+        // // start MR 
+        // template<typename TAddress>
+        // bool mr(TAddress address, bsize_t bytes, callback){
+        //     return false;
+        // }
+
+        // buffered write
+        void write(std::uint8_t v){
+        }
+
+    };
 
     #include "i2c_impl.hpp"
 };
