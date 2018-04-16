@@ -25,24 +25,24 @@ namespace fasthal{
 
         static auto now() { return timer_t::now(); }
 
-        // struct task_due{
-        //     time_t due;
-        //     task_t task;
-        // }
+        struct task_due{
+            time_t due;
+            task_t task;
+        };
 
         volatile bool _changed;
         volatile index_t _size;
-        task_t _tasks[capacity];
-        time_t _due[capacity];
+        task_due _tasks[capacity];
+        //time_t _due[capacity];
 
         time_t next_timeout(time_t last){
             time_t result = ~time_t{};
 
             auto lock = no_irq{};
-            auto i = _size;
-            while (i--)
+            auto i = &_tasks[_size];
+            while (i-- != _tasks)
             {
-                auto to = _due[i] - last;
+                auto to = i->due - last;
                 if (to < result)
                     result = to;
             }
@@ -69,36 +69,38 @@ namespace fasthal{
             //     auto lock = no_irq{};
             //     i = _size;
             // }
-            auto i = _size;
+            auto i = &_tasks[_size];
             task_t task;
-            while (i--){
+            while (i-- != _tasks){
                 {
                     auto lock = no_irq{};
-                    if (_due[i] - last > elapsed)
+                    if (i->due - last > elapsed)
                         continue;
-                    task = _tasks[i];
-                    remove_at(i);                                        
+                    task = i->task;
+                    *i = _tasks[--_size];
+                    //remove_at(i);                                        
                 }
                 //println(debug, "exec");
                 task();
             }
         }
 
-        void remove_at(index_t i){
-            auto sz = --_size;
-            //if (i < sz){
-                _tasks[i] = _tasks[sz];
-                _due[i] = _due[sz];
-            //}
-        }
+        // void remove_at(index_t i){
+        //     auto sz = --_size;
+        //     //if (i < sz){
+        //         _tasks[i] = _tasks[sz];
+        //         _due[i] = _due[sz];
+        //     //}
+        // }
     public:
         bool setTimeout(time_t timeout, task_t task){
             timeout += timer_t::now();
             auto lock = no_irq{};
             if (_size == capacity)
                 return false;
-            _tasks[_size] = task;
-            _due[_size++] = timeout;
+            _tasks[_size++] = task_due { timeout, task };
+            // _tasks[_size] = task;
+            // _due[_size++] = timeout;
             _changed = true;
             //println(debug, "add");
             return true;
@@ -106,10 +108,11 @@ namespace fasthal{
 
         bool clearTimeout(task_t task){
             auto lock = no_irq{};
-            auto i = _size;
-            while (i--)
-                if (_tasks[i] == task){
-                    remove_at(i);
+            auto i = &_tasks[_size];
+            while (i-- != _tasks)
+                if (i->task == task){
+                    *i = _tasks[--_size];
+                    //remove_at(i);
                     _changed = true;
                     return true;
                 }
