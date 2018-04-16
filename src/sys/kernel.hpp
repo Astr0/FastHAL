@@ -6,26 +6,22 @@
 #include "../utils/list.hpp"
 
 namespace fasthal{
+    using task_t = void (*)();
+
     namespace details{
         template<class TTimer = details::global_time_impl<>>
         struct sys_kernel_timer{
             static auto now() { return TTimer::ms(); }
         };
-
-        struct sys_kernal_default_executor{
-            using task_t = void(*)();
-            static inline void execute(task_t task){ task(); }
-        };
     }
 
-    template<std::size_t VMaxTasks, 
-        class TExecutor =  details::sys_kernal_default_executor,
+    template<std::size_t VMaxTasks,
         class TTimer = details::sys_kernel_timer<>>
     struct sys_kernel{
         using timer_t = TTimer;
         using time_t = decltype(timer_t::now());
         using index_t = brigand::number_type<VMaxTasks>;
-        using task_t = typename TExecutor::task_t;
+        
         static constexpr auto capacity = index_t{VMaxTasks};
         //static constexpr auto debug = uart_sync_tx<0>{};
 
@@ -93,7 +89,7 @@ namespace fasthal{
                     remove_at(i);                                        
                 }
                 //println(debug, "exec");
-                TExecutor::execute(task);
+                task();
             }
         }
     public:

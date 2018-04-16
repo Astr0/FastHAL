@@ -13,11 +13,6 @@ constexpr auto led = ino<13>;
 constexpr auto uart0 = uart<0>{};
 // constexpr auto uart0tx = uart_sync_tx<0>{};
 
-// struct switch_executor{
-//     using task_t = std::uint8_t;
-//     static inline void execute(task_t task);
-// };
-
 auto kernel = ::fasthal::sys_kernel<2>{};
 
 void blinkLed(){
@@ -35,12 +30,6 @@ void blinkLed(){
 //     print(uart0tx, "I'm here: ");
 //     println(uart0tx, time_ms());
 //     kernel.setTimeout(5000, printStuff);
-// }
-// void switch_executor::execute(switch_executor::task_t task){
-//     switch (task)
-//     {
-//         case 0: blinkLed(); break;
-//     }    
 // }
 
 
