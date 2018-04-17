@@ -1,9 +1,10 @@
-//#define RAW
-#define MODE 2
-// 0 - sync
-// 1 - irq
-// 2 - buffered
-// 3 - buffered, always block
+#define RAW
+#define MODE 4
+// 0 - sync (478 / 1 - 1 bytes left for RX)
+// 1 - irq (370 / 5 - 1 mode set, 2 current val, 2 pending val)
+// 2 - buffered (960 / 12 - 4 + 2 buffer, 2 callback, 1 state, 1 bytes left, 2 current val)
+// 3 - buffered, always block (910 / 9 - 1+2 buffer, 2 callback, 1 state, 1 bytes left, 2 current val)
+// 4 - async on buffers (670 / 9 - 2 tx buffer, 2 callback, 1 size, 2 current va, 2 buffer)
 #include "fastduino.hpp"
 
 using namespace fasthal;
@@ -79,7 +80,7 @@ void handle_i2c(){
 
 FH_I2C(0, handle_i2c);
 
-#else
+#elif (MODE == 2) || (MODE == 3)
 
 #if (MODE == 2)
 auto i2c0_h = i2c_buf<decltype(i2c0), 4>{};
@@ -131,6 +132,68 @@ void bh1750_set_mode(std::uint8_t mode){
     i2c0_h.start_mt(address);
     write(i2c0_h, mode);    
     i2c0_h.flush(bh1750_mode_set);
+}
+
+#elif (MODE == 4)
+auto i2c0_h = i2c_async<decltype(i2c0)>{};
+FH_I2C(0, i2c0_h);
+
+uint16_t bh1750_last_light;
+uint8_t bh1750_buf[2];
+
+void bh1750_read();
+
+void bh1750_read_done(i2c_async_r r){
+    i2c0_h.stop();
+
+    // print(uart0tx, "got: ");
+    // print(uart0tx, static_cast<std::uint8_t>(r));
+    // print(uart0tx, ' ');
+    // print(uart0tx, static_cast<std::uint8_t>(bh1750_buf[0]));
+    // print(uart0tx, ' ');
+    // println(uart0tx, static_cast<std::uint8_t>(bh1750_buf[1]));
+    if (r != i2c_async_r::done)
+        return;
+    
+    auto result = static_cast<uint16_t>(bh1750_buf[0]);
+    result <<= 8;
+    result |= bh1750_buf[1];
+
+    bh1750_last_light = (result * 10U) / 12U;
+    // something's here
+    bh1750_read();
+}
+
+void bh1750_read(){
+    // write sla    
+    bh1750_buf[0] = i2c_build_sla(i2c_mr, address);
+    // address doesn't count as received byte and gets overwritten
+    i2c0_h.start(bh1750_buf, 2, bh1750_read_done);
+}
+
+void bh1750_set_mode(std::uint8_t mode);
+
+void bh1750_mode_set(i2c_async_r r){
+    // stop bus
+    i2c0_h.stop();
+    // we don't repeat in other examples - for fairness
+    bh1750_read();
+    // if (done){
+    //     //println(uart0tx, "mode set");
+    //     bh1750_read();
+    // } else {
+    //     // print(uart0tx, "mode error: ");
+    //     // println(uart0tx, static_cast<std::uint8_t>(i2c0_h.state()));
+    //     bh1750_set_mode(0x10);
+    // }
+    // check if everything went fine    
+}
+
+void bh1750_set_mode(std::uint8_t mode){
+    bh1750_buf[0] = i2c_build_sla(i2c_mt, address);
+    bh1750_buf[1] = mode;
+    // address counts as send byte
+    i2c0_h.start(bh1750_buf, 2, bh1750_mode_set);
 }
 
 #endif

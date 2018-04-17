@@ -61,8 +61,8 @@ namespace fasthal{
         ready             = 0xF8  // no errors, ok state?
     };
 
-    static constexpr auto i2c_mt = integral_constant<bool, false>{};
-    static constexpr auto i2c_mr = integral_constant<bool, true>{};
+    static constexpr auto i2c_mt = false;
+    static constexpr auto i2c_mr = true;
 
     static constexpr auto i2c_more = integral_constant<bool, true>{};
     static constexpr auto i2c_last = integral_constant<bool, false>{};
@@ -75,7 +75,7 @@ namespace fasthal{
 
     using i2c_address_t = std::uint8_t;
     template<i2c_address_t V>
-    constexpr auto i2c_address_v = integral_constant<i2c_address_t, V>{};
+    constexpr auto i2c_address_v = V;
 
     namespace details{        
         template<unsigned VNum>
@@ -111,19 +111,7 @@ namespace fasthal{
         inline constexpr auto i2c_calc_twbr(integral_constant<TFreq, VFreq> freq, integral_constant<i2c_ps, VPs> ps) {
             constexpr auto result = i2c_calc_twbr(VFreq, VPs);
             return integral_constant<std::uint8_t, result>{};
-        }
-        
-        template<bool VRead, typename TAddress>
-        inline constexpr auto i2c_build_sla(TAddress address){
-            auto result = static_cast<std::uint8_t>(static_cast<std::uint8_t>(address) << 1);
-            if constexpr (VRead)
-                result |= 1;
-            return result;
-        }
-        template<bool VRead, typename TAddress, TAddress VAddress>
-        inline constexpr auto i2c_build_sla(integral_constant<TAddress, VAddress> address){
-            return FH_CONST(i2c_build_sla<VRead>(VAddress));
-        }
+        }      
 
     }
 
@@ -148,6 +136,13 @@ namespace fasthal{
         bool can_stop() { return !mr_ok(); }
         //bool can_stop() { return mt_ok() || mr_done() || m_nack() || error(); }
     };
+
+    inline constexpr auto i2c_build_sla(bool read, i2c_address_t address){
+        address <<= 1;
+        if (read)
+            address |= 1;
+        return address;
+    }
 
     struct i2c_config{
         static constexpr auto ps_def = true;
@@ -210,8 +205,6 @@ namespace fasthal{
         static inline void start(){ i2c_control(set(_i2c.start)); }
         static inline void stop(){ i2c_control(set(_i2c.stop)); }
         static inline void stop_start(){ i2c_control(set(_i2c.start), set(_i2c.stop)); }
-        template<bool VRead, typename TAddress>
-        static inline void select(integral_constant<bool, VRead> mode, TAddress address) { tx(details::i2c_build_sla<VRead>(address)); }        
 
         // ------------------------------ irq
         static constexpr auto irq = _i2c.irq;
@@ -224,6 +217,7 @@ namespace fasthal{
 };
 
 #include "i2c_sync.hpp"
+#include "i2c_async.hpp"
 #include "i2c_buf.hpp"
 
 #endif

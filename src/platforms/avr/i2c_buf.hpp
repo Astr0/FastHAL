@@ -6,6 +6,7 @@
 #include "../../utils/ringbuffer.hpp"
 #include "interrupts.hpp"
 
+// fancy buffered streaming i2c handler, probably too fancy for AVR
 namespace fasthal{
     enum class i2c_buf_s: std::uint8_t{
         ready = 0,
@@ -91,16 +92,14 @@ namespace fasthal{
         bool master_ok() { return _state == i2c_buf_s::done; }
 
         // start MT 
-        template<typename TAddress>
-        bool start_mt(TAddress address, i2c_start type = i2c_start::start){            
-            return start_mt_impl(static_cast<const std::uint8_t>(details::i2c_build_sla<false>(address)), type);
+        bool start_mt(i2c_address_t address, i2c_start type = i2c_start::start){            
+            return start_mt_impl(address << 1, type);
         }
 
-        // start MR
-        template<typename TAddress>
-        bool start_mr(TAddress address, bsize_t count, callback_t callback, i2c_start type = i2c_start::start){
+        // start MR        
+        bool start_mr(i2c_address_t address, bsize_t count, callback_t callback, i2c_start type = i2c_start::start){
             return start_mr_impl(
-                    static_cast<const std::uint8_t>(details::i2c_build_sla<true>(address)), 
+                    (address << 1) | 1,
                     count, 
                     callback,
                     type);

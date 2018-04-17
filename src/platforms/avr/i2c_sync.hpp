@@ -3,6 +3,7 @@
 
 #include "i2c.hpp"
 
+// simple sync i2c master handler.
 namespace fasthal {    
     template <class TI2c>
     class i2c_sync{
@@ -31,14 +32,12 @@ namespace fasthal {
 
         static inline auto state(){ return _i2c.state(); }
 
-        template<typename TAddress>
-        static void start_mt(TAddress address){
-            start_impl(static_cast<const std::uint8_t>(details::i2c_build_sla<false>(address)));
+        static void start_mt(i2c_address_t address){
+            start_impl(address << 1);
         }
-
-        template<typename TAddress>
-        void start_mr(TAddress address, bsize_t count){
-            if (start_impl(static_cast<const std::uint8_t>(details::i2c_build_sla<true>(address))))
+        
+        void start_mr(i2c_address_t address, bsize_t count){
+            if (start_impl((address << 1) | 1))
                 _bytesLeft = count;
         }
 
