@@ -1,8 +1,9 @@
-//#define RAW
-#define MODE 2
+#define RAW
+#define MODE 3
 // 0 - sync
 // 1 - irq
 // 2 - buffered
+// 3 - buffered, always block
 #include "fastduino.hpp"
 
 using namespace fasthal;
@@ -80,7 +81,11 @@ FH_I2C(0, handle_i2c);
 
 #else
 
+#if (MODE == 2)
 auto i2c0_h = i2c_buf<decltype(i2c0), 4>{};
+#else
+auto i2c0_h = i2c_buf<decltype(i2c0), 1>{};
+#endif
 FH_I2C(0, i2c0_h);
 
 uint16_t bh1750_last_light;
