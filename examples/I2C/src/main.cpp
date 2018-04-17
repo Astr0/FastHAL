@@ -1,5 +1,5 @@
 //#define RAW
-#define MODE 0
+#define MODE 2
 // 0 - sync
 // 1 - irq
 // 2 - buffered
@@ -93,9 +93,8 @@ void bh1750_read_done(){
     // check ok        
     auto result = read_u16(i2c0_h);
 
-    auto done = i2c0_h.master_ok();
+    auto done = i2c0_h.stop();
 
-    i2c0_h.stop();
     bh1750_last_light = done ? ((result * 10U) / 12U) : 0U;
     // something's here
     bh1750_read();
@@ -108,17 +107,18 @@ void bh1750_read(){
 void bh1750_set_mode(std::uint8_t mode);
 
 void bh1750_mode_set(){
-    auto done = i2c0_h.master_ok();
     // stop bus
     i2c0_h.stop();
-    if (done){
-        //println(uart0tx, "mode set");
-        bh1750_read();
-    } else {
-        // print(uart0tx, "mode error: ");
-        // println(uart0tx, static_cast<std::uint8_t>(i2c0_h.state()));
-        bh1750_set_mode(0x10);
-    }
+    // we don't repeat in other examples - for fairness
+    bh1750_read();
+    // if (done){
+    //     //println(uart0tx, "mode set");
+    //     bh1750_read();
+    // } else {
+    //     // print(uart0tx, "mode error: ");
+    //     // println(uart0tx, static_cast<std::uint8_t>(i2c0_h.state()));
+    //     bh1750_set_mode(0x10);
+    // }
     // check if everything went fine    
 }
 

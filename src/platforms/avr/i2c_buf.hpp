@@ -17,9 +17,6 @@ namespace fasthal{
         nack,
         error
     };
-    constexpr auto i2c_buf_start = integral_constant<std::uint8_t, 0>{};
-    constexpr auto i2c_buf_stop_start = integral_constant<std::uint8_t, 1>{};
-    constexpr auto i2c_buf_restart = integral_constant<std::uint8_t, 2>{};
 
     template<class TI2c, unsigned VSize, typename TCallback = void (*)()>
     class i2c_buf{
@@ -47,7 +44,8 @@ namespace fasthal{
             // set error state
             _state = state;
 
-            _buf.clear();
+            // callback will clear in stop
+            // _buf.clear();
                 
             // in case of MT we don't have callback yet so flush will handle it
             if (in_mt)
@@ -68,7 +66,9 @@ namespace fasthal{
             }
 
             // buf should be empty in ready or done state, but just in case
-            _buf.clear();
+            // callback should clear in stop
+            // _buf.clear();
+
             _buf.write_dirty(sla);
 
             if  (type == i2c_start::stop_start){
@@ -140,7 +140,7 @@ namespace fasthal{
                 // have something - great
                 if (!_buf.empty())
                     return _buf.read_dirty();
-                // check state
+                // check state - if it's not in mr_block then something went wrong
                 if (_state != i2c_buf_s::mr_block)
                     return 0;
                 // wait for data in blocking mode            
@@ -164,8 +164,8 @@ namespace fasthal{
             {
                 auto lock = no_irq{};
                 if (_state == i2c_buf_s::mt){
-                    _state = i2c_buf_s::mt_flush;
                     _callback = callback;
+                    _state = i2c_buf_s::mt_flush;
                     // try to tick irq in case we're done or run out of buf somewhere
                     i2c_t::try_irq_sync_no_irq();
                     return;
@@ -175,10 +175,12 @@ namespace fasthal{
             callback();
         }
 
-        void stop(){
+        // return if everything went ok
+        bool stop(){
             // no lock - it's only called from callback
             //auto lock = no_irq{};
-            if (_state == i2c_buf_s::done){
+            auto ok = _state == i2c_buf_s::done;
+            if (ok){
                 // really stop
                 i2c_t::stop();
             }
@@ -186,6 +188,8 @@ namespace fasthal{
             _buf.clear();
             // otherwise it's called from failed callback just release the bus
             _state = i2c_buf_s::ready;
+
+            return ok;
         }
 
         // fsm
