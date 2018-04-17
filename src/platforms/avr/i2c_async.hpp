@@ -61,9 +61,10 @@ namespace fasthal{
                     if (c == 0) 
                         break;
                 tx:       
-                    _i2c.tx(*v);
                     _count = c - 1;
                     _buf = v + 1;
+                txo:
+                    _i2c.tx(*v);
                     return;
                 case i2c_s::m_start: // Entered START. Need select_w or select_r
                 case i2c_s::m_restart: // Entered repeated START. Need select_w or select_r
@@ -71,8 +72,7 @@ namespace fasthal{
                     if (((*v) & 1) == 0)
                         goto tx;
                     // count bytes will be overriden in place of SLA
-                    _i2c.tx(*v);
-                    return;
+                    goto txo;
                 case i2c_s::mt_nack: // select_w sent, received NACK. Need write or start/stop/stop_start
                 case i2c_s::mt_write_nack: // MT write, received NACK. Need write or start/stop/stop_start
                 case i2c_s::mr_nack: // select_r sent, received NACK. Need read, readlast, repeated start, stop, stop_start
