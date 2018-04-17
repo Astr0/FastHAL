@@ -76,6 +76,12 @@ namespace fasthal{
             details::isr<VNum>();
     }
 
+    template<unsigned VNum>
+    inline void try_irq_force_no_irq(interrupt<VNum> i){
+        if (ready_(i))
+            details::isr<VNum>();
+    }
+
     #endif
 }
 

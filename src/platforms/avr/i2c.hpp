@@ -211,6 +211,10 @@ namespace fasthal{
             static_assert(lazy::async, "Not async");
             try_irq_force(_i2c.irq);
         }
+         static inline void try_irq_sync_no_irq(){
+            static_assert(lazy::async, "Not async");
+            try_irq_force_no_irq(_i2c.irq);
+        }
 
         // ------------------------------ state
         static i2c_state state(){ return i2c_state { read_(_status) }; }

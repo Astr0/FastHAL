@@ -1,3 +1,4 @@
+//#define RAW
 #define MODE 2
 // 0 - sync
 // 1 - irq
@@ -76,7 +77,7 @@ FH_I2C(0, handle_i2c);
 
 #else
 
-auto i2c0_h = i2c_buf<decltype(i2c0), 16>{};
+auto i2c0_h = i2c_buf<decltype(i2c0), 4>{};
 FH_I2C(0, i2c0_h);
 
 uint16_t bh1750_last_light;
@@ -84,15 +85,13 @@ uint16_t bh1750_last_light;
 void bh1750_read();
 
 void bh1750_read_done(){
-    auto done = i2c0_h.master_done();
-    // if (done)
-    // {
-    //     println(uart0tx, "read done");
-    // } else{
-    //     println(uart0tx, "read failed");
-    // }
+    // if (i2c0_h.state() == i2c_buf_s::mr_block)
+    //     println(uart0tx, "block");
     // check ok        
     auto result = read_u16(i2c0_h);
+
+    auto done = i2c0_h.master_ok();
+
     i2c0_h.stop();
     bh1750_last_light = done ? ((result * 10U) / 12U) : 0U;
     // something's here
@@ -106,7 +105,7 @@ void bh1750_read(){
 void bh1750_set_mode(std::uint8_t mode);
 
 void bh1750_mode_set(){
-    auto done = i2c0_h.master_done();
+    auto done = i2c0_h.master_ok();
     // stop bus
     i2c0_h.stop();
     if (done){
@@ -136,7 +135,9 @@ int main(){
         //Init i2c in master mode
         , i2c0.begin()
         //init uart
+        #ifndef RAW
         , uart0.begin()
+        #endif
         , enable(irq)
     );
 
@@ -157,9 +158,13 @@ int main(){
             light = bh1750_last_light;
         }
         #endif
+        #ifndef RAW
         print(uart0tx, "Lux: ");
         print(uart0tx, light);
         println(uart0tx, " lx");
         delay_ms(1000);
+        #else
+        TCNT0 = light;        
+        #endif
     }
 }
