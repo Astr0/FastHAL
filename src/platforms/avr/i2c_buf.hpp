@@ -28,33 +28,6 @@ namespace fasthal{
         ring_buffer<VSize> _buf;
         callback_t _callback;
 
-        void handle_master_done(i2c_buf_s state = i2c_buf_s::done){
-            _state = state;
-            _callback();
-        }
-
-        void handle_master_error(i2c_buf_s state){
-            // this is called from irq or lock, don't need to tripple lock
-            // auto lock = no_irq{};
-            auto in_mt = _state == i2c_buf_s::mt;
-
-            // stop i2c asap to free HW line
-            i2c_t::stop();
-
-            // set error state
-            _state = state;
-
-            // callback will clear in stop
-            // _buf.clear();
-                
-            // in case of MT we don't have callback yet so flush will handle it
-            if (in_mt)
-                return;
-
-            // signal callback that something wen't wrong and allow it to reset thing up
-            _callback();
-        }
-
         // should be called under lock with ok params
         bool start_impl(std::uint8_t sla, i2c_start type) {
             if (type == i2c_start::start){
@@ -195,6 +168,7 @@ namespace fasthal{
         // fsm
         void operator()(){
             auto s = i2c_t::state();
+            auto state = _state;
             switch (s.state()){
                 case i2c_s::m_start: // Entered START. Need select_w or select_r
                 case i2c_s::m_restart: // Entered repeated START. Need select_w or select_r
@@ -207,43 +181,55 @@ namespace fasthal{
                     // ok.. here we might not have anything in buffer... in this case END command should do something or buffer will overflow and we'll get in business again
                     // typically this should never happen in normal app, just for slow handlers or fast i2c's
                     // oh - and can't stop IRQ cause of slave mode
-                    if (!_buf.empty())
+                    if (!_buf.empty()) {
                         tx_dirty();
-                    else if (_state==i2c_buf_s::mt_flush)
-                        handle_master_done();
+                    } else if (state==i2c_buf_s::mt_flush)
+                    {
+                        _state = i2c_buf_s::done;
+                        _callback();
+                    }
                     // else send not done, but no buffer - flush or blocking write will trigger us again
                     break;
                 case i2c_s::mt_nack: // select_w sent, received NACK. Need write or start/stop/stop_start
                 case i2c_s::mt_write_nack: // MT write, received NACK. Need write or start/stop/stop_start
                 case i2c_s::mr_nack: // select_r sent, received NACK. Need read, readlast, repeated start, stop, stop_start
                     // stop implicit
-                    handle_master_error(i2c_buf_s::nack);
-                    break;
+                    _state = i2c_buf_s::nack;
+                    // goto error handling
+                    goto error;
                 case i2c_s::bus_fail:  // HW error on bus (invalid START/STOP condition). Need for bus restart.                    
                 case i2c_s::m_la: // another master took of the bus unexpectedly in select_w, select_r or write/readl. Need fail or start.
                     // another stop
-                    handle_master_error(i2c_buf_s::error);
+                    _state = i2c_buf_s::error;
+                error:
+                    i2c_t::stop();
+                    if (state != i2c_buf_s::mt)
+                        _callback();
                     break;
                 case i2c_s::mr_read: // recevied byte ok. Need read/readl
                 case i2c_s::mr_readl: // nack sent to slave after receiving byte, stop restart or stop/start will be transmitted, mr                    
                     if (_buf.full()) {
                         // out of buffer - run sync
                         // already running sync? impossible, but better not call callbacks recursively
-                        if (_state != i2c_buf_s::mr_block)
-                            handle_master_done(i2c_buf_s::mr_block);
-                        break;
+                        _state = i2c_buf_s::mr_block;
+                        goto mr_block_cb;
+                        // if (state == i2c_buf_s::mr_block)
+                        //     break;                        
+                        // _callback();
+                        //     //handle_master_done(i2c_buf_s::mr_block);                        
+                        // break;
                     }
                     _buf.write_dirty(i2c_t::rx());
                     // fall to next case
                 case i2c_s::mr: // select_r sent, received ACK. Need read/readl or start/stop/stop_start
                     if (_bytesLeft == 0) {
-                        if (_state != i2c_buf_s::mr_block)
-                            handle_master_done();
-                        else
-                            _state = i2c_buf_s::done;
-                    } else {
-                        i2c_t::rx_ask(--_bytesLeft);
-                    }
+                        _state = i2c_buf_s::done;
+                mr_block_cb:
+                        if (state != i2c_buf_s::mr_block)
+                            _callback();   
+                        break;                     
+                    } 
+                    i2c_t::rx_ask(--_bytesLeft);
                     break;
                 // slave statuses
                 // case i2c_s::sr: // received own sla-w, ACK returned, will receive bytes and ACK/NACK, sr
