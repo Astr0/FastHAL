@@ -17,13 +17,6 @@ namespace fasthal{
         nack,
         error
     };
-
-    enum class i2c_start: std::uint8_t{
-        start = 0,
-        stop_start = 1,
-        restart = 2
-    };
-
     constexpr auto i2c_buf_start = integral_constant<std::uint8_t, 0>{};
     constexpr auto i2c_buf_stop_start = integral_constant<std::uint8_t, 1>{};
     constexpr auto i2c_buf_restart = integral_constant<std::uint8_t, 2>{};
@@ -36,14 +29,10 @@ namespace fasthal{
         volatile i2c_buf_s _state;
         volatile bsize_t _bytesLeft;
         ring_buffer<VSize> _buf;
-        callback_t _callback;    
+        callback_t _callback;
 
         void handle_master_done(i2c_buf_s state = i2c_buf_s::done){
-            auto in_blocking_mr = _state == i2c_buf_s::mr_block;
             _state = state;
-            // we already in callback - don't call it again
-            if (in_blocking_mr)
-                return;
             _callback();
         }
 
@@ -121,6 +110,9 @@ namespace fasthal{
             i2c_t::tx(_buf.read_dirty());
         }
     public:
+        constexpr i2c_buf(){}
+        i2c_buf(const i2c_buf<TI2c, VSize>&) = delete;
+
         // state checking
         i2c_buf_s state() { return _state; }
         bool master_ok() { return _state == i2c_buf_s::done; }
@@ -133,7 +125,7 @@ namespace fasthal{
 
         // start MR
         template<typename TAddress>
-        bool start_mr(TAddress address, bsize_t count, callback_t callback, i2c_start type = i2c_start::start){            
+        bool start_mr(TAddress address, bsize_t count, callback_t callback, i2c_start type = i2c_start::start){
             return start_mr_impl(
                     static_cast<const std::uint8_t>(details::i2c_build_sla<true>(address)), 
                     count, 
@@ -168,16 +160,16 @@ namespace fasthal{
         }
 
         // end mt. callback can't be nullptr cause it has to do something 
-        void flush(callback_t callback){            
+        void flush(callback_t callback){
             {
-                auto lock = no_irq{};            
+                auto lock = no_irq{};
                 if (_state == i2c_buf_s::mt){
                     _state = i2c_buf_s::mt_flush;
                     _callback = callback;
                     // try to tick irq in case we're done or run out of buf somewhere
                     i2c_t::try_irq_sync_no_irq();
                     return;
-                } 
+                }
             }
             // state not right... or done - invoke callback. it will stop to clean things up
             callback();
@@ -241,9 +233,12 @@ namespace fasthal{
                     // fall to next case
                 case i2c_s::mr: // select_r sent, received ACK. Need read/readl or start/stop/stop_start
                     if (_bytesLeft == 0) {
-                        handle_master_done();
+                        if (_state != i2c_buf_s::mr_block)
+                            handle_master_done();
+                        else
+                            _state = i2c_buf_s::done;
                     } else {
-                        i2c_t::rx_ask((--_bytesLeft) != 0);
+                        i2c_t::rx_ask(--_bytesLeft);
                     }
                     break;
                 // slave statuses

@@ -19,6 +19,10 @@ namespace fasthal{
     };
     template<i2c_ps V>
     static constexpr auto i2c_ps_v = integral_constant<i2c_ps, V>{};
+
+    template<std::uint32_t V>
+    constexpr auto i2c_freq_v = integral_constant<std::uint32_t, V>{};
+    constexpr auto i2c_freq_def = i2c_freq_v<100000L>;
         
     // status
     enum class i2c_s: std::uint8_t{
@@ -63,14 +67,16 @@ namespace fasthal{
     static constexpr auto i2c_more = integral_constant<bool, true>{};
     static constexpr auto i2c_last = integral_constant<bool, false>{};
 
+    enum class i2c_start: std::uint8_t{
+        start = 0,
+        stop_start = 1,
+        restart = 2
+    };
+
     using i2c_address_t = std::uint8_t;
     template<i2c_address_t V>
     constexpr auto i2c_address_v = integral_constant<i2c_address_t, V>{};
 
-    template<std::uint32_t V>
-    constexpr auto i2c_freq_v = integral_constant<std::uint32_t, V>{};
-    constexpr auto i2c_freq_def = i2c_freq_v<100000L>;
-    
     namespace details{        
         template<unsigned VNum>
         struct i2c_impl{
@@ -134,6 +140,7 @@ namespace fasthal{
         bool mr_ok() { return state_any(i2c_s::mr_read, i2c_s::mr); }
         bool mr_done() { return state_any(i2c_s::mr_readl); }
         bool mr_ok_done() { return mr_ok() || mr_done(); }
+        bool master_ok() { return mt_ok() || mr_ok_done(); }
         bool m_nack() { return state_any(i2c_s::mr_nack, i2c_s::mt_nack, i2c_s::mt_write_nack); }
         bool error() { return state_any(i2c_s::bus_fail, i2c_s::m_la); }
 
@@ -220,122 +227,10 @@ namespace fasthal{
         static i2c_state state(){ return i2c_state { read_(_status) }; }
     };
 
-    // ***************************************************** "extension methods"
-    // start master operation
-    template<unsigned VNum, class TConfig, bool VRead, typename TAddress>
-    static void try_start(i2c<VNum, TConfig> i, integral_constant<bool, VRead> mode, TAddress address) {
-        // check start state
-        // select can't be here really according to our fsm
-        if (!i.state().can_start())
-            return;
-
-        i.start();
-        while (!i.ready());
-        // don't check started. there should be no errors after start, it blocks
-        // if (_f.get_state() != i2c_s::select) return false;
-
-        i.select(mode, address);
-        while (!i.ready());
-    }
-
-    // stop master operation
-    template<unsigned VNum, class TConfig>
-    static void try_stop(i2c<VNum, TConfig> i){
-        if (!i.state().can_stop()) return;
-        i.stop();
-        while (i.stopping());
-    }
-
-    // **********************************  sync mt ostream
-    template <class TI2c>
-    class i2c_mt_sync{
-        static constexpr auto _i2c = TI2c{};
-    public:
-        template<typename TAddress>
-        i2c_mt_sync(TAddress address){
-            try_start(_i2c, i2c_mt, address);
-        }
-
-        i2c_mt_sync(const i2c_mt_sync<TI2c>&) = delete;
-
-        static inline auto state(){ return _i2c.state(); }
-        static inline auto ok(){ return state().mt_ok(); };
-
-        inline operator bool(){ return ok(); }
-
-        static void write(std::uint8_t b){
-            if (!ok()) return;
-            _i2c.tx(b);
-            while (!_i2c.ready());
-        }
-
-        ~i2c_mt_sync() {
-            //println(uart_sync_tx<0>{}, "~");
-            try_stop(_i2c);
-        }
-    };
-
-    namespace details{
-        template<class TI2c> struct is_ostream_impl<i2c_mt_sync<TI2c>>: std::true_type{};
-    }
-    template<class TI2c>
-    void write(i2c_mt_sync<TI2c>& mt, std::uint8_t b){ mt.write(b); }
-
-
-    template <unsigned VNum, class TConfig, typename TAddress>
-    static auto start_mt_sync(i2c<VNum, TConfig> i, TAddress address){
-        return i2c_mt_sync<i2c<VNum, TConfig>>{ address };
-    }
-
-    // **********************************  sync mr istream
-    template <class TI2c>
-    class i2c_mr_sync{
-        static constexpr auto _i2c = TI2c{};
-        bsize_t _bytesLeft;
-
-    public:
-        template<typename TAddress>
-        i2c_mr_sync(TAddress address, bsize_t willRead): _bytesLeft(willRead){
-            try_start(_i2c, i2c_mr, address);
-        }
-
-        i2c_mr_sync(const i2c_mr_sync<TI2c>&) = delete;
-
-        static inline auto state(){ return _i2c.state(); }
-        static inline auto ok(){ return state().mr_ok_done(); };
-        inline operator bool(){ return ok(); }
-
-        std::uint8_t read(){
-            // return garabe
-            if (!state().mr_ok()) return 0;
-            // we don't check programmer issues with not telling how many bytes to read, etc.
-            // Ask for next byte
-            _i2c.rx_ask(--_bytesLeft);            
-            while (!_i2c.ready());            
-            
-            // even if state is wrong, we should return some garbage data (check what's wrong on start/stop next time)
-            return _i2c.rx();
-        }
-
-        ~i2c_mr_sync() {
-            //println(uart_sync_tx<0>{}, "~");
-            try_stop(_i2c);
-        }
-    };
-
-    namespace details{
-        template<class TI2c> struct is_istream_impl<i2c_mr_sync<TI2c>>: std::true_type{};
-    }
-    template<class TI2c>
-    std::uint8_t read(i2c_mr_sync<TI2c>& mr){ return mr.read(); }
-
-
-    template <unsigned VNum, class TConfig, typename TAddress>
-    static auto start_mr_sync(i2c<VNum, TConfig> i, TAddress address, bsize_t bytes){
-        return i2c_mr_sync<i2c<VNum, TConfig>>{ address, bytes };
-    }
-
     #include "i2c_impl.hpp"
 };
+
+#include "i2c_sync.hpp"
+#include "i2c_buf.hpp"
 
 #endif

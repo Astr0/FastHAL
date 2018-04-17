@@ -1,5 +1,5 @@
 //#define RAW
-#define MODE 2
+#define MODE 0
 // 0 - sync
 // 1 - irq
 // 2 - buffered
@@ -9,24 +9,27 @@ using namespace fasthal;
 using namespace fasthal::duino;
 
 static constexpr auto uart0 = uart<0>{};
-static constexpr auto uart0tx = uart_sync_tx<uart<0>>{};
+#ifndef RAW
+static auto uart0tx = uart_buf_tx<uart<0>, 32>{};
+FH_UART_TX(0, uart0tx);
+#endif
 static constexpr auto i2c0 = i2c<0>{};
 static constexpr auto address = i2c_address_v<0x23>;
 
 #if (MODE == 0)
-bool bh1750_set_mode(std::uint8_t mode){
-    auto mt = start_mt_sync(i2c0, address);
-    write(mt, mode);    
-    return mt;
+auto i2c0_h = i2c_sync<i2c<0>>{};
+
+void bh1750_set_mode(std::uint8_t mode){
+    i2c0_h.start_mt(address);
+    write(i2c0_h, mode);
+    i2c0_h.stop();
 }
 
 std::uint16_t bh1750_read(std::uint8_t mode){
-    // if (!bh1750_set_mode(mode))
-    //      return 0;
-
-    auto mr = start_mr_sync(i2c0, address, 2);
-    auto result = read_u16(mr);
-    return mr ? ((result * 10U) / 12U) : 0U;
+    i2c0_h.start_mr(address, 2);
+    auto result = read_u16(i2c0_h);
+    auto ok = i2c0_h.stop().mr_ok_done();
+    return ok ? ((result * 10U) / 12U) : 0U;
 }
 #elif (MODE == 1)
 uint16_t bh1750_last_light;
