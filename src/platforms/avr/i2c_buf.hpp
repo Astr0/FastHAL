@@ -117,7 +117,9 @@ namespace fasthal{
                 if (_state != i2c_buf_s::mr_block)
                     return 0;
                 // wait for data in blocking mode            
-                i2c_t::try_irq_sync_no_irq();
+                if (ready_(i2c_t::irq))
+                    run(i2c_t::irq);
+                //i2c_t::try_irq_sync_no_irq();
             }
         }
 
@@ -129,7 +131,10 @@ namespace fasthal{
             //auto lock = no_irq{};
             // write buffered or blocking
             while (_state == i2c_buf_s::mt && !_buf.try_write(v))
-                i2c_t::try_irq_sync_no_irq();
+                //if (!enabled_(irq) && ready_(i2c_t::irq))
+                if (ready_(i2c_t::irq))
+                    run(i2c_t::irq);
+                //i2c_t::try_irq_sync_no_irq();
         }
 
         // end mt. callback can't be nullptr cause it has to do something 
@@ -140,7 +145,9 @@ namespace fasthal{
                     _callback = callback;
                     _state = i2c_buf_s::mt_flush;
                     // try to tick irq in case we're done or run out of buf somewhere
-                    i2c_t::try_irq_sync_no_irq();
+                    if (ready_(i2c_t::irq))
+                        run(i2c_t::irq);
+                    //i2c_t::try_irq_sync_no_irq();
                     return;
                 }
             }

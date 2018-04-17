@@ -62,6 +62,11 @@ namespace fasthal{
     namespace fasthal::details{ template<> struct isr_handler<VECTOR>{ static inline void handle() { HANDLER(); } }; }\
     ISR(_VECTOR(VECTOR)) { fasthal::details::isr<VECTOR>(); }    
 
+    template<unsigned VNum>
+    inline void run(interrupt<VNum> i){
+        details::isr<VNum>();
+    }    
+
     // runs irq if it's ready and enabled, but global interrupts disabled
     template<unsigned VNum>
     inline void try_irq(interrupt<VNum> i){

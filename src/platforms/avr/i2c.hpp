@@ -214,14 +214,7 @@ namespace fasthal{
         static inline void select(integral_constant<bool, VRead> mode, TAddress address) { tx(details::i2c_build_sla<VRead>(address)); }        
 
         // ------------------------------ irq
-        static inline void try_irq_sync(){
-            static_assert(lazy::async, "Not async");
-            try_irq_force(_i2c.irq);
-        }
-         static inline void try_irq_sync_no_irq(){
-            static_assert(lazy::async, "Not async");
-            try_irq_force_no_irq(_i2c.irq);
-        }
+        static constexpr auto irq = _i2c.irq;
 
         // ------------------------------ state
         static i2c_state state(){ return i2c_state { read_(_status) }; }

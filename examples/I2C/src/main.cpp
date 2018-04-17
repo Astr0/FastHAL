@@ -1,5 +1,5 @@
-#define RAW
-#define MODE 3
+//#define RAW
+#define MODE 2
 // 0 - sync
 // 1 - irq
 // 2 - buffered
