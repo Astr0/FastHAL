@@ -2,30 +2,26 @@
 #define FH_I2C_ASYNC_H_
 
 #include "../../std/std_types.hpp"
+#include "../../hal/i2c.hpp"
+#include "i2c.hpp"
 #include "interrupts.hpp"
 
 // should be nice async i2c handler
 namespace fasthal{
-    enum class i2c_async_r: std::uint8_t{
-        done = 0,
-        nack = 1,
-        error= 2        
-    };
-
-    template<class TI2c, typename TCallback = void(*)(i2c_async_r)>
+    template<class TI2c, typename TCallback = void(*)(i2c_result)>
     class i2c_async{
         static constexpr auto _i2c = TI2c{};
-        volatile std::uint8_t* _buf;
+        volatile buffer_t _buf;
         volatile bsize_t _count;
         TCallback _callback;
         struct lazy{
             static constexpr auto async = details::has_isr<_i2c.irq.number>;
         };
 
-        bool fsm(i2c_async_r& res){
+        bool fsm(i2c_result& res){
             auto c = _count;
             auto v = _buf;
-            //i2c_async_r res;
+            //i2c_result res;
             // return here - exit
             // break == call irq
             switch (_i2c.state().state()){
@@ -33,7 +29,7 @@ namespace fasthal{
                 case i2c_s::mt_write: // MT write, received ACK. Need write or start/stop/stop_start
                     // done, goto irq
                     if (c == 0) {
-                        res = i2c_async_r::done;
+                        res = i2c_result::done;
                         break;
                     }
                 tx:       
@@ -53,12 +49,12 @@ namespace fasthal{
                 case i2c_s::mt_write_nack: // MT write, received NACK. Need write or start/stop/stop_start
                 case i2c_s::mr_nack: // select_r sent, received NACK. Need read, readlast, repeated start, stop, stop_start
                     // call IRQ
-                    res = i2c_async_r::nack;
+                    res = i2c_result::nack;
                     break;
                 case i2c_s::bus_fail:  // HW error on bus (invalid START/STOP condition). Need for bus restart.                    
                 case i2c_s::m_la: // another master took of the bus unexpectedly in select_w, select_r or write/readl. Need fail or start.
                     // call IRQ
-                    res = i2c_async_r::error;
+                    res = i2c_result::error;
                     break;
                 case i2c_s::mr_read: // recevied byte ok. Need read/readl
                 case i2c_s::mr_readl: // nack sent to slave after receiving byte, stop restart or stop/start will be transmitted, mr                    
@@ -66,7 +62,7 @@ namespace fasthal{
                     _buf = v + 1;
                 case i2c_s::mr: // select_r sent, received ACK. Need read/readl or start/stop/stop_start
                     if (c == 0) {
-                        res = i2c_async_r::done;
+                        res = i2c_result::done;
                         break;
                     }
                     _i2c.rx_ask(--c);
@@ -100,7 +96,7 @@ namespace fasthal{
             // TODO: guard against reentrance
 
             // some black woodo magic here to fold async calls to sync ones
-            i2c_async_r res;
+            i2c_result res;
             while (true){
                 // wait for "irq"
                 while (!ready_(_i2c.irq));
@@ -117,7 +113,7 @@ namespace fasthal{
             _callback = nullptr;
         }
 
-        void do_start(std::uint8_t* buf,
+        void do_start(buffer_t buf,
             bsize_t count,
             TCallback callback,
             i2c_start type = i2c_start::start)
@@ -132,9 +128,11 @@ namespace fasthal{
                 _i2c.stop_start();                
         }
     public:
+        using callback_t = TCallback;
+
         // first byte in buffer should be SLA
         bool start(
-            std::uint8_t* buf,
+            buffer_t buf,
             bsize_t count,
             TCallback callback,
             i2c_start type = i2c_start::start
@@ -168,7 +166,7 @@ namespace fasthal{
         }
 
         // adds more data to last operation, should be called from ISR
-        void more(std::uint8_t* buf,
+        void more(buffer_t buf,
             bsize_t count,
             TCallback callback) {
             _buf = buf;
@@ -188,7 +186,7 @@ namespace fasthal{
         // ISR - just do what it takes
         void operator()(){
             static_assert(lazy::async, "only for async op");
-            i2c_async_r res;
+            i2c_result res;
             if (fsm(res)){
                 _count = 0;
                 _callback(res);

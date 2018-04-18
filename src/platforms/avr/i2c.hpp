@@ -4,6 +4,7 @@
 #include "registers.hpp"
 #include "interrupts.hpp"
 #include "../../streams/sync_streams.hpp"
+#include "../../hal/i2c.hpp"
 
 // don't check that programmer is stupid, check for error conditions
 #define FH_I2C(NUM, HANDLER) FH_ISR(FH_IRQ_I2C ## NUM, HANDLER);
@@ -61,21 +62,8 @@ namespace fasthal{
         ready             = 0xF8  // no errors, ok state?
     };
 
-    static constexpr auto i2c_mt = false;
-    static constexpr auto i2c_mr = true;
-
     static constexpr auto i2c_more = integral_constant<bool, true>{};
     static constexpr auto i2c_last = integral_constant<bool, false>{};
-
-    enum class i2c_start: std::uint8_t{
-        start = 0,
-        stop_start = 1,
-        restart = 2
-    };
-
-    using i2c_address_t = std::uint8_t;
-    template<i2c_address_t V>
-    constexpr auto i2c_address_v = V;
 
     namespace details{        
         template<unsigned VNum>
@@ -136,13 +124,6 @@ namespace fasthal{
         bool can_stop() { return !mr_ok(); }
         //bool can_stop() { return mt_ok() || mr_done() || m_nack() || error(); }
     };
-
-    inline constexpr auto i2c_build_sla(bool read, i2c_address_t address){
-        address <<= 1;
-        if (read)
-            address |= 1;
-        return address;
-    }
 
     struct i2c_config{
         static constexpr auto ps_def = true;

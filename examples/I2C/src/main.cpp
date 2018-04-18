@@ -146,7 +146,7 @@ uint8_t bh1750_buf[2];
 
 void bh1750_read();
 
-void bh1750_read_done(i2c_async_r r){
+void bh1750_read_done(i2c_result r){
     i2c0_h.stop();
 
     // print(uart0tx, "got: ");
@@ -155,7 +155,7 @@ void bh1750_read_done(i2c_async_r r){
     // print(uart0tx, static_cast<std::uint8_t>(bh1750_buf[0]));
     // print(uart0tx, ' ');
     // println(uart0tx, static_cast<std::uint8_t>(bh1750_buf[1]));
-    if (r != i2c_async_r::done)
+    if (r != i2c_result::done)
         return;
     
     auto result = static_cast<uint16_t>(bh1750_buf[0]);
@@ -178,7 +178,7 @@ void bh1750_read(){
 
 void bh1750_set_mode(std::uint8_t mode);
 
-void bh1750_mode_set(i2c_async_r r){
+void bh1750_mode_set(i2c_result r){
     // stop bus
     i2c0_h.stop();
     // we don't repeat in other examples - for fairness

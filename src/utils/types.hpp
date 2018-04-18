@@ -11,6 +11,8 @@ namespace fasthal{
     
     // buffer size
     using bsize_t = std::uint8_t;
+    // buffer
+    using buffer_t = std::uint8_t*;
 
     template<std::uint8_t V>
     static constexpr auto uint8_v = integral_constant<std::uint8_t, V>{};
