@@ -7,6 +7,7 @@
 #include "interrupts.hpp"
 
 // fancy buffered streaming i2c handler, probably too fancy for AVR
+// too high level and have different interface that async
 namespace fasthal{
     enum class i2c_buf_s: std::uint8_t{
         ready = 0,

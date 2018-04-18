@@ -4,6 +4,7 @@
 #include "i2c.hpp"
 
 // simple sync i2c master handler.
+// not really useful cause has different interface that async one
 namespace fasthal {    
     template <class TI2c>
     class i2c_sync{
