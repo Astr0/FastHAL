@@ -18,6 +18,9 @@ namespace fasthal{
         volatile std::uint8_t* _buf;
         volatile bsize_t _count;
         TCallback _callback;
+        struct lazy{
+            static constexpr auto async = details::has_isr<_i2c.irq.number>;
+        };
 
         bool fsm(i2c_async_r& res){
             auto c = _count;
@@ -91,6 +94,43 @@ namespace fasthal{
             }
             return true;
         }
+
+        void run_sync(){
+            static_assert(!lazy::async, "only for sync operation");
+            // TODO: guard against reentrance
+
+            // some black woodo magic here to fold async calls to sync ones
+            i2c_async_r res;
+            while (true){
+                // wait for "irq"
+                while (!ready_(_i2c.irq));
+                // call fsm
+                if (!fsm(res)) continue;
+                // call callback
+                _count = 0;
+                _callback(res);
+                // new stuff was requested?
+                // this does not guard from multiple "start" inside callback, but that long i2c sessions should be rare, 2 at max
+                if (_count == 0)
+                    break;
+            }
+            _callback = nullptr;
+        }
+
+        void do_start(std::uint8_t* buf,
+            bsize_t count,
+            TCallback callback,
+            i2c_start type = i2c_start::start)
+        {
+            _buf = buf;
+            _count = count;
+            _callback = callback;
+
+            if (type != i2c_start::stop_start)
+                _i2c.start();
+            else
+                _i2c.stop_start();                
+        }
     public:
         // first byte in buffer should be SLA
         bool start(
@@ -99,26 +139,32 @@ namespace fasthal{
             TCallback callback,
             i2c_start type = i2c_start::start
             ) {
-
-            auto lock = no_irq{};
-            // count should be at least 1 (SLA)
             
-            // we're busy probably.. better check it
-            // but don't check state since we async and control it nicely
-            // !_i2c.state().can_start()
-            if (_count != 0)
-                return false;
-            
-            _buf = buf;
-            _count = count;
-            _callback = callback;
+            if constexpr (lazy::async)
+            {
+                auto lock = no_irq{};
+                // count should be at least 1 (SLA)
+                
+                // we're busy probably.. better check it
+                // but don't check state since we async and control it nicely
+                // !_i2c.state().can_start()
+                if (_count != 0) return false;
 
-            if (type != i2c_start::stop_start)
-                _i2c.start();
-            else
-                _i2c.stop_start();
-            // start will call ISR, no worries :D
-            return true;
+                do_start(buf, count, callback, type);
+
+                return true;
+            } else{
+                if (_count != 0) return false;
+                
+                // check if it's not reentrace
+                auto first_entry = _callback == nullptr;
+                
+                do_start(buf, count, callback, type);
+
+                if (first_entry)
+                    run_sync();
+                return true;
+            }
         }
 
         // adds more data to last operation, should be called from ISR
@@ -128,8 +174,11 @@ namespace fasthal{
             _buf = buf;
             _count = count;
             _callback = callback;
-            if (ready_(_i2c.irq))
-                run(_i2c.irq);
+            if constexpr(lazy::async){
+                // tick the isr
+                if (ready_(_i2c.irq))
+                    run(_i2c.irq);
+            }
         }
 
         inline static void stop(){
@@ -138,6 +187,7 @@ namespace fasthal{
 
         // ISR - just do what it takes
         void operator()(){
+            static_assert(lazy::async, "only for async op");
             i2c_async_r res;
             if (fsm(res)){
                 _count = 0;

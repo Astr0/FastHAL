@@ -5,6 +5,7 @@
 // 2 - buffered (960 / 12 - 4 + 2 buffer, 2 callback, 1 state, 1 bytes left, 2 current val)
 // 3 - buffered, always block (910 / 9 - 1+2 buffer, 2 callback, 1 state, 1 bytes left, 2 current val)
 // 4 - async on buffers (670 / 9 - 2 tx buffer, 2 callback, 1 size, 2 current va, 2 buffer)
+// 5 - pointless sync on async lib (648 / 9 - 2 tx buffer, 2 callback, 1 size, 2 current va, 2 buffer)
 #include "fastduino.hpp"
 
 using namespace fasthal;
@@ -134,9 +135,11 @@ void bh1750_set_mode(std::uint8_t mode){
     i2c0_h.flush(bh1750_mode_set);
 }
 
-#elif (MODE == 4)
+#elif (MODE == 4) || (MODE == 5)
 auto i2c0_h = i2c_async<decltype(i2c0)>{};
+#if (MODE == 4)
 FH_I2C(0, i2c0_h);
+#endif
 
 uint16_t bh1750_last_light;
 uint8_t bh1750_buf[2];
@@ -160,8 +163,10 @@ void bh1750_read_done(i2c_async_r r){
     result |= bh1750_buf[1];
 
     bh1750_last_light = (result * 10U) / 12U;
+    #if (MODE==4)
     // something's here
     bh1750_read();
+    #endif
 }
 
 void bh1750_read(){
@@ -177,7 +182,9 @@ void bh1750_mode_set(i2c_async_r r){
     // stop bus
     i2c0_h.stop();
     // we don't repeat in other examples - for fairness
+    #if (MODE==4)
     bh1750_read();
+    #endif
     // if (done){
     //     //println(uart0tx, "mode set");
     //     bh1750_read();
@@ -224,7 +231,10 @@ int main(){
         #if (MODE == 0)
         light = bh1750_read(0x10);
         #else
-        {
+        #if (MODE==5)
+        bh1750_read();
+        #endif
+        {            
             auto mutex = no_irq{};
             light = bh1750_last_light;
         }
