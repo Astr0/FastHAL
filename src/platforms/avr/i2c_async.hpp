@@ -23,7 +23,9 @@ namespace fasthal{
         bool start(
             std::uint8_t* buf,
             bsize_t count,
-            TCallback callback) {
+            TCallback callback,
+            i2c_start type = i2c_start::start
+            ) {
 
             auto lock = no_irq{};
             // count should be at least 1 (SLA)
@@ -38,9 +40,23 @@ namespace fasthal{
             _count = count;
             _callback = callback;
 
-            _i2c.start();
+            if (type != i2c_start::stop_start)
+                _i2c.start();
+            else
+                _i2c.stop_start();
             // start will call ISR, no worries :D
             return true;
+        }
+
+        // adds more data to last operation, should be called from ISR
+        void more(std::uint8_t* buf,
+            bsize_t count,
+            TCallback callback) {
+            _buf = buf;
+            _count = count;
+            _callback = callback;
+            if (ready_(_i2c.irq))
+                run(_i2c.irq);
         }
 
         inline static void stop(){
@@ -51,15 +67,17 @@ namespace fasthal{
         void operator()(){
             auto c = _count;
             auto v = _buf;
-            auto res = i2c_async_r::done;
+            i2c_async_r res;
             // return here - exit
             // break == call irq
             switch (_i2c.state().state()){
                 case i2c_s::mt: // select_w sent, received ACK. Need write or start/stop/stop_start
                 case i2c_s::mt_write: // MT write, received ACK. Need write or start/stop/stop_start
                     // done, goto irq
-                    if (c == 0) 
+                    if (c == 0) {
+                        res = i2c_async_r::done;
                         break;
+                    }
                 tx:       
                     _count = c - 1;
                     _buf = v + 1;
@@ -89,8 +107,10 @@ namespace fasthal{
                     *v = _i2c.rx();
                     _buf = v + 1;
                 case i2c_s::mr: // select_r sent, received ACK. Need read/readl or start/stop/stop_start
-                    if (c == 0) 
+                    if (c == 0) {
+                        res = i2c_async_r::done;
                         break;
+                    }
                     _i2c.rx_ask(--c);
                     _count = c;
                     return;
