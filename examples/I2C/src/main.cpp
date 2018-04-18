@@ -1,13 +1,13 @@
-#define RAW
-#define MODE 6
+//#define RAW
+#define MODE 7
 // 0 - sync (478 / 1 - 1 bytes left for RX)
 // 1 - irq (370 / 5 - 1 mode set, 2 current val, 2 pending val)
 // 2 - buffered (960 / 12 - 4 + 2 buffer, 2 callback, 1 state, 1 bytes left, 2 current val)
 // 3 - buffered, always block (910 / 9 - 1+2 buffer, 2 callback, 1 state, 1 bytes left, 2 current val)
-// 4 - async on buffers (670 / 9 - 2 tx buffer, 2 callback, 1 size, 2 current va, 2 buffer)
-// 5 - pointless sync on async lib (648 / 9 - 2 tx buffer, 2 callback, 1 size, 2 current va, 2 buffer)
-// 6 - net args async (660 / 11 - 2 args pointer, 1 index, 6(incl 2 buffer) args, 2 current va)
-// 7 - net args async - static args (626 / 9 - 1 index, 6(incl 2 buffer) args, 2 current va)
+// 4 - async on buffers (670 / 9 - 2 buffer ptr, 2 callback, 1 size, 2 current va, 2 buffer)
+// 5 - pointless sync on async lib (648 / 9 - 2 buffer ptr, 2 callback, 1 size, 2 buffer, 2 current va)
+// 6 - net args async (660 / 11 - 2 args ptr, 1 buf index, (2 buffer + 1 count + 1 statuc + 2 callback) = 6 args, 2 current va)
+// 7 - net args async - static args (626 / 9 - 1 buf index, (2 buffer + 1 count + 1 statuc + 2 callback) = 6 args, 2 current va)
 #include "fastduino.hpp"
 
 using namespace fasthal;

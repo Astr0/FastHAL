@@ -61,13 +61,14 @@ namespace fasthal{
         static constexpr bool args_static = mp::details::is_static_element<std::base_type_t<TArgs>>::value;
 
         using args_t = std::base_type_t<TArgs>;
-        using args_in_t = typename std::conditional<args_static, args_t, args_t&>::type;
         
         using args_holder_t = mp::details::element_holder<args_t*, 0>;
         volatile bsize_t _index;        
 
         args_t* args() { return this->args_holder_t::get();}
-        void set_args(args_in_t args) { this->args_holder_t::set(&args); }
+        void set_args(TArgs& args) { 
+            if constexpr(!args_static) this->args_holder_t::set(&args); 
+        }
         
         struct lazy{
             static constexpr auto async = details::has_isr<_i2c.irq.number>;
@@ -148,7 +149,7 @@ namespace fasthal{
         i2c_net(){}
 
         // first byte in buffer should be SLA
-        bool start(args_in_t args, i2c_start type = i2c_start::start) {            
+        bool start(TArgs& args, i2c_start type = i2c_start::start) {            
             auto lock = no_irq{};
 
             _index = 0;
@@ -169,7 +170,7 @@ namespace fasthal{
         }
 
         // adds more data to last operation, should be called from ISR
-        void more(args_in_t args) {
+        void more(TArgs& args) {
             _index = 0;
             set_args(args);
             // tick the isr
