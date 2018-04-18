@@ -30,6 +30,19 @@ namespace fasthal{
             address |= 1;
         return address;
     }
+    // Something similar to socketasynceventargs in C#
+    struct net_args{
+        // status
+        // 1        
+        //std::uint8_t _index;
+        // 1
+        //bsize_t _count;
+        // 2 
+        //void (*)() _callback;        
+        // 2 
+        //void* _user;
+        // = 6 bytes
+    };
 
     // i2c interface
     struct i2c_null{

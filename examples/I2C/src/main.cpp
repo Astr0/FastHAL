@@ -1,18 +1,20 @@
 #define RAW
-#define MODE 4
+#define MODE 6
 // 0 - sync (478 / 1 - 1 bytes left for RX)
 // 1 - irq (370 / 5 - 1 mode set, 2 current val, 2 pending val)
 // 2 - buffered (960 / 12 - 4 + 2 buffer, 2 callback, 1 state, 1 bytes left, 2 current val)
 // 3 - buffered, always block (910 / 9 - 1+2 buffer, 2 callback, 1 state, 1 bytes left, 2 current val)
 // 4 - async on buffers (670 / 9 - 2 tx buffer, 2 callback, 1 size, 2 current va, 2 buffer)
 // 5 - pointless sync on async lib (648 / 9 - 2 tx buffer, 2 callback, 1 size, 2 current va, 2 buffer)
+// 6 - net args async (660 / 11 - 2 args pointer, 1 index, 6(incl 2 buffer) args, 2 current va)
+// 7 - net args async - static args (626 / 9 - 1 index, 6(incl 2 buffer) args, 2 current va)
 #include "fastduino.hpp"
 
 using namespace fasthal;
 using namespace fasthal::duino;
 
-static constexpr auto uart0 = uart<0>{};
 #ifndef RAW
+static constexpr auto uart0 = uart<0>{};
 static auto uart0tx = uart_buf_tx<uart<0>, 32>{};
 FH_UART_TX(0, uart0tx);
 #endif
@@ -149,7 +151,7 @@ void bh1750_read();
 void bh1750_read_done(i2c_result r){
     i2c0_h.stop();
 
-    // print(uart0tx, "got: ");
+    // print(uart0tx, "got: "); 
     // print(uart0tx, static_cast<std::uint8_t>(r));
     // print(uart0tx, ' ');
     // print(uart0tx, static_cast<std::uint8_t>(bh1750_buf[0]));
@@ -202,10 +204,96 @@ void bh1750_set_mode(std::uint8_t mode){
     // address counts as send byte
     i2c0_h.start(bh1750_buf, 2, bh1750_mode_set);
 }
+#elif (MODE==6 || MODE==7)
+
+#if (MODE==6)
+using args_t = fixed_args<2>;
+auto args = args_t{};
+#elif (MODE==7)
+using args_t  = static_args<fixed_args<2>>;
+template<> decltype(args_t::_args) args_t::_args = {};
+constexpr auto args = args_t{};
+#endif
+
+
+auto i2c0_h = i2c_net<decltype(i2c0), decltype(args)>{};
+FH_I2C(0, i2c0_h);
+
+
+uint16_t bh1750_last_light;
+//uint8_t bh1750_buf[2];
+
+void bh1750_read();
+
+void bh1750_read_done(void*, args_t&){
+    i2c0_h.stop();
+
+    // print(uart0tx, "got: "); 
+    // print(uart0tx, static_cast<std::uint8_t>(r));
+    // print(uart0tx, ' ');
+    // print(uart0tx, static_cast<std::uint8_t>(bh1750_buf[0]));
+    // print(uart0tx, ' ');
+    // println(uart0tx, static_cast<std::uint8_t>(bh1750_buf[1]));
+    if (i2c0_h.get_status(args) != i2c_result::done)
+        return;
+
+    //println(uart0tx, "rd");        
+    
+    auto result = static_cast<uint16_t>(args.buffer()[0]);
+    result <<= 8;
+    result |= args.buffer()[1];
+
+    bh1750_last_light = (result * 10U) / 12U;
+    // something's here
+    bh1750_read();
+}
+
+void bh1750_read(){
+    // write sla    
+    args.buffer()[0] = i2c_build_sla(i2c_mr, address);
+    args.callback() = bh1750_read_done;
+    args.count() = 2;
+    //args._count = 2;
+    // address doesn't count as received byte and gets overwritten
+    i2c0_h.start(args);
+}
+
+void bh1750_set_mode(std::uint8_t mode);
+
+void bh1750_mode_set(void*, args_t&){    
+    //println(uart0tx, "sm cb");
+    // stop bus
+    i2c0_h.stop();
+    //println(uart0tx, "ms");
+    // we don't repeat in other examples - for fairness
+    bh1750_read();
+    // if (done){
+    //     //println(uart0tx, "mode set");
+    //     bh1750_read();
+    // } else {
+    //     // print(uart0tx, "mode error: ");
+    //     // println(uart0tx, static_cast<std::uint8_t>(i2c0_h.state()));
+    //     bh1750_set_mode(0x10);
+    // }
+    // check if everything went fine    
+}
+
+void bh1750_set_mode(std::uint8_t mode){
+    args.buffer()[0] = i2c_build_sla(i2c_mt, address);
+    args.buffer()[1] = mode;
+    args.count() = 2;
+    args.callback() = bh1750_mode_set;
+    //args._count = 2;
+
+    // address counts as send byte
+    //println(uart0tx, "sm st");
+    i2c0_h.start(args);
+}
 
 #endif
 
 int main(){    
+    // cheat a little
     apply(        
         // activate internal pull ups for i2c
         set(ino<SDA>)
@@ -222,6 +310,7 @@ int main(){
     #if (MODE == 1)
     i2c0.start();
     #else
+    
     // set mode
     bh1750_set_mode(0x10);
     #endif

@@ -22,11 +22,14 @@ namespace fasthal{
                
             template<class TElement, std::size_t Index = 0, bool is_static = is_static_element<TElement>::value>
             struct element_holder{
-                const TElement element;
+                TElement _element;
                 
-                constexpr element_holder(TElement __element): element(__element) { }
+                constexpr element_holder(){}
+                constexpr element_holder(TElement __element): _element(__element) { }
 
-                constexpr TElement getElement() const{return element;}
+                constexpr TElement get() const{return _element;}
+
+                void set(TElement e) { _element = e;}
             };
 
             template<class TElement, std::size_t Index>
@@ -35,7 +38,8 @@ namespace fasthal{
 
                 constexpr element_holder(TElement __element) { }
 
-                constexpr TElement getElement() const{return TElement{};}
+                constexpr TElement get() const{return TElement{};}
+                void set(TElement e){}
             };
         }
 
@@ -72,7 +76,7 @@ namespace fasthal{
             using el_t = brigand::at_c<list_t, N>;                    
             using holder_t = const details::element_holder<el_t, (brigand::size<list_t>::value - 1 - N)>;      
             // cause we can't change return type
-            return list.holder_t::getElement();
+            return list.holder_t::get();
         }
 
         namespace details{
