@@ -1,8 +1,8 @@
-#define RAW
+//#define RAW
 #define MODE 2
-// 0 - net args async - static args, static buffer (622 / 9 - 1 buf index, (2 buffer + 1 count + 1 status + 2 callback) = 6 args, 2 current va)
-// 1 - net args async - static args, dynamic buffer (646 / 11 - 1 buf index, (2 buffer ptr + 1 count + 1 status + 2 callback) = 6 args, 2 buffer, 2 current va)
-// 2 - net args async - dynamic args, static buffer (656 / 11 - 2 args ptr, 1 buf index, (2 buffer + 1 count + 1 status + 2 callback) = 6 args, 2 current va)
+// 0 - net args async - static args, static buffer (622 (610) / 9 - 1 buf index, (2 buffer + 1 count + 1 status + 2 callback) = 6 args, 2 current va)
+// 1 - net args async - static args, dynamic buffer (646 (640) / 11 - 1 buf index, (2 buffer ptr + 1 count + 1 status + 2 callback) = 6 args, 2 buffer, 2 current va)
+// 2 - net args async - dynamic args, static buffer (656 (644) / 11 - 2 args ptr, 1 buf index, (2 buffer + 1 count + 1 status + 2 callback) = 6 args, 2 current va)
 
 // 0 - sync (478 / 1 - 1 bytes left for RX)
 // 1 - irq (370 / 5 - 1 mode set, 2 current val, 2 pending val)
@@ -11,6 +11,7 @@
 // 4 - async on buffers (670 / 9 - 2 buffer ptr, 2 callback, 1 size, 2 current va, 2 buffer)
 // 5 - pointless sync on async lib (648 / 9 - 2 buffer ptr, 2 callback, 1 size, 2 buffer, 2 current va)
 #include "fastduino.hpp"
+#include "dev/bh1750.hpp"
 
 using namespace fasthal;
 using namespace fasthal::duino;
@@ -21,7 +22,6 @@ static auto uart0tx = uart_buf_tx<uart<0>, 32>{};
 FH_UART_TX(0, uart0tx);
 #endif
 static constexpr auto i2c0 = i2c<0>{};
-static constexpr auto address = i2c_address_v<0x23>;
 
 #if (MODE == 0 || MODE == 2)
 auto args = test_args<std::uint8_t[2]>{};
@@ -40,67 +40,31 @@ using args_ptr_t = args_base_t*;
 
 auto i2c0_h = i2c_net<i2c<0>, args_ptr_t>{};
 FH_I2C(0, i2c0_h);
+FH_STATIC_PTR(i2c0_ptr_t, i2c0_h);
 
-uint16_t bh1750_last_light;
+auto light_sensor = dev::bh1750{i2c0_ptr_t{}};
 
-void bh1750_read();
+uint16_t light_sensor_last;
 
-void bh1750_read_done(args_base_t&){
-    i2c0_h.stop();
+void light_sensor_read();
 
-    if (args.status<i2c_result>() != i2c_result::done)
-        return;
-
-    auto result = static_cast<uint16_t>(args[0]);
-    result <<= 8;
-    result |= args[1];
-
-    bh1750_last_light = (result * 10U) / 12U;
+void light_sensor_read_done(args_base_t& a){
+    light_sensor.read_end(a, light_sensor_last);
     // something's here
-    bh1750_read();
+    light_sensor_read();
 }
 
-void bh1750_read(){
+void light_sensor_read(){
     // write sla    
-    args[0] = i2c_build_sla(i2c_mr, address);
-    args.callback(bh1750_read_done);
-    args.count(2);
-    //args._count = 2;
-    // address doesn't count as received byte and gets overwritten
-    i2c0_h.start(args);
+    args.callback(light_sensor_read_done);   
+    light_sensor.read(args);
 }
 
-void bh1750_set_mode(std::uint8_t mode);
-
-void bh1750_mode_set(args_base_t&){    
-    //println(uart0tx, "sm cb");
-    // stop bus
-    i2c0_h.stop();
-    //println(uart0tx, "ms");
-    // we don't repeat in other examples - for fairness
-    bh1750_read();
-    // if (done){
-    //     //println(uart0tx, "mode set");
-    //     bh1750_read();
-    // } else {
-    //     // print(uart0tx, "mode error: ");
-    //     // println(uart0tx, static_cast<std::uint8_t>(i2c0_h.state()));
-    //     bh1750_set_mode(0x10);
-    // }
-    // check if everything went fine    
+void light_sensor_mode_set(args_base_t& a){    
+    light_sensor.set_mode_end(a);
+    light_sensor_read();
 }
 
-void bh1750_set_mode(std::uint8_t mode){
-    args[0] = i2c_build_sla(i2c_mt, address);
-    args[1] = mode;
-    args.count(2);
-    args.callback(bh1750_mode_set);
-    //args._count = 2;
-
-    // address counts as send byte
-    //println(uart0tx, "sm st");
-    i2c0_h.start(args);
-}
 
 int main(){    
     // cheat a little
@@ -122,14 +86,11 @@ int main(){
     #endif
 
     // set mode
-    bh1750_set_mode(0x10);
+    args.callback(light_sensor_mode_set);
+    light_sensor.set_mode(dev::bh1750_mode::continuous_high_res_mode, args);
 
     while (1){
-        uint16_t light;
-        {            
-            auto mutex = no_irq{};
-            light = bh1750_last_light;
-        }
+        auto light = atomic_read(light_sensor_last);
         #ifndef RAW
         print(uart0tx, "Lux: ");
         print(uart0tx, light);

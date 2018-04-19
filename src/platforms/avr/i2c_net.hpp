@@ -35,8 +35,8 @@ namespace fasthal{
         bsize_t count(){return _count;}
         void count(bsize_t c) { _count = c; }
         
-        template<typename T>
-        T status(){return static_cast<T>(_status);}
+        template<typename... T>
+        bool status_any(T... s){ return is_any(_status, static_cast<std::uint8_t>(s)...); }
         template<typename T>
         void status(T s) { _status = static_cast<std::uint8_t>(s); } 
         
