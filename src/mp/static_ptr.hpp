@@ -16,7 +16,7 @@ namespace fasthal::mp{
 
     namespace details{
         template<typename T, unsigned VNum>
-        struct is_static_element_impl<static_ptr<T, VNum>>: std::true_type{};
+        struct is_static_impl<static_ptr<T, VNum>>: std::true_type{};
     }
 
     #define FH_STATIC(NAME, VALUE) \

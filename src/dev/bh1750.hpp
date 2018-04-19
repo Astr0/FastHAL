@@ -2,11 +2,13 @@
 #define FH_DEV_BH1750
 
 #include "../../std/std_types.hpp"
+#include "../../mp/const_list.hpp"
 
 namespace fasthal::dev{
     // i2c light sensor
     template<typename TI2cPtr>
-    class bh1750 {
+    class bh1750:
+    {
         i2c_address_t _address;
     public:
         enum class mode: std::uint8_t{

@@ -48,19 +48,16 @@ namespace fasthal{
     };
 
     template<class TI2c, typename TArgsPtr>
-    class i2c_net: mp::details::element_holder<TArgsPtr, 0> {        
+    class i2c_net: mp::holder<TArgsPtr> {        
         static constexpr auto _i2c = TI2c{};
 
         using args_ptr_t = TArgsPtr;
-        static constexpr bool args_static = mp::details::is_static_element<args_ptr_t>::value;       
-        using args_holder_t = mp::details::element_holder<args_ptr_t, 0>;
+        using args_holder_t = mp::holder<args_ptr_t>;
 
         volatile bsize_t _index;        
 
         auto& args() { return *(this->args_holder_t::get());}
-        void set_args(args_ptr_t args) { 
-            if constexpr(!args_static) this->args_holder_t::set(args); 
-        }
+        void set_args(args_ptr_t args) { this->args_holder_t::set(args); }
         
         struct lazy{
             static constexpr auto async = details::has_isr<_i2c.irq.number>;
@@ -164,12 +161,13 @@ namespace fasthal{
         }
 
         // adds more data to last operation, should be called from ISR
-        void more(args_ptr_t args) {
+        bool more(args_ptr_t args) {
             _index = 0;
             set_args(args);
             // tick the isr
             if (ready_(_i2c.irq))
                 run(_i2c.irq);
+            return false;
         }
 
         inline static void stop(){

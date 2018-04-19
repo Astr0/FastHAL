@@ -61,8 +61,8 @@ namespace fasthal{
         namespace details{
             // don't eat space with static actions
             template<class TField, class TAction, typename... TValue>
-            struct is_static_element_impl<fasthal::details::field_action<TField, TAction, TValue...>>
-                : is_static_element_impl<fasthal::mp::const_list<TValue...>> { };
+            struct is_static_impl<fasthal::details::field_action<TField, TAction, TValue...>>
+                : is_static_impl<fasthal::mp::const_list<TValue...>> { };
         }
     }    
 
