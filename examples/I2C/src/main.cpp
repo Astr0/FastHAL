@@ -210,6 +210,13 @@ void bh1750_set_mode(std::uint8_t mode){
 using args_t = fixed_args<2>;
 auto args = args_t{};
 #elif (MODE==7)
+// TODO: Think about static_ptr instead of static_args. This way we can wrap anything with static, yeah!
+template<typename T>
+struct static_ptr{
+    static /*constexpr*/ T _value;
+    T& operator*(){return _value;}
+    T* operator->(){return &_value;}
+};
 using args_t  = static_args<fixed_args<2>>;
 template<> decltype(args_t::_args) args_t::_args = {};
 constexpr auto args = args_t{};
