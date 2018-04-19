@@ -41,7 +41,7 @@ namespace fasthal{
 
         void operator()() { _callback(*this); }
         
-        void callback(callback_t cb){ _callback = cb; } 
+        args_t& callback(callback_t cb){ _callback = cb; return *this; } 
     };
 
     template<class TI2c, typename TArgsPtr>
