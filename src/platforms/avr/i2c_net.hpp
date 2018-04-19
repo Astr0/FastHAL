@@ -26,32 +26,25 @@ namespace fasthal{
         // size of buffer
         bsize_t _count;
         // operation status
-        uint8_t _status;
+        std::uint8_t _status;
         // buffer
         TBuf _buf;
         callback_t _callback;
     public: 
-        bsize_t& count(){return _count;}
-        uint8_t& status(){return _status;}
-        decltype(_buf)& buffer(){return _buf;}
-        callback_t& callback(){return _callback;}        
-    };
+        bsize_t count(){return _count;}
+        void count(bsize_t c) { _count = c; }
+        
+        template<typename T>
+        T status(){return static_cast<T>(_status);}
+        template<typename T>
+        void status(T s) { _status = static_cast<std::uint8_t>(s); } 
+        
+        //TBuf& buffer() { return _buf; }
+        std::uint8_t& operator[](bsize_t i) { return _buf[i]; }
+        std::uint8_t operator[](bsize_t i)const { return _buf[i]; }
 
-    template<class TArgs>
-    class static_args {
-        static TArgs _args;
-        using args_t = static_args<TArgs>;
-        using callback_t = void (*)(void*, args_t&);
-    public:
-        static auto& count(){return _args.count();}
-        static auto& status(){return _args.status();}
-        static auto& buffer(){return _args.buffer();}
-        static callback_t& callback(){return reinterpret_cast<callback_t&>(_args.callback());}
-    };
-
-    namespace mp::details{
-        template<class TArgs>
-        struct is_static_element_impl<static_args<TArgs>>: std::true_type{};
+        void operator()(void* src) { _callback(src, this); }
+        void callback(callback_t cb){ _callback = cb; } 
     };
 
     template<class TI2c, typename TArgsPtr>
@@ -76,7 +69,7 @@ namespace fasthal{
         bool fsm(i2c_result& res){
             auto i = _index;
             auto c = args()->count();
-            uint8_t b = args()->buffer()[i];
+            uint8_t b = (*args())[i];
             // return here - exit
             // break == call irq
             switch (_i2c.state().state()){
@@ -112,7 +105,7 @@ namespace fasthal{
                     break;
                 case i2c_s::mr_read: // recevied byte ok. Need read/readl
                 case i2c_s::mr_readl: // nack sent to slave after receiving byte, stop restart or stop/start will be transmitted, mr                    
-                    args()->buffer()[i] = _i2c.rx();
+                    (*args())[i] = _i2c.rx();
                     _index = ++i;
                 case i2c_s::mr: // select_r sent, received ACK. Need read/readl or start/stop/stop_start
                     if (c == i) {
@@ -193,8 +186,8 @@ namespace fasthal{
             i2c_result res;
             if (fsm(res)){
                 //_index = 0;
-                args()->status() = static_cast<std::uint8_t>(res);
-                args()->callback()(this, args());                
+                args()->status(res);
+                (*args())(this);
             }
         }
     };
