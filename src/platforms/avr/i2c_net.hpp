@@ -57,7 +57,7 @@ namespace fasthal{
 
         volatile bsize_t _index;        
 
-        args_ptr_t args() { return this->args_holder_t::get();}
+        auto& args() { return *(this->args_holder_t::get());}
         void set_args(args_ptr_t args) { 
             if constexpr(!args_static) this->args_holder_t::set(args); 
         }
@@ -68,8 +68,8 @@ namespace fasthal{
 
         bool fsm(i2c_result& res){
             auto i = _index;
-            auto c = args()->count();
-            uint8_t b = (*args())[i];
+            auto c = args().count();
+            uint8_t b = args()[i];
             // return here - exit
             // break == call irq
             switch (_i2c.state().state()){
@@ -105,7 +105,7 @@ namespace fasthal{
                     break;
                 case i2c_s::mr_read: // recevied byte ok. Need read/readl
                 case i2c_s::mr_readl: // nack sent to slave after receiving byte, stop restart or stop/start will be transmitted, mr                    
-                    (*args())[i] = _i2c.rx();
+                    args()[i] = _i2c.rx();
                     _index = ++i;
                 case i2c_s::mr: // select_r sent, received ACK. Need read/readl or start/stop/stop_start
                     if (c == i) {
@@ -186,8 +186,8 @@ namespace fasthal{
             i2c_result res;
             if (fsm(res)){
                 //_index = 0;
-                args()->status(res);
-                (*args())(this);
+                args().status(res);
+                args()(this);
             }
         }
     };
