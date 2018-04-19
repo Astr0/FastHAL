@@ -1,5 +1,5 @@
 #define RAW
-#define MODE 0
+#define MODE 2
 // 0 - net args async - static args, static buffer (622 / 9 - 1 buf index, (2 buffer + 1 count + 1 status + 2 callback) = 6 args, 2 current va)
 // 1 - net args async - static args, dynamic buffer (646 / 11 - 1 buf index, (2 buffer ptr + 1 count + 1 status + 2 callback) = 6 args, 2 buffer, 2 current va)
 // 2 - net args async - dynamic args, static buffer (656 / 11 - 2 args ptr, 1 buf index, (2 buffer + 1 count + 1 status + 2 callback) = 6 args, 2 current va)
@@ -27,6 +27,7 @@ static constexpr auto address = i2c_address_v<0x23>;
 auto args = test_args<std::uint8_t[2]>{};
 #else
 auto args = test_args{};
+std::uint8_t bh1750_buf[2];
 #endif
 
 using args_base_t = decltype(args);
@@ -117,7 +118,7 @@ int main(){
     );
 
     #if (MODE==1)
-    args->buffer(bh1750_buf);
+    args.buffer(bh1750_buf);
     #endif
 
     // set mode
