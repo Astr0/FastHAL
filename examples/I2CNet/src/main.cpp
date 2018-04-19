@@ -65,7 +65,6 @@ void light_sensor_mode_set(args_base_t& a){
     light_sensor_read();
 }
 
-
 int main(){    
     // cheat a little
     apply(        

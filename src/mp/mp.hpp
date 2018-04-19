@@ -2,3 +2,4 @@
 #include "holder.hpp"
 #include "const_list.hpp"
 #include "static_ptr.hpp"
+#include "static_func.hpp"
