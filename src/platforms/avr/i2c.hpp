@@ -194,9 +194,18 @@ namespace fasthal{
         static i2c_state state(){ return i2c_state { read_(_status) }; }
     };
 
+    template<unsigned VNum, class TConfig = i2c_config>
+    inline void start(const i2c<VNum, TConfig> i, i2c_start type = i2c_start::start){
+        if (type != i2c_start::stop_start)
+            i.start();
+        else
+            i.stop_start();
+    }
+
     #include "i2c_impl.hpp"
 };
 
+#include "i2c_sync.hpp"
 #include "i2c_async.hpp"
 
 #endif

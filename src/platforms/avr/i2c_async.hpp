@@ -129,10 +129,7 @@ namespace fasthal{
             set_args(args);
 
             // count should be at least 1 (SLA)
-            if (type != i2c_start::stop_start)
-                _i2c.start();
-            else
-                _i2c.stop_start();
+            ::fasthal::start(_i2c, type);
         }
     public:
         i2c_async(){}
