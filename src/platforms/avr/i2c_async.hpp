@@ -5,43 +5,50 @@
 #include "../../hal/i2c.hpp"
 #include "i2c.hpp"
 #include "interrupts.hpp"
+#include "../../mp/holder.hpp"
+#include "../../mp/static_func.hpp"
 
 // should be nice async i2c handler
 namespace fasthal{
-    template<class TI2c, typename TCallback = void(*)(i2c_result)>
-    class i2c_async{
+    template<class TI2c, typename TArgsPtr = net_args<>*>
+    class i2c_async: mp::holder<TArgsPtr> {        
         static constexpr auto _i2c = TI2c{};
-        volatile buffer_t _buf;
-        volatile bsize_t _count;
-        TCallback _callback;
-        struct lazy{
-            static constexpr auto async = details::has_isr<_i2c.irq.number>;
-        };
 
+        using args_ptr_t = TArgsPtr;
+        using args_t = decltype(*std::declval<args_ptr_t>());
+        using args_holder_t = mp::holder<args_ptr_t>;
+
+        volatile bsize_t _index;        
+
+        args_t& args() { return *(this->args_holder_t::get());}
+        void set_args(args_t& args) {
+            if constexpr(!mp::is_static_v<TArgsPtr>)
+                this->args_holder_t::set(&args); 
+        }
+        
         bool fsm(i2c_result& res){
-            auto c = _count;
-            auto v = _buf;
-            //i2c_result res;
+            auto i = _index;
+            auto c = args().count();
+            uint8_t b = args()[i];
             // return here - exit
             // break == call irq
             switch (_i2c.state().state()){
                 case i2c_s::mt: // select_w sent, received ACK. Need write or start/stop/stop_start
                 case i2c_s::mt_write: // MT write, received ACK. Need write or start/stop/stop_start
                     // done, goto irq
-                    if (c == 0) {
+                    if (i == c) {
                         res = i2c_result::done;
                         break;
                     }
-                tx:       
-                    _count = c - 1;
-                    _buf = v + 1;
+                tx:
+                    _index = ++i;
                 txo:
-                    _i2c.tx(*v);
+                    _i2c.tx(b);
                     return false;
                 case i2c_s::m_start: // Entered START. Need select_w or select_r
                 case i2c_s::m_restart: // Entered repeated START. Need select_w or select_r
                     // SLA+W, just normal TX it
-                    if (((*v) & 1) == 0)
+                    if ((b & 1) == 0)
                         goto tx;
                     // count bytes will be overriden in place of SLA
                     goto txo;
@@ -58,15 +65,15 @@ namespace fasthal{
                     break;
                 case i2c_s::mr_read: // recevied byte ok. Need read/readl
                 case i2c_s::mr_readl: // nack sent to slave after receiving byte, stop restart or stop/start will be transmitted, mr                    
-                    *v = _i2c.rx();
-                    _buf = v + 1;
+                    args()[i] = _i2c.rx();
+                    _index = ++i;
                 case i2c_s::mr: // select_r sent, received ACK. Need read/readl or start/stop/stop_start
-                    if (c == 0) {
+                    if (c == i) {
                         res = i2c_result::done;
                         break;
                     }
-                    _i2c.rx_ask(--c);
-                    _count = c;
+                    // i < c
+                    _i2c.rx_ask(++i != c);
                     return false;
                 // slave statuses
                 case i2c_s::sr: // received own sla-w, ACK returned, will receive bytes and ACK/NACK, sr
@@ -91,6 +98,10 @@ namespace fasthal{
             return true;
         }
 
+        struct lazy{
+            static constexpr auto async = details::has_isr<_i2c.irq.number>;
+        };
+
         void run_sync(){
             static_assert(!lazy::async, "only for sync operation");
             // TODO: guard against reentrance
@@ -103,77 +114,57 @@ namespace fasthal{
                 // call fsm
                 if (!fsm(res)) continue;
                 // call callback
-                _count = 0;
-                _callback(res);
+                args().status(res);
+                args()();
                 // new stuff was requested?
                 // this does not guard from multiple "start" inside callback, but that long i2c sessions should be rare, 2 at max
-                if (_count == 0)
+                if (_index != 0)
                     break;
             }
-            _callback = nullptr;
+            _index = 0;
         }
 
-        void do_start(buffer_t buf,
-            bsize_t count,
-            TCallback callback,
-            i2c_start type = i2c_start::start)
-        {
-            _buf = buf;
-            _count = count;
-            _callback = callback;
+        void do_start(args_t& args, i2c_start type = i2c_start::start){
+            _index = 0;
+            set_args(args);
 
+            // count should be at least 1 (SLA)
             if (type != i2c_start::stop_start)
                 _i2c.start();
             else
-                _i2c.stop_start();                
+                _i2c.stop_start();
         }
     public:
-        using callback_t = TCallback;
+        i2c_async(){}
 
         // first byte in buffer should be SLA
-        bool start(
-            buffer_t buf,
-            bsize_t count,
-            TCallback callback,
-            i2c_start type = i2c_start::start
-            ) {
-            
-            if constexpr (lazy::async)
+        void start(args_t& args, i2c_start type = i2c_start::start) {            
+            if constexpr(lazy::async)
             {
                 auto lock = no_irq{};
-                // count should be at least 1 (SLA)
-                
-                // we're busy probably.. better check it
-                // but don't check state since we async and control it nicely
-                // !_i2c.state().can_start()
-                if (_count != 0) return false;
 
-                do_start(buf, count, callback, type);
-
-                return true;
+                do_start(args, type);
             } else{
-                if (_count != 0) return false;
-                
-                // check if it's not reentrace
-                auto first_entry = _callback == nullptr;
-                
-                do_start(buf, count, callback, type);
+                auto reentry = _index != 0;
 
-                if (first_entry)
+                do_start(args, type);
+
+                if (!reentry)
                     run_sync();
-                return true;
-            }
+            }                
+
+            // we're busy probably.. better check it
+            // but don't check state since we async and control it nicely
+            // and we can restart master op after slave is done or throw error in CB, right?
+            // !_i2c.state().can_start()
         }
 
         // adds more data to last operation, should be called from ISR
-        void more(buffer_t buf,
-            bsize_t count,
-            TCallback callback) {
-            _buf = buf;
-            _count = count;
-            _callback = callback;
-            if constexpr(lazy::async){
-                // tick the isr
+        void more(args_t& args) {
+            _index = 0;
+            set_args(args);
+            // tick the isr
+            if constexpr (lazy::async){
                 if (ready_(_i2c.irq))
                     run(_i2c.irq);
             }
@@ -185,11 +176,13 @@ namespace fasthal{
 
         // ISR - just do what it takes
         void operator()(){
-            static_assert(lazy::async, "only for async op");
+            static_assert(lazy::async, "only for async operation");
+
             i2c_result res;
             if (fsm(res)){
-                _count = 0;
-                _callback(res);
+                //_index = 0;
+                args().status(res);
+                args()();
             }
         }
     };

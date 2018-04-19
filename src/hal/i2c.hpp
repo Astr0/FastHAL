@@ -3,6 +3,7 @@
 
 #include "../std/std_types.hpp"
 #include "../utils/types.hpp"
+#include "net.hpp"
 
 namespace fasthal{
     enum class i2c_start: std::uint8_t{
@@ -30,33 +31,12 @@ namespace fasthal{
             address |= 1;
         return address;
     }
-    // Something similar to socketasynceventargs in C#
-    struct net_args{
-        // status
-        // 1        
-        //std::uint8_t _index;
-        // 1
-        //bsize_t _count;
-        // 2 
-        //void (*)() _callback;        
-        // 2 
-        //void* _user;
-        // = 6 bytes
-    };
 
     // i2c interface
-    struct i2c_null{
-        using callback_t = void(*)(i2c_result);
-        static bool start(
-            std::uint8_t* buf,
-            bsize_t count,
-            callback_t callback,
-            i2c_start type = i2c_start::start
-            ){ return false; }
-        static void more(
-            std::uint8_t* buf,
-            bsize_t count,
-            callback_t callback){}
+    template<class TArgs>
+    struct i2c_null{        
+        static bool start(TArgs& args, i2c_start type = i2c_start::start) { return false; }
+        static bool more(TArgs& args) { return false; }
         static void stop(){}
     };
 }
