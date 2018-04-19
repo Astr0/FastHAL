@@ -15,7 +15,8 @@ namespace fasthal{
     class test_args {
         using args_t = test_args<TBuf>;
 
-        using callback_t = void(*)(args_t&); //mp::static_func<void(args_t&)>;
+        //using callback_t = void(*)(args_t&); 
+        using callback_t = mp::static_func<void(args_t&)>; 
         // size of buffer
         bsize_t _count;
         // operation status
@@ -24,6 +25,8 @@ namespace fasthal{
         TBuf _buf;
         callback_t _callback;
     public: 
+        constexpr test_args(){}
+
         bsize_t count()const {return _count;}
         void count(bsize_t c) { _count = c; }
         
@@ -37,6 +40,7 @@ namespace fasthal{
         std::uint8_t operator[](bsize_t i)const { return _buf[i]; }
 
         void operator()() { _callback(*this); }
+        
         void callback(callback_t cb){ _callback = cb; } 
     };
 

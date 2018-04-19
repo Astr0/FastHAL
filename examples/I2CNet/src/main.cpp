@@ -46,23 +46,13 @@ auto light_sensor = dev::bh1750{i2c0_ptr_t{}};
 
 uint16_t light_sensor_last;
 
-void light_sensor_read();
-
-void light_sensor_read_done(args_base_t& a){
-    light_sensor.read_end(a, light_sensor_last);
-    // something's here
-    light_sensor_read();
-}
-
 void light_sensor_read(){
-    // write sla    
-    args.callback(light_sensor_read_done);   
+    args.callback([](auto& a){
+        light_sensor.read_end(a, light_sensor_last);
+        // cycle
+        light_sensor_read();
+    });   
     light_sensor.read(args);
-}
-
-void light_sensor_mode_set(args_base_t& a){    
-    light_sensor.set_mode_end(a);
-    light_sensor_read();
 }
 
 int main(){    
@@ -85,7 +75,10 @@ int main(){
     #endif
 
     // set mode
-    args.callback(light_sensor_mode_set);
+    args.callback([](auto& a) {
+        light_sensor.set_mode_end(a);
+        light_sensor_read();
+    });
     light_sensor.set_mode(dev::bh1750_mode::continuous_high_res_mode, args);
 
     while (1){
