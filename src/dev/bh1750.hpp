@@ -42,10 +42,11 @@ namespace fasthal::dev{
             args[0] = i2c_build_sla(address());
             args[1] = static_cast<std::uint8_t>(m);
             if (!i2c().start(args))
-                args(&i2c());
+                args();
         }
 
-        std::uint16_t set_mode_end(TI2c& i2c, buffer_t buf, i2c_result r)
+        template<class TArgs>
+        std::uint16_t set_mode_end(TArgs& args)
         {
             if (r != i2c_result::done)
                 return 0xFFFF;

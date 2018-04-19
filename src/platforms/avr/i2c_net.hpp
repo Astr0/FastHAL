@@ -22,7 +22,8 @@ namespace fasthal{
     template<typename TBuf = buffer_t>
     class test_args {
         using args_t = test_args<TBuf>;
-        using callback_t = void (*)(void*, args_t*);
+
+        using callback_t = void (*)(args_t&);
         // size of buffer
         bsize_t _count;
         // operation status
@@ -39,11 +40,11 @@ namespace fasthal{
         template<typename T>
         void status(T s) { _status = static_cast<std::uint8_t>(s); } 
         
-        //void buffer(TBuf buf) { _buf = buf; }
+        void buffer(TBuf buf) { _buf = buf; }
         std::uint8_t& operator[](bsize_t i) { return _buf[i]; }
         std::uint8_t operator[](bsize_t i)const { return _buf[i]; }
 
-        void operator()(void* src) { _callback(src, this); }
+        void operator()() { _callback(*this); }
         void callback(callback_t cb){ _callback = cb; } 
     };
 
@@ -183,7 +184,7 @@ namespace fasthal{
             if (fsm(res)){
                 //_index = 0;
                 args().status(res);
-                args()(this);
+                args()();
             }
         }
     };
