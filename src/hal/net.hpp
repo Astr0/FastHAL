@@ -27,6 +27,7 @@ namespace fasthal{
         void status(T s) { _status = static_cast<std::uint8_t>(s); } 
         
         void buffer(TBuf buf) { _buf = buf; }
+        TBuf& buffer() { return _buf; }
         std::uint8_t& operator[](bsize_t i) { return _buf[i]; }
         std::uint8_t operator[](bsize_t i)const { return _buf[i]; }
 

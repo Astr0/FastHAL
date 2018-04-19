@@ -10,48 +10,46 @@ namespace fasthal {
     class i2c_sync{
         static constexpr auto _i2c = TI2c{};
         
-        static bool check_fail(TArgs& args){
+        static void do_master(TArgs& args, bsize_t i = 0){
+            auto c = args.count();
+            auto buf = args.buffer();
+            auto write = _i2c.state().mt_ok();
             i2c_result res;
-            if (_i2c.state().error())
-                res = i2c_result::error;
-            else if (_i2c.state().m_nack())
-                res = i2c_result::nack;
-            else 
-                return false;
-            args.status(res);
-            args();
-            return true;
-        }
-
-        static void do_read(TArgs& args){
-            auto c = args.count();
-            for(bsize_t i = 0; i != c;)
-            {
-                if (check_fail(args))
-                    return;
+            while (true){
+                switch(_i2c.state().state())
+                {
+                    case i2c_s::bus_fail:
+                    case i2c_s::m_la:
+                        res = i2c_result::error;
+                        goto end;
+                    case i2c_s::mr_nack:
+                    case i2c_s::mt_nack:
+                    case i2c_s::mt_write_nack:
+                        res = i2c_result::nack;
+                        goto end;
+                    default:
+                        break;
+                }
+                if (c == i){
+                    res = i2c_result::done;
+                    goto end;
+                }
                 
-                auto& p = args[i];
-                _i2c.rx_ask(++i != c);
-                while (!_i2c.ready());            
-            
-                // even if state is wrong, we should return some garbage data
-                p = _i2c.rx();
-            }
-            args.status(i2c_result::done);
-            args();
-        }
+                auto& p = buf[i];
+                ++i;       
 
-        static void do_write(TArgs& args, bsize_t start = 0){
-            auto c = args.count();
-            for(auto i = start; i != c;)
-            {
-                if (check_fail(args))
-                    return;
-                
-                _i2c.tx(args[i++]);
+                if (write)
+                    _i2c.tx(p);
+                else
+                    _i2c.rx_ask(i != c);                
+
                 while (!_i2c.ready());
+
+                if (!write)
+                    p = _i2c.rx();                
             }
-            args.status(i2c_result::done);
+        end:
+            args.status(res);
             args();
         }
     public:
@@ -62,17 +60,11 @@ namespace fasthal {
             _i2c.tx(args[0]);
             while (!_i2c.ready());
             
-            if (_i2c.state().mt_ok())
-                do_write(args, 1);
-            else
-                do_read(args);               
+            do_master(args, (args[0] & 1) ? 0 : 1);
         }
 
         static void more(TArgs& args){
-            if (_i2c.state().mt_ok())
-                do_write(args);
-            else
-                do_read(args);                
+            do_master(args);
         }
 
         static void stop(){
