@@ -8,6 +8,7 @@
 #ifndef FASTHAL_H_
 #define FASTHAL_H_
 
+#include "mp/mp.hpp"
 #include "fields/fields.hpp"
 #include "hal/hal.hpp"
 #include "platforms/platform.hpp"

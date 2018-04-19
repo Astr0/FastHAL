@@ -19,16 +19,16 @@ namespace fasthal{
     //     void (*_callback)(void*, normal_args&);
     // };
 
-    template<unsigned VSize>
-    class fixed_args {
-        using args_t = fixed_args<VSize>;
-        using callback_t = void (*)(void*, args_t&);
+    template<typename TBuf = buffer_t>
+    class test_args {
+        using args_t = test_args<TBuf>;
+        using callback_t = void (*)(void*, args_t*);
         // size of buffer
         bsize_t _count;
         // operation status
         uint8_t _status;
         // buffer
-        std::uint8_t _buf[VSize];
+        TBuf _buf;
         callback_t _callback;
     public: 
         bsize_t& count(){return _count;}
@@ -54,20 +54,19 @@ namespace fasthal{
         struct is_static_element_impl<static_args<TArgs>>: std::true_type{};
     };
 
-    template<class TI2c, typename TArgs>
-    class i2c_net: mp::details::element_holder<std::base_type_t<TArgs>*, 0> {        
+    template<class TI2c, typename TArgsPtr>
+    class i2c_net: mp::details::element_holder<TArgsPtr, 0> {        
         static constexpr auto _i2c = TI2c{};
 
-        static constexpr bool args_static = mp::details::is_static_element<std::base_type_t<TArgs>>::value;
+        using args_ptr_t = TArgsPtr;
+        static constexpr bool args_static = mp::details::is_static_element<args_ptr_t>::value;       
+        using args_holder_t = mp::details::element_holder<args_ptr_t, 0>;
 
-        using args_t = std::base_type_t<TArgs>;
-        
-        using args_holder_t = mp::details::element_holder<args_t*, 0>;
         volatile bsize_t _index;        
 
-        args_t* args() { return this->args_holder_t::get();}
-        void set_args(TArgs& args) { 
-            if constexpr(!args_static) this->args_holder_t::set(&args); 
+        args_ptr_t args() { return this->args_holder_t::get();}
+        void set_args(args_ptr_t args) { 
+            if constexpr(!args_static) this->args_holder_t::set(args); 
         }
         
         struct lazy{
@@ -146,10 +145,12 @@ namespace fasthal{
             return true;
         }
     public:
+        using args_t = args_ptr_t;
+
         i2c_net(){}
 
         // first byte in buffer should be SLA
-        bool start(TArgs& args, i2c_start type = i2c_start::start) {            
+        bool start(args_ptr_t args, i2c_start type = i2c_start::start) {            
             auto lock = no_irq{};
 
             _index = 0;
@@ -170,7 +171,7 @@ namespace fasthal{
         }
 
         // adds more data to last operation, should be called from ISR
-        void more(TArgs& args) {
+        void more(args_ptr_t args) {
             _index = 0;
             set_args(args);
             // tick the isr
@@ -182,8 +183,8 @@ namespace fasthal{
             _i2c.stop();
         }
 
-        inline i2c_result get_status(TArgs& args) {
-            return static_cast<i2c_result>(args.status());
+        inline i2c_result get_status(args_ptr_t args) {
+            return static_cast<i2c_result>(args->status());
         }
 
         // ISR - just do what it takes
@@ -193,7 +194,7 @@ namespace fasthal{
             if (fsm(res)){
                 //_index = 0;
                 args()->status() = static_cast<std::uint8_t>(res);
-                args()->callback()(this, *args());                
+                args()->callback()(this, args());                
             }
         }
     };

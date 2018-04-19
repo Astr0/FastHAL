@@ -1,13 +1,14 @@
-//#define RAW
-#define MODE 7
+#define RAW
+#define MODE 8
 // 0 - sync (478 / 1 - 1 bytes left for RX)
 // 1 - irq (370 / 5 - 1 mode set, 2 current val, 2 pending val)
 // 2 - buffered (960 / 12 - 4 + 2 buffer, 2 callback, 1 state, 1 bytes left, 2 current val)
 // 3 - buffered, always block (910 / 9 - 1+2 buffer, 2 callback, 1 state, 1 bytes left, 2 current val)
 // 4 - async on buffers (670 / 9 - 2 buffer ptr, 2 callback, 1 size, 2 current va, 2 buffer)
 // 5 - pointless sync on async lib (648 / 9 - 2 buffer ptr, 2 callback, 1 size, 2 buffer, 2 current va)
-// 6 - net args async (660 / 11 - 2 args ptr, 1 buf index, (2 buffer + 1 count + 1 statuc + 2 callback) = 6 args, 2 current va)
-// 7 - net args async - static args (626 / 9 - 1 buf index, (2 buffer + 1 count + 1 statuc + 2 callback) = 6 args, 2 current va)
+// 6 - net args async - static args, dynamic buffer (662 / 11 - 1 buf index, (2 buffer ptr + 1 count + 1 status + 2 callback) = 6 args, 2 buffer, 2 current va)
+// 7 - net args async - static args, static buffer (626 / 9 - 1 buf index, (2 buffer + 1 count + 1 status + 2 callback) = 6 args, 2 current va)
+// 8 - net args async - dynamic args, static buffer (660 / 11 - 2 args ptr, 1 buf index, (2 buffer + 1 count + 1 status + 2 callback) = 6 args, 2 current va)
 #include "fastduino.hpp"
 
 using namespace fasthal;
@@ -204,35 +205,32 @@ void bh1750_set_mode(std::uint8_t mode){
     // address counts as send byte
     i2c0_h.start(bh1750_buf, 2, bh1750_mode_set);
 }
-#elif (MODE==6 || MODE==7)
+#elif (MODE==6 || MODE==7 || MODE == 8)
 
 #if (MODE==6)
-using args_t = fixed_args<2>;
-auto args = args_t{};
+uint8_t bh1750_buf[2];
+FH_STATIC(args, test_args<>{});
+using args_base_t = args_t::type*;
 #elif (MODE==7)
 // TODO: Think about static_ptr instead of static_args. This way we can wrap anything with static, yeah!
-template<typename T>
-struct static_ptr{
-    static /*constexpr*/ T _value;
-    T& operator*(){return _value;}
-    T* operator->(){return &_value;}
-};
-using args_t  = static_args<fixed_args<2>>;
-template<> decltype(args_t::_args) args_t::_args = {};
-constexpr auto args = args_t{};
+FH_STATIC(args, test_args<std::uint8_t[2]>{});
+using args_base_t = args_t::type*;
+#elif (MODE==8)
+auto args_v = test_args<std::uint8_t[2]>{};
+constexpr auto args = &args_v;
+using args_t = decltype(args_v)*;
+using args_base_t = args_t;
 #endif
 
-
-auto i2c0_h = i2c_net<decltype(i2c0), decltype(args)>{};
+auto i2c0_h = i2c_net<i2c<0>, args_t>{};
 FH_I2C(0, i2c0_h);
 
 
 uint16_t bh1750_last_light;
-//uint8_t bh1750_buf[2];
 
 void bh1750_read();
 
-void bh1750_read_done(void*, args_t&){
+void bh1750_read_done(void*, args_base_t){
     i2c0_h.stop();
 
     // print(uart0tx, "got: "); 
@@ -246,9 +244,9 @@ void bh1750_read_done(void*, args_t&){
 
     //println(uart0tx, "rd");        
     
-    auto result = static_cast<uint16_t>(args.buffer()[0]);
+    auto result = static_cast<uint16_t>(args->buffer()[0]);
     result <<= 8;
-    result |= args.buffer()[1];
+    result |= args->buffer()[1];
 
     bh1750_last_light = (result * 10U) / 12U;
     // something's here
@@ -257,9 +255,9 @@ void bh1750_read_done(void*, args_t&){
 
 void bh1750_read(){
     // write sla    
-    args.buffer()[0] = i2c_build_sla(i2c_mr, address);
-    args.callback() = bh1750_read_done;
-    args.count() = 2;
+    args->buffer()[0] = i2c_build_sla(i2c_mr, address);
+    args->callback() = bh1750_read_done;
+    args->count() = 2;
     //args._count = 2;
     // address doesn't count as received byte and gets overwritten
     i2c0_h.start(args);
@@ -267,7 +265,7 @@ void bh1750_read(){
 
 void bh1750_set_mode(std::uint8_t mode);
 
-void bh1750_mode_set(void*, args_t&){    
+void bh1750_mode_set(void*, args_base_t){    
     //println(uart0tx, "sm cb");
     // stop bus
     i2c0_h.stop();
@@ -286,10 +284,10 @@ void bh1750_mode_set(void*, args_t&){
 }
 
 void bh1750_set_mode(std::uint8_t mode){
-    args.buffer()[0] = i2c_build_sla(i2c_mt, address);
-    args.buffer()[1] = mode;
-    args.count() = 2;
-    args.callback() = bh1750_mode_set;
+    args->buffer()[0] = i2c_build_sla(i2c_mt, address);
+    args->buffer()[1] = mode;
+    args->count() = 2;
+    args->callback() = bh1750_mode_set;
     //args._count = 2;
 
     // address counts as send byte
@@ -327,6 +325,9 @@ int main(){
         #if (MODE == 0)
         light = bh1750_read(0x10);
         #else
+        #if (MODE==6)
+        args->buffer() = bh1750_buf;
+        #endif
         #if (MODE==5)
         bh1750_read();
         #endif
