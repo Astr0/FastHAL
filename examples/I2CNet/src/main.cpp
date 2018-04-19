@@ -66,7 +66,7 @@ void bh1750_read(){
     args->count(2);
     //args._count = 2;
     // address doesn't count as received byte and gets overwritten
-    i2c0_h.start(args);
+    i2c0_h.start(*args);
 }
 
 void bh1750_set_mode(std::uint8_t mode);
@@ -98,7 +98,7 @@ void bh1750_set_mode(std::uint8_t mode){
 
     // address counts as send byte
     //println(uart0tx, "sm st");
-    i2c0_h.start(args);
+    i2c0_h.start(*args);
 }
 
 int main(){    
@@ -117,7 +117,7 @@ int main(){
     );
 
     #if (MODE==1)
-    args->buffer() = bh1750_buf;
+    args->buffer(bh1750_buf);
     #endif
 
     // set mode

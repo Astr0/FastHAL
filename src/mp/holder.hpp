@@ -13,6 +13,9 @@ namespace fasthal::mp{
     template<class T>
     using is_static = details::is_static_impl<std::base_type_t<T>>;
 
+    template<class T>
+    static constexpr auto is_static_v = is_static<T>::value;
+
     template<class T, std::size_t Index = 0, bool is_static = is_static<T>::value>
     struct holder{
         T _value;

@@ -19,7 +19,7 @@ namespace fasthal{
 
     using i2c_address_t = std::uint8_t;
     template<i2c_address_t V>
-    constexpr auto i2c_address_v = V;
+    constexpr auto i2c_address_v = integral_constant<i2c_address_t, V>{};
 
     static constexpr auto i2c_mt = false;
     static constexpr auto i2c_mr = true;

@@ -2,14 +2,17 @@
 #define FH_DEV_BH1750
 
 #include "../../std/std_types.hpp"
-#include "../../mp/const_list.hpp"
+#include "../../mp/holder.hpp"
 
 namespace fasthal::dev{
     // i2c light sensor
-    template<typename TI2cPtr>
-    class bh1750:
-    {
-        i2c_address_t _address;
+    template<typename TI2cPtr, typename TAddress = decltype(i2c_address_v<0x23>)>
+    class bh1750: 
+        mp::holder<TI2cPtr>,
+        mp::holder<TAddress>
+    {        
+        auto& i2c() { return *(this->mp::holder<TI2cPtr>.get());}
+        TAddress address() { return this->mp::holder<TAddress>.get();}
     public:
         enum class mode: std::uint8_t{
             // power down
@@ -29,14 +32,17 @@ namespace fasthal::dev{
         };
 
         // TODO: think how to pass i2c, drivers and other stuff
-        template<class TI2c>
-        constexpr bh1750(i2c_address_t address = 0x23): _address(address) {}
+        constexpr bh1750(TI2cPtr i2c, TAddress address = i2c_address_v<0x23>): 
+            mp::holder<TI2cPtr>(i2c),
+            mp::holder<TI2cPtr>(address) {}
         
         // at least 2 bytes buffer
-        bool set_mode(mode m, TI2c& i2c, buffer_t buf, typename TI2c::callback_t callback){
-            buf[0] = i2c_build_sla(_address);
-            buf[1] = static_cast<std::uint8_t>(m);
-            return i2c.start(buf, 2, callback);
+        template<class TArgs>
+        bool set_mode(mode m, TArgs& args){
+            args[0] = i2c_build_sla(address());
+            args[1] = static_cast<std::uint8_t>(m);
+            if (!i2c().start(args))
+                args(&i2c());
         }
 
         std::uint16_t set_mode_end(TI2c& i2c, buffer_t buf, i2c_result r)

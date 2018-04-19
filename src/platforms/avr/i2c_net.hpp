@@ -39,7 +39,7 @@ namespace fasthal{
         template<typename T>
         void status(T s) { _status = static_cast<std::uint8_t>(s); } 
         
-        //TBuf& buffer() { return _buf; }
+        //void buffer(TBuf buf) { _buf = buf; }
         std::uint8_t& operator[](bsize_t i) { return _buf[i]; }
         std::uint8_t operator[](bsize_t i)const { return _buf[i]; }
 
@@ -52,12 +52,16 @@ namespace fasthal{
         static constexpr auto _i2c = TI2c{};
 
         using args_ptr_t = TArgsPtr;
+        using args_t = decltype(*std::declval<args_ptr_t>());
         using args_holder_t = mp::holder<args_ptr_t>;
 
         volatile bsize_t _index;        
 
-        auto& args() { return *(this->args_holder_t::get());}
-        void set_args(args_ptr_t args) { this->args_holder_t::set(args); }
+        args_t& args() { return *(this->args_holder_t::get());}
+        void set_args(args_t& args) {
+            if constexpr(!mp::is_static_v<TArgsPtr>)
+                this->args_holder_t::set(&args); 
+        }
         
         struct lazy{
             static constexpr auto async = details::has_isr<_i2c.irq.number>;
@@ -135,12 +139,10 @@ namespace fasthal{
             return true;
         }
     public:
-        using args_t = args_ptr_t;
-
         i2c_net(){}
 
         // first byte in buffer should be SLA
-        bool start(args_ptr_t args, i2c_start type = i2c_start::start) {            
+        bool start(args_t& args, i2c_start type = i2c_start::start) {            
             auto lock = no_irq{};
 
             _index = 0;
@@ -161,7 +163,7 @@ namespace fasthal{
         }
 
         // adds more data to last operation, should be called from ISR
-        bool more(args_ptr_t args) {
+        bool more(args_t& args) {
             _index = 0;
             set_args(args);
             // tick the isr
@@ -172,10 +174,6 @@ namespace fasthal{
 
         inline static void stop(){
             _i2c.stop();
-        }
-
-        inline i2c_result get_status(args_ptr_t args) {
-            return static_cast<i2c_result>(args->status());
         }
 
         // ISR - just do what it takes
