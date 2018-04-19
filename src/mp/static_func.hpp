@@ -25,7 +25,7 @@ namespace fasthal::mp{
         template<class TFunc>
         constexpr static_func(TFunc functor): _func(invoke_functor<TFunc>){}
 
-        TRes operator()(TArgs... args){
+        TRes operator()(TArgs... args) const{
             // if constexpr (std::is_same_v<TRes, void>)
             //     _func(args...);
             // else

@@ -5,25 +5,17 @@
 #include "../../hal/i2c.hpp"
 #include "i2c.hpp"
 #include "interrupts.hpp"
-#include "../../mp/const_list.hpp"
+#include "../../mp/holder.hpp"
+#include "../../mp/static_func.hpp"
 
 // should be nice async i2c handler
 namespace fasthal{
-    // class normal_args{
-    //     // size of buffer
-    //     bsize_t _count;
-    //     // operation status
-    //     uint8_t _status;
-    //     // buffer
-    //     buffer_t _buf;
-    //     void (*_callback)(void*, normal_args&);
-    // };
 
     template<typename TBuf = buffer_t>
     class test_args {
         using args_t = test_args<TBuf>;
 
-        using callback_t = void (*)(args_t&);
+        using callback_t = void(*)(args_t&); //mp::static_func<void(args_t&)>;
         // size of buffer
         bsize_t _count;
         // operation status
@@ -32,11 +24,11 @@ namespace fasthal{
         TBuf _buf;
         callback_t _callback;
     public: 
-        bsize_t count(){return _count;}
+        bsize_t count()const {return _count;}
         void count(bsize_t c) { _count = c; }
         
         template<typename... T>
-        bool status_any(T... s){ return is_any(_status, static_cast<std::uint8_t>(s)...); }
+        bool status_any(T... s)const { return is_any(_status, static_cast<std::uint8_t>(s)...); }
         template<typename T>
         void status(T s) { _status = static_cast<std::uint8_t>(s); } 
         

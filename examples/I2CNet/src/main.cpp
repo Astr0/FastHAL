@@ -1,8 +1,8 @@
-//#define RAW
-#define MODE 2
-// 0 - net args async - static args, static buffer (622 (610) / 9 - 1 buf index, (2 buffer + 1 count + 1 status + 2 callback) = 6 args, 2 current va)
-// 1 - net args async - static args, dynamic buffer (646 (640) / 11 - 1 buf index, (2 buffer ptr + 1 count + 1 status + 2 callback) = 6 args, 2 buffer, 2 current va)
-// 2 - net args async - dynamic args, static buffer (656 (644) / 11 - 2 args ptr, 1 buf index, (2 buffer + 1 count + 1 status + 2 callback) = 6 args, 2 current va)
+#define RAW
+#define MODE 0
+// 0 - net args async - static args, static buffer (610 / 9 - 1 buf index, (2 buffer + 1 count + 1 status + 2 callback) = 6 args, 2 current va)
+// 1 - net args async - static args, dynamic buffer (640 / 11 - 1 buf index, (2 buffer ptr + 1 count + 1 status + 2 callback) = 6 args, 2 buffer, 2 current va)
+// 2 - net args async - dynamic args, static buffer (644 / 11 - 2 args ptr, 1 buf index, (2 buffer + 1 count + 1 status + 2 callback) = 6 args, 2 current va)
 
 // 0 - sync (478 / 1 - 1 bytes left for RX)
 // 1 - irq (370 / 5 - 1 mode set, 2 current val, 2 pending val)
