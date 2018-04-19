@@ -3,26 +3,24 @@
 
 #include "const_list.hpp"
 #include "../std/std_types.hpp"
+#include "../utils/functions.h"
 
 namespace fasthal::mp{
-    template<typename T, unsigned VNum>
+    template<class TGet>
     struct static_ptr{
-        using type = T;
-        static /*constexpr*/ T _value;
-        constexpr T& operator*()const {return _value;}
-        constexpr T* operator->()const {return &_value;}
-        constexpr operator T*()const {return &_value;}
+        constexpr auto& operator*()const {return TGet::value();}
+        constexpr auto* operator->()const {return &TGet::value();}
+        constexpr operator auto*()const {return &TGet::value();}
     };
 
     namespace details{
-        template<typename T, unsigned VNum>
-        struct is_static_impl<static_ptr<T, VNum>>: std::true_type{};
+        template<class TGet>
+        struct is_static_impl<static_ptr<TGet>>: std::true_type{};
     }
 
-    #define FH_STATIC(NAME, VALUE) \
-    using NAME ## _t = ::fasthal::mp::static_ptr<decltype(VALUE), __LINE__>;\
-    template<> decltype(VALUE) NAME ## _t::_value = (VALUE);\
-    static constexpr auto NAME = NAME ## _t{};
+    #define FH_STATIC_PTR(NAME, VALUE)\
+    FH_WRAPVARIABLE(__get ## NAME, VALUE);\
+    using NAME = ::fasthal::mp::static_ptr<__get ## NAME>;
 }
 
 #endif

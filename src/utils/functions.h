@@ -9,11 +9,7 @@
 #define fh_wbi(reg, bit, v) (v ? fh_sbi(reg, bit) : fh_cbi(reg, bit)) 
 
 
-#define FH_WRAPVARIABLE(CLASSNAME, VARNAME)\
-struct CLASSNAME\
-{\
-static decltype(VARNAME)& value(){return VARNAME;}\
-};
+#define FH_WRAPVARIABLE(CLASSNAME, VARNAME) struct CLASSNAME{ static decltype(VARNAME)& value(){return (VARNAME);} };
 
 #define FH_BITENUM_OPS(NAME, BASE)\
 inline constexpr NAME operator|(NAME x, NAME y){ return static_cast<NAME>(static_cast<BASE>(x) | static_cast<BASE>(y)); }\
