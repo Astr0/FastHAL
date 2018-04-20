@@ -35,8 +35,8 @@ namespace fasthal{
     // i2c interface
     template<class TArgs>
     struct i2c_null{        
-        static bool start(TArgs& args, i2c_start type = i2c_start::start) { return false; }
-        static bool more(TArgs& args) { return false; }
+        static void start(TArgs& args, i2c_start type = i2c_start::start) { args.state(i2c_result::error); args(); }
+        static void more(TArgs& args) { args.state(i2c_result::error); args(); }
         static void stop(){}
     };
 }

@@ -2,16 +2,35 @@
 #define FH_HAL_NET_H_
 
 namespace fasthal{
-    template<typename TBuf = buffer_t>
-    class net_args {
-        using args_t = net_args<TBuf>;
+    namespace details{
+        template<bool VHasStatus = true>
+        class net_args_status{            
+            // operation status
+            std::uint8_t _status;
+        public:        
+            constexpr net_args_status(){}
+
+            template<typename... T>
+            bool status_any(T... s)const { return is_any(_status, static_cast<std::uint8_t>(s)...); }
+            template<typename T>
+            void status(T s) { _status = static_cast<std::uint8_t>(s); }
+        };
+
+        template<>
+        class net_args_status<false> { };
+    }
+
+    // for network APIs
+    // API should require count(), buffer(), operator() and some may require status(x) - other are user changable
+    template<typename TBuf = buffer_t, bool VHasStatus = true>
+    class net_args: public details::net_args_status<VHasStatus> {
+        using args_t = net_args<TBuf, VHasStatus>;
 
         //using callback_t = void(*)(args_t&); 
         using callback_t = mp::static_func<void(args_t&)>; 
         // size of buffer
         bsize_t _count;
-        // operation status
-        std::uint8_t _status;
+       
         // buffer
         TBuf _buf;
         callback_t _callback;
@@ -20,11 +39,7 @@ namespace fasthal{
 
         bsize_t count()const {return _count;}
         void count(bsize_t c) { _count = c; }
-        
-        template<typename... T>
-        bool status_any(T... s)const { return is_any(_status, static_cast<std::uint8_t>(s)...); }
-        template<typename T>
-        void status(T s) { _status = static_cast<std::uint8_t>(s); } 
+
         
         void buffer(TBuf buf) { _buf = buf; }
         TBuf& buffer() { return _buf; }

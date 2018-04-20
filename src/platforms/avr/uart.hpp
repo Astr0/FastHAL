@@ -102,14 +102,14 @@ namespace fasthal{
     }
 
     template<unsigned VNum>
-    class uart: details::uart_impl<VNum>
+    class uart: public details::uart_impl<VNum>
     {
         using uart_t = details::uart_impl<VNum>;
         static_assert(uart_t::available, "UART not available");
 
         struct lazy{
             static constexpr auto async_tx = details::has_isr<uart_t::irq_txr.number>;
-            static constexpr auto async_rx = details::has_isr<uart_t::irq_txc.number>;
+            static constexpr auto async_rx = details::has_isr<uart_t::irq_rxc.number>;
         };
 
     public:
@@ -141,7 +141,8 @@ namespace fasthal{
                 // enable rx
                 enable(uart_t::rxen),
                 // enable rx ready irq
-                enable(uart_t::irq_rxc, integral_constant<bool, lazy::async_rx>{})
+                disable(uart_t::irq_rxc)
+                //enable(uart_t::irq_rxc, integral_constant<bool, lazy::async_rx>{})
             );
         }
 
@@ -173,42 +174,23 @@ namespace fasthal{
                 set_(uart_t::txc);
             }
         }
-        static inline bool tx_ready(){ return read_(uart_t::udre); }        
-        static inline bool tx_done(){ return read_(uart_t::txc); }
-        static inline void tx_start() { 
-            static_assert(lazy::async_tx, "Not async TX");
-            enable_(uart_t::irq_txr);             
-        }
-        static inline void tx_stop() { 
-            static_assert(lazy::async_tx, "Not async TX");
-            disable_(uart_t::irq_txr);
-        }
-        static inline bool tx_started() { 
-            static_assert(lazy::async_tx, "Not async TX");
-            return enabled_(uart_t::irq_txr); 
-        }
-        static inline void try_tx_sync(){
-            static_assert(lazy::async_tx, "Not async TX");
-            try_irq_force(uart_t::irq_txr);
-        }
         // ---------------------- rx
-        static inline bool rx_done(){ return read_(uart_t::rxc); }
         static inline bool rx_ok() { return !read_(uart_t::upe); }
-        static inline std::uint8_t rx() { return read_(uart_t::udre); }
+        static inline std::uint8_t rx() { return read_(uart_t::udr); }
     };
 
     // some "extension methods"
     template<unsigned VNum>
     // blocking TX
     static inline void tx_sync(uart<VNum> uart, std::uint8_t v) { 
-        while (!uart.tx_ready());
+        while (!ready_(uart.irq_txr));
         uart.tx(v);
     }
 
     template<unsigned VNum, typename Tfunc>
     // if rx can be done - do rx
     static inline bool try_rx(uart<VNum> uart, Tfunc callback){
-        if (!uart.rx_done())
+        if (!ready_(uart.irq_rxc))
             return false;
         auto ok = uart.rx_ok();
         auto v = uart.rx();
@@ -216,59 +198,10 @@ namespace fasthal{
             callback(v);
         return ok;
     }
-
-    // sync tx ostream
-    template<class TUart>
-    struct uart_sync_tx{};
-    namespace details{
-        template<class TUart> struct is_ostream_impl<uart_sync_tx<TUart>>: std::true_type{};
-    }
-    template<class TUart>
-    void write(uart_sync_tx<TUart> uartw, std::uint8_t c){ tx_sync(TUart{}, c); }    
     
-    // buffered tx ostream
-    template<class TUart, unsigned VSize>
-    class uart_buf_tx{
-        ring_buffer<VSize> _buf;
-        using uart_t = TUart;
-    public:
-        void write(std::uint8_t c){
-            // shortcut if empty buffer -> try write something sync
-            if (uart_t::tx_ready() && _buf.empty()){
-                uart_t::tx(c);
-                return;
-            }
-
-            // wait for buffer space
-            while (!_buf.try_write(c))
-                uart_t::try_tx_sync();
-            
-            // start writing
-            uart_t::tx_start();
-        }
-        void flush(){
-            // write data buffer empty interrupt enabled (we have data in write buffer)
-            // or transmission not complete (no data in write buffer, but it's not actually transmitted)            
-            while (uart_t::tx_started() || read_(uart_t::txc))
-                uart_t::try_tx_sync();
-        }
-        auto available() { return _buf.available(); }
-
-        void operator()(){
-            uart_t::tx(_buf.read_dirty());
-
-            // not ok, disable async transmit
-            if (_buf.empty())
-                uart_t::tx_stop();
-        }
-    };
-    namespace details{
-        template<class TUart, unsigned VSize> 
-        struct is_ostream_impl<uart_buf_tx<TUart, VSize>>: std::true_type{};
-    }
-    template<class TUart, unsigned VSize>
-    void write(uart_buf_tx<TUart, VSize>& uartw, std::uint8_t c){ uartw.write(c); }    
-
     #include "uart_impl.hpp"
+    #include "uart_streams.hpp"
 }
+#include "uart_async.hpp"
+
 #endif
