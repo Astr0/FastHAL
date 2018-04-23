@@ -23,8 +23,9 @@
 + I2C - ok stuff, prescaler 0 mode to speed things up (most commonly used). 
 + "miniRTOS" - javascript like setTimeout(), setInterval() - using setTimeout()
 + i2c async interface
++ async interface for uart
 
-* async interface for uart
+* async SPI
 * async interface for ADC
 * power modes (sleep/standby, etc.)
 * SPI
