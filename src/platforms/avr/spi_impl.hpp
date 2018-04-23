@@ -152,7 +152,10 @@ struct spi_impl<0>{
     static constexpr auto spips = avr::spips0;
     static constexpr auto spif = avr::spif0;
     static constexpr auto wcol = avr::wcol0;
+
     static constexpr auto spdr = avr::spdr0;
+
+    static constexpr auto irq = irq_spi0;
 };
 #endif
 
@@ -169,7 +172,10 @@ struct spi_impl<1>{
     static constexpr auto spips = avr::spips1;
     static constexpr auto spif = avr::spif1;
     static constexpr auto wcol = avr::wcol1;
+
     static constexpr auto spdr = avr::spdr1;
+
+    static constexpr auto irq = irq_spi1;
 };
 #endif
 }
