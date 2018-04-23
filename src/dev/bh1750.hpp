@@ -2,6 +2,7 @@
 #define FH_DEV_BH1750
 
 #include "../std/std_types.hpp"
+#include "../std/std_fake.hpp"
 #include "../mp/holder.hpp"
 #include "../hal/i2c.hpp"
 
@@ -28,7 +29,8 @@ namespace fasthal::dev{
     class bh1750: 
         mp::holder<TI2cPtr>,
         mp::holder<TAddress>
-    {        
+    {
+        using i2c_t = std::base_type_t<decltype(*std::declval<TI2cPtr>())>;
         auto& i2c() { return *(this->mp::holder<TI2cPtr>::get());}
         TAddress address() { return this->mp::holder<TAddress>::get();}
     public:
@@ -42,9 +44,7 @@ namespace fasthal::dev{
         void set_mode(bh1750_mode m, TArgs& args){
             args[0] = i2c_build_sla(i2c_mt, address());
             args[1] = static_cast<std::uint8_t>(m);
-            i2c().start(args); 
-            // if (!i2c().start(args))
-            //     args();
+            i2c().start(args);
         }
 
         template<class TArgs>
@@ -53,6 +53,14 @@ namespace fasthal::dev{
             i2c().stop();
             return args.status_any(i2c_result::done);    
         }
+        
+        // sync
+        bool set_mode(bh1750_mode m){
+            static_assert(!i2c_t::async(), "I2C is async!");
+            auto args = net_args_sync<std::uint8_t[2]>{};
+            set_mode(m, args);
+            return set_mode_end(args);
+        }
 
         template<class TArgs>
         void read(TArgs& args){
@@ -60,8 +68,6 @@ namespace fasthal::dev{
             // address doesn't count as received byte and gets overwritten
             args.count(2);          
             i2c().start(args); 
-            // if (!i2c().start(args))
-            //     args();
         }
 
         template<class TArgs>
@@ -78,6 +84,14 @@ namespace fasthal::dev{
             value = (result * 10U) / 12U;
 
             return true;
+        }
+
+        // sync
+        bool read(std::uint16_t& value){
+            static_assert(!i2c_t::async(), "I2C is async!");
+            auto args = net_args_sync<std::uint8_t[2]>{};
+            read(args);
+            return read_end(args, value);
         }
     };
 }

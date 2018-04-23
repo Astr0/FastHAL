@@ -15,23 +15,23 @@ class uart_buf_tx{
 public:
     void write(std::uint8_t c){
         // shortcut if empty buffer -> try write something sync
-        if (uart_t::tx_ready() && _buf.empty()){
+        if (ready_(uart_t::irq_txr) && _buf.empty()){
             uart_t::tx(c);
             return;
         }
 
         // wait for buffer space
         while (!_buf.try_write(c))
-            uart_t::try_tx_sync();
+            try_irq_force(uart_t::irq_txr);
         
         // start writing
-        uart_t::tx_start();
+        enable_(uart_t::irq_txr);
     }
     void flush(){
         // write data buffer empty interrupt enabled (we have data in write buffer)
         // or transmission not complete (no data in write buffer, but it's not actually transmitted)            
-        while (uart_t::tx_started() || read_(uart_t::txc))
-            uart_t::try_tx_sync();
+        while (ready_(uart_t::irq_txr) || read_(uart_t::txc))
+            try_irq_force(uart_t::irq_txr);
     }
     auto available() { return _buf.available(); }
 
@@ -40,7 +40,7 @@ public:
 
         // not ok, disable async transmit
         if (_buf.empty())
-            uart_t::tx_stop();
+            disable_(uart_t::irq_txr);
     }
 };
 namespace details{

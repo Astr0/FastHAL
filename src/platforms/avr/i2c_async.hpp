@@ -1,5 +1,5 @@
-#ifndef FH_I2C_ASYNC_H_
-#define FH_I2C_ASYNC_H_
+#ifndef FH_AVR_I2C_ASYNC_H_
+#define FH_AVR_I2C_ASYNC_H_
 
 #include "../../std/std_types.hpp"
 #include "../../hal/i2c.hpp"
@@ -97,57 +97,20 @@ namespace fasthal{
             }
             return true;
         }
+    public:
+        static constexpr auto async() { return true; }
 
-        void run_sync(){
-            // static_assert(!lazy::async, "only for sync operation");
-            // TODO: guard against reentrance
+        i2c_async(){ static_assert(details::has_isr<_i2c.irq.number>, "IRQ not set! Use FH_I2C(*this*)"); }
 
-            // some black woodo magic here to fold async calls to sync ones
-            i2c_result res;
-            while (true){
-                // wait for "irq"
-                while (!ready_(_i2c.irq));
-                // call fsm
-                if (!fsm(res)) continue;
-                // call callback
-                args().status(res);
-                args()();
-                // new stuff was requested?
-                // this does not guard from multiple "start" inside callback, but that long i2c sessions should be rare, 2 at max
-                if (_index != 0)
-                    break;
-            }
-            _index = 0;
-        }
+        // first byte in buffer should be SLA
+        void start(args_t& args, i2c_start type = i2c_start::start) {
+            auto lock = no_irq{};
 
-        void do_start(args_t& args, i2c_start type = i2c_start::start){
             _index = 0;
             set_args(args);
 
             // count should be at least 1 (SLA)
             ::fasthal::start(_i2c, type);
-        }
-    public:
-        i2c_async(){}
-
-        static constexpr auto async() { return details::has_isr<_i2c.irq.number>; }
-
-        // first byte in buffer should be SLA
-        void start(args_t& args, i2c_start type = i2c_start::start) {            
-            if constexpr(async())
-            {
-                auto lock = no_irq{};
-
-                do_start(args, type);
-            } else{
-                // guard against reentrance - run_sync will set this to 0
-                auto reentry = _index != 0;
-
-                do_start(args, type);
-
-                if (!reentry)
-                    run_sync();
-            }                
 
             // we're busy probably.. better check it
             // but don't check state since we async and control it nicely
@@ -160,10 +123,8 @@ namespace fasthal{
             _index = 0;
             set_args(args);
             // tick the isr
-            if constexpr (async()){
-                if (ready_(_i2c.irq))
-                    run(_i2c.irq);
-            }
+            if (ready_(_i2c.irq))
+                run(_i2c.irq);
         }
 
         inline static void stop(){
@@ -172,8 +133,6 @@ namespace fasthal{
 
         // ISR - just do what it takes
         void operator()(){
-            static_assert(async(), "only for async operation");
-
             i2c_result res;
             if (fsm(res)){
                 //_index = 0;

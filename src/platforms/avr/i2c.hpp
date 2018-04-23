@@ -206,5 +206,6 @@ namespace fasthal{
 };
 
 #include "i2c_async.hpp"
+#include "i2c_sync.hpp"
 
 #endif
