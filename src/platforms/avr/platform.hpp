@@ -11,5 +11,6 @@
 #include "time.hpp"
 #include "flash_string.hpp"
 #include "i2c.hpp"
+#include "spi.hpp"
 
 #endif /* AVR_HAL_H_ */
