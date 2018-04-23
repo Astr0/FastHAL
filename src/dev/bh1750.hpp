@@ -30,7 +30,6 @@ namespace fasthal::dev{
         mp::holder<TI2cPtr>,
         mp::holder<TAddress>
     {
-        using i2c_t = std::base_type_t<decltype(*std::declval<TI2cPtr>())>;
         auto& i2c() { return *(this->mp::holder<TI2cPtr>::get());}
         TAddress address() { return this->mp::holder<TAddress>::get();}
     public:
@@ -56,7 +55,7 @@ namespace fasthal::dev{
         
         // sync
         bool set_mode(bh1750_mode m){
-            static_assert(!i2c_t::async(), "I2C is async!");
+            assert_net_ptr_sync<TI2cPtr>();
             auto args = net_args_sync<std::uint8_t[2]>{};
             set_mode(m, args);
             return set_mode_end(args);
@@ -88,7 +87,7 @@ namespace fasthal::dev{
 
         // sync
         bool read(std::uint16_t& value){
-            static_assert(!i2c_t::async(), "I2C is async!");
+            assert_net_ptr_sync<TI2cPtr>();
             auto args = net_args_sync<std::uint8_t[2]>{};
             read(args);
             return read_end(args, value);

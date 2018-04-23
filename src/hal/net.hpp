@@ -54,6 +54,16 @@ namespace fasthal{
         void operator()() { _callback(*this); }        
         args_t& callback(callback_t cb){ _callback = cb; return *this; } 
     };
+
+    template<typename T>
+    void assert_net_sync(){
+        static_assert(!T::async(), "Not async net interface!");
+    }
+
+    template<typename TPtr, typename T = std::base_type_t<decltype(*std::declval<TPtr>())>>
+    void assert_net_ptr_sync(){
+        assert_net_sync<T>();
+    }
 }
 
 #endif
