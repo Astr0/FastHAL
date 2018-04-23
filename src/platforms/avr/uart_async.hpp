@@ -13,10 +13,6 @@ namespace fasthal{
         
         volatile bsize_t _index;
 
-        struct lazy{
-            static constexpr auto async = details::has_isr<_uart.irq_txr.number>;
-        };
-
         args_t& args() { return *(this->args_holder_t::get());}
         void set_args(args_t& args) {
             if constexpr(!mp::is_static_v<TArgsPtr>)
@@ -31,7 +27,10 @@ namespace fasthal{
             enable_(_uart.irq_txr);
         }
 
+        static constexpr bool async() { return details::has_isr<_uart.irq_txr.number>; }
+
         void operator()(){
+            static_assert(async(), "For async operation only");
             _uart.tx(args().buffer()[_index]);
             if (++_index == args().count()){
                 args()();
@@ -50,10 +49,6 @@ namespace fasthal{
         
         volatile bsize_t _index;
 
-        struct lazy{
-            static constexpr auto async = details::has_isr<_uart.irq_rxc.number>;
-        };
-
         args_t& args() { return *(this->args_holder_t::get());}
         void set_args(args_t& args) {
             if constexpr(!mp::is_static_v<TArgsPtr>)
@@ -68,7 +63,10 @@ namespace fasthal{
             enable_(_uart.irq_rxc);
         }
 
+        static constexpr bool async() { return details::has_isr<_uart.irq_rxc.number>; }
+
         void operator()(){            
+            static_assert(async(), "For async operation only");
             auto ok = _uart.rx_ok();
             auto c = _uart.rx();
             if (!ok)

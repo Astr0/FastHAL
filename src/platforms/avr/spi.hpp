@@ -110,4 +110,6 @@ namespace fasthal{
     #include "spi_impl.hpp"
 }
 
+#include "spi_async.hpp"
+
 #endif

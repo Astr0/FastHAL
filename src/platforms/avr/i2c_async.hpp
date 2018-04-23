@@ -10,7 +10,7 @@
 
 // should be nice async i2c handler
 namespace fasthal{
-    template<class TI2c, typename TArgsPtr = net_args<>*>
+    template<class TI2c, typename TArgsPtr = net_args_async<>*>
     class i2c_async: mp::holder<TArgsPtr> {        
         static constexpr auto _i2c = TI2c{};
 
@@ -98,12 +98,8 @@ namespace fasthal{
             return true;
         }
 
-        struct lazy{
-            static constexpr auto async = details::has_isr<_i2c.irq.number>;
-        };
-
         void run_sync(){
-            static_assert(!lazy::async, "only for sync operation");
+            // static_assert(!lazy::async, "only for sync operation");
             // TODO: guard against reentrance
 
             // some black woodo magic here to fold async calls to sync ones
@@ -134,14 +130,17 @@ namespace fasthal{
     public:
         i2c_async(){}
 
+        static constexpr auto async() { return details::has_isr<_i2c.irq.number>; }
+
         // first byte in buffer should be SLA
         void start(args_t& args, i2c_start type = i2c_start::start) {            
-            if constexpr(lazy::async)
+            if constexpr(async())
             {
                 auto lock = no_irq{};
 
                 do_start(args, type);
             } else{
+                // guard against reentrance - run_sync will set this to 0
                 auto reentry = _index != 0;
 
                 do_start(args, type);
@@ -161,7 +160,7 @@ namespace fasthal{
             _index = 0;
             set_args(args);
             // tick the isr
-            if constexpr (lazy::async){
+            if constexpr (async()){
                 if (ready_(_i2c.irq))
                     run(_i2c.irq);
             }
@@ -173,7 +172,7 @@ namespace fasthal{
 
         // ISR - just do what it takes
         void operator()(){
-            static_assert(lazy::async, "only for async operation");
+            static_assert(async(), "only for async operation");
 
             i2c_result res;
             if (fsm(res)){
