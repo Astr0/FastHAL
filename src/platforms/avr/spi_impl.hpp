@@ -25,7 +25,7 @@ constexpr auto mstr0 = fieldBit<MSTR0>(spcr0);
 constexpr auto spimode0 = vField<spi_mode>(fieldBit<CPHA0>(spcr0), fieldBit<CPOL0>(spcr0));
 
 // prescaler
-constexpr auto spips0 = vField<spi_ps>(fieldBit<SPR00>(spcr0), fieldBit<SPR01>(spcr0), fieldBit<SPI2X0>(spsr0));
+constexpr auto spips0 = vField<spi_ps>(invert(fieldBit<SPI2X0>(spsr0)), fieldBit<SPR00>(spcr0), fieldBit<SPR01>(spcr0));
 
 // interrupt flag
 constexpr auto spif0 = fieldBit<SPIF0>(spsr0);
@@ -57,7 +57,7 @@ constexpr auto mstr0 = fieldBit<MSTR>(spcr0);
 constexpr auto spimode0 = vField<spi_mode>(fieldBit<CPHA>(spcr0), fieldBit<CPOL>(spcr0));
 
 // prescaler
-constexpr auto spips0 = vField<spi_ps>(fieldBit<SPR0>(spcr0), fieldBit<SPR1>(spcr0), fieldBit<SPI2X>(spsr0));
+constexpr auto spips0 = vField<spi_ps>(invert(fieldBit<SPI2X>(spsr0)), fieldBit<SPR0>(spcr0), fieldBit<SPR1>(spcr0));
 
 // interrupt flag
 constexpr auto spif0 = fieldBit<SPIF>(spsr0);
@@ -92,7 +92,7 @@ constexpr auto mstr1 = fieldBit<MSTR1>(spcr1);
 constexpr auto spmode1 = vField<spi_mode>(fieldBit<CPHA1>(spcr1), fieldBit<CPOL1>(spcr1));
 
 // prescaler
-constexpr auto spps1 = vField<spi_ps>(fieldBit<SPR11>(spcr1), fieldBit<SPR11>(spcr1), fieldBit<SPI2X1>(spsr1));
+constexpr auto spps1 = vField<spi_ps>(invert(fieldBit<SPI2X1>(spsr1)), fieldBit<SPR11>(spcr1), fieldBit<SPR11>(spcr1));
 
 // interrupt flag
 constexpr auto spif1 = fieldBit<SPIF1>(spsr1);
@@ -153,6 +153,9 @@ struct spi_impl<0>{
     static constexpr auto spif = avr::spif0;
     static constexpr auto wcol = avr::wcol0;
 
+
+    static constexpr auto spcr = avr::spcr0;
+    static constexpr auto spsr = avr::spsr0;
     static constexpr auto spdr = avr::spdr0;
 
     static constexpr auto irq = irq_spi0;
@@ -173,6 +176,8 @@ struct spi_impl<1>{
     static constexpr auto spif = avr::spif1;
     static constexpr auto wcol = avr::wcol1;
 
+    static constexpr auto spcr = avr::spcr1;
+    static constexpr auto spsr = avr::spsr1;
     static constexpr auto spdr = avr::spdr1;
 
     static constexpr auto irq = irq_spi1;

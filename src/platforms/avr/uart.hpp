@@ -129,6 +129,10 @@ namespace fasthal{
                 //set the data bits, parity, and stop bits
                 write(uart_t::ucsrc, config_),
 
+                // start config from scratch
+                clear(uart_t::ucsra),
+                clear(uart_t::ucsrb),
+
                 // enable u2x
                 enable(uart_t::u2x, u2x_),
 

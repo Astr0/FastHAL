@@ -17,28 +17,28 @@ namespace fasthal{
     template<spi_mode V>
     static constexpr auto spi_mode_v = integral_constant<spi_mode, V>{};
 
-    // prescaler
+    // prescaler. SPR1 SPR0 ~SPI2X
     enum class spi_ps:  std::uint8_t{
-        _2  = 0b100,
-        _4  = 0b000,
-        _8  = 0b101,
-        _16 = 0b001,
-        _32 = 0b110,
-        _64 = 0b010,
-        _64p = 0b111,
-        _128 = 0b011
+        _2  = 0b000,
+        _4  = 0b001,
+        _8  = 0b010,
+        _16 = 0b011,
+        _32 = 0b100,
+        _64 = 0b101,
+        _64p = 0b110,
+        _128 = 0b111
     };
     template<spi_ps V>
     static constexpr auto spi_ps_v = integral_constant<spi_ps, V>{};
 
-    static constexpr auto spi_msb_first = integral_constant<bool, true>{};
-    static constexpr auto spi_lsb_first = integral_constant<bool, false>{};
+    static constexpr auto spi_msb_first = integral_constant<bool, false>{};
+    static constexpr auto spi_lsb_first = integral_constant<bool, true>{};
 
     using spi_clock_t = std::uint32_t;
     template <spi_clock_t V>
     static constexpr auto spi_clock_v = integral_constant<spi_clock_t, V>{};
 
-    static constexpr auto spi_clock_def = 4'000'000;
+    static constexpr auto spi_clock_def = spi_clock_v<4'000'000UL>;
 
     namespace details{
         template<unsigned VNum>
@@ -57,15 +57,15 @@ namespace fasthal{
             if (ps == 6)
                 ps = 7;
 
-            // Invert the SPI2X bit
-            ps ^= 0b100;
+            // Invert the SPI2X bit 
+            //ps ^= 0b001;
 
             return static_cast<spi_ps>(ps);
         }
 
         template<spi_clock_t VClock>
         constexpr auto clock_to_ps(integral_constant<spi_clock_t, VClock>){
-            auto ps = clock_to_ps(VClock);
+            constexpr auto ps = clock_to_ps(VClock);
             return spi_ps_v<ps>;
         }
     }
@@ -84,11 +84,13 @@ namespace fasthal{
             TMsbFirst msb_first = spi_msb_first, 
             TMode mode = spi_mode_v<spi_mode::def>){
             return combine(
+                clear(impl_t::spcr),
+                clear(impl_t::spsr),
                 set(impl_t::spe),
                 set(impl_t::mstr),
-                set(impl_t::spips, details::clock_to_ps(clock)),
+                write(impl_t::spips, details::clock_to_ps(clock)),
                 set(impl_t::dord, msb_first),
-                set(impl_t::spimode, mode)
+                write(impl_t::spimode, mode)
             );
         }
 

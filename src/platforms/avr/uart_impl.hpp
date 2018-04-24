@@ -18,6 +18,8 @@ namespace details{\
         static constexpr auto upe = avr::upe ## NUM;\
         static constexpr auto udr = avr::udr ## NUM;\
         static constexpr auto ubrr = avr::ubrr ## NUM;\
+        static constexpr auto ucsra = avr::ucsr ## NUM ## a;\
+        static constexpr auto ucsrb = avr::ucsr ## NUM ## b;\
         static constexpr auto ucsrc = avr::ucsr ## NUM ## c;\
         static constexpr auto irq_txr = irq_txr ## NUM;\
         static constexpr auto irq_txc = irq_txc ## NUM;\
