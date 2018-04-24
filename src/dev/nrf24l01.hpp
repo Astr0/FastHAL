@@ -73,6 +73,15 @@ namespace fasthal::dev{
     };
     FH_BITENUM_OPS(rf24_f, std::uint8_t);
 
+    // status
+    enum class rf24_s: std::uint8_t{
+        tx_full = 1 << 0,
+        max_rt  = 1 << 4,
+        tx_ds   = 1 << 5,
+        rx_dr   = 1 << 6
+    };
+    FH_BITENUM_OPS(rf24_s, std::uint8_t);
+
     // registers
     enum class rf24_reg: std::uint8_t{
         nrf_config		=0x00,
@@ -138,44 +147,65 @@ namespace fasthal::dev{
         // we don't need this cause we use ENUM :D
         // static constexpr std::uint8_t reg_mask = 0x1F;
 
-        void transfer(buffer_t buf, bsize_t count) const{
+        static void transfer_begin(){
             clear_(cs_pin);
             // timing
-            delay_us(10);
+            delay_us(10);            
+        }
 
-            auto args = net_args{};
-            args.buffer(buf);
-            args.count(count);
-            spi().transfer(args);
-
+        static void transfer_end(){
             set_(cs_pin);
             // timing
             delay_us(10);
         }
 
+        void transfer_do(buffer_t buf, bsize_t count) const{
+            auto args = net_args{};
+            args.buffer(buf);
+            args.count(count);
+            spi().transfer(args);
+        }
+
+        void transfer(std::uint8_t cmd, buffer_t buf, bsize_t count) const{
+            transfer_begin();
+
+            transfer_do(&cmd, 1);
+            transfer_do(buf, count);
+
+            transfer_end();
+        }
+
+        void transfer(buffer_t buf, bsize_t count) const{
+            transfer_begin();
+
+            transfer_do(buf, count);
+
+            transfer_end();
+        }
+
+        void transfer(std::uint8_t cmd) const{
+            transfer(&cmd, 1);
+        }
+
         std::uint8_t transfer(std::uint8_t cmd, std::uint8_t v) const{
-            std::uint8_t buf[2];
             // prepare write register command
-            buf[0] = cmd;
-            buf[1] = v;
+            std::uint8_t buf[2] = { cmd, v};
             transfer(buf, 2);
             return buf[1];
         }
 
-        // std::uint8_t read_raw(std::uint8_t cmd) const{
-        //     std::uint8_t buf[2];
-        //     // prepare read register command
-        //     buf[0] = cmd;
-        //     buf[1] = cmd_nop;
-        //     transfer(buf, 2);
-        //     // discard first byte (status)
-        //     return buf[1];
-        // }
-        
         void write_reg(rf24_reg reg, std::uint8_t v) const{
             transfer(
                 static_cast<std::uint8_t>(rf24_cmd::write_register) | static_cast<std::uint8_t>(reg),
                 v
+            );
+        }
+
+        void write_reg(rf24_reg reg, buffer_t buf, bsize_t c) const{
+            transfer(
+                static_cast<std::uint8_t>(rf24_cmd::write_register) | static_cast<std::uint8_t>(reg),
+                buf,
+                c
             );
         }
 
@@ -197,6 +227,11 @@ namespace fasthal::dev{
         void aw(rf24_aw v) const{
             write_reg(rf24_reg::setup_aw, static_cast<std::uint8_t>(v));
         }
+
+        void aw(std::uint8_t v) const{
+            write_reg(rf24_reg::setup_aw, v - 2);
+        }
+
 
         // set auto-retransmit, count = 0 == disabled)
         void retr(rf24_ard delay, std::uint8_t count) const{
@@ -234,6 +269,48 @@ namespace fasthal::dev{
         bool sanity_check(rf24_pwr power, rf24_rate rate, std::uint8_t channel) const{
             return (read_reg(rf24_reg::rf_setup) == (static_cast<std::uint8_t>(power) | static_cast<std::uint8_t>(rate))) &&
                 (this->channel() == channel);
+        }
+
+        // enable pipes
+        void rx_pipes(std::uint8_t pipes_mask) const{
+            write_reg(rf24_reg::en_rxaddr, pipes_mask);
+        }
+
+        // enable auto ack on pipes
+        void auto_ack(std::uint8_t pipes_mask) const{
+            write_reg(rf24_reg::en_aa, pipes_mask);
+        }        
+
+        // enable dynamic payload on pipes
+        void dynamic_payload(std::uint8_t pipes_mask) const{
+            write_reg(rf24_reg::dynpd, pipes_mask);
+        }        
+
+        // set rx pipe address
+        void rx_address(std::uint8_t pipe, buffer_t addr, bsize_t c) const{
+            write_reg(
+                static_cast<rf24_reg>(static_cast<std::uint8_t>(rf24_reg::rx_addr_p0) + pipe), 
+                addr, 
+                c);
+        }
+
+        // set tx address
+        void tx_address(buffer_t addr, bsize_t c) const{
+            write_reg(rf24_reg::tx_addr, addr, c);
+        }
+
+        void status(rf24_s status) const{
+            write_reg(rf24_reg::status, static_cast<std::uint8_t>(status));
+        }
+
+        // flush RX buffer
+        void rx_flush() const{
+            transfer(static_cast<std::uint8_t>(rf24_cmd::flush_rx));
+        }
+
+        // flush TX buffer
+        void tx_flush() const{
+            transfer(static_cast<std::uint8_t>(rf24_cmd::flush_tx));
         }
 
         // pins should be configured to output externally!

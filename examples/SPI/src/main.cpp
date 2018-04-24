@@ -39,8 +39,10 @@ void init_radio(){
     delay_ms(5);
     debug_radio();
 
+    constexpr auto addr_width = 5;
+
     // set address width
-    radio.aw(rf24_aw::_5);
+    radio.aw(addr_width);
     // set retransmit
     radio.retr(rf24_ard::_1500us, 15);
     // set channel
@@ -64,6 +66,33 @@ void init_radio(){
     #ifndef RAW
     println(uart0tx, "radio ok");
     #endif
+    static constexpr auto broadcast_pipe = 1;
+    // enable broadcasting pipe
+    radio.rx_pipes(1 << broadcast_pipe);
+	// disable AA on all pipes, activate when node pipe set
+	radio.auto_ack(0x00);
+	// enable dynamic payloads on used pipes
+	radio.dynamic_payload((1 << broadcast_pipe) | 1 << 0);
+    
+    static constexpr std::uint8_t broadcast_address = 255;
+
+    std::uint8_t base_id[addr_width] = {0x00,0xFC,0xE1,0xA8,0xA8};
+
+    // listen to broadcast pipe
+	base_id[0] = broadcast_address;
+    radio.rx_address(broadcast_pipe, base_id, broadcast_pipe > 1 ? 1 : addr_width);
+    
+	// pipe 0, set full address, later only LSB is updated
+    radio.rx_address(0, base_id, addr_width);
+    // set tx address
+    radio.tx_address(base_id, addr_width);
+	
+	// reset FIFO
+	radio.rx_flush();
+	radio.tx_flush();
+
+	// reset interrupts
+	radio.status(rf24_s::tx_ds | rf24_s::max_rt | rf24_s::rx_dr);
 }
 
 int main(){        
