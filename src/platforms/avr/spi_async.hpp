@@ -1,6 +1,8 @@
 #ifndef FH_AVR_SPI_ASYNC_H_
 #define FH_AVR_SPI_ASYNC_H_
 
+#include "../../mp/holder.hpp"
+
 namespace fasthal{
     template<class TSpi, typename TArgsPtr>
     class spi_async: mp::holder<TArgsPtr>{
@@ -11,17 +13,15 @@ namespace fasthal{
         
         volatile bsize_t _index;
 
-        struct lazy{
-            static constexpr auto async = details::has_isr<_spi.irq.number>;
-        };
-
         args_t& args() { return *(this->args_holder_t::get());}
         void set_args(args_t& args) {
             if constexpr(!mp::is_static_v<TArgsPtr>)
                 this->args_holder_t::set(&args);
         }        
     public:
-        constexpr spi_async(){}
+        constexpr spi_async(){ static_assert(details::has_isr<_spi.irq.number>, "IRQ not set! Use FH_SPI(*this*)"); }
+
+        static constexpr bool async() { return true; }
 
         void transfer(args_t& args){
             _index = 0;
@@ -30,7 +30,6 @@ namespace fasthal{
         }
 
         void operator()(){
-            static_assert(lazy::async, "For async operation only");
             // do RX first
             auto rx = _spi.rx();
             auto& p = args().buffer()[_index];

@@ -6,7 +6,6 @@
 #include "../../streams/sync_streams.hpp"
 #include "../../hal/i2c.hpp"
 
-// don't check that programmer is stupid, check for error conditions
 #define FH_I2C(NUM, HANDLER) FH_ISR(FH_IRQ_I2C ## NUM, HANDLER);
 
 namespace fasthal{

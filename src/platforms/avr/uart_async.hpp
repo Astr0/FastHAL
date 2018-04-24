@@ -19,7 +19,7 @@ namespace fasthal{
                 this->args_holder_t::set(&args);
         }        
     public:
-        constexpr uart_async_tx(){}
+        constexpr uart_async_tx(){ static_assert(details::has_isr<_uart.irq_txr.number>, "No ISR attached! Use FH_UART_TX(*this*)"); }
 
         void tx(args_t& args){
             _index = 0;
@@ -27,7 +27,7 @@ namespace fasthal{
             enable_(_uart.irq_txr);
         }
 
-        static constexpr bool async() { return details::has_isr<_uart.irq_txr.number>; }
+        static constexpr bool async() { return true; }
 
         void operator()(){
             static_assert(async(), "For async operation only");
@@ -55,7 +55,7 @@ namespace fasthal{
                 this->args_holder_t::set(&args);
         }        
     public:
-    constexpr uart_async_rx(){}
+    constexpr uart_async_rx(){ static_assert(details::has_isr<_uart.irq_rxc.number>, "No ISR attached! Use FH_UART_RX(*this*)"); }
 
         void rx(args_t& args){
             set_args(args);
@@ -63,7 +63,7 @@ namespace fasthal{
             enable_(_uart.irq_rxc);
         }
 
-        static constexpr bool async() { return details::has_isr<_uart.irq_rxc.number>; }
+        static constexpr bool async() { return true; }
 
         void operator()(){            
             static_assert(async(), "For async operation only");

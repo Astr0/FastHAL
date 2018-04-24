@@ -3,6 +3,8 @@
 
 #include "../../std/std_types.hpp"
 
+#define FH_SPI(NUM, HANDLER) FH_ISR(FH_IRQ_SPI ## NUM, HANDLER);
+
 namespace fasthal{
     // leading edge names
     enum class spi_mode: std::uint8_t{
@@ -82,7 +84,8 @@ namespace fasthal{
             TMsbFirst msb_first = spi_msb_first, 
             TMode mode = spi_mode_v<spi_mode::def>){
             return combine(
-                set(impl_t::spen),
+                set(impl_t::spe),
+                set(impl_t::mstr),
                 set(impl_t::spips, details::clock_to_ps(clock)),
                 set(impl_t::dord, msb_first),
                 set(impl_t::spimode, mode)
@@ -103,13 +106,14 @@ namespace fasthal{
         static void tx(std::uint8_t v) { write_(impl_t::spdr, v); }
         static std::uint8_t rx() { return read_(impl_t::spdr); }
 
-        static auto end() { return clear(impl_t::spen); }
-        static void end_() { clear_(impl_t::spen); }
+        static auto end() { return clear(impl_t::spe); }
+        static void end_() { clear_(impl_t::spe); }
     };
 
     #include "spi_impl.hpp"
 }
 
 #include "spi_async.hpp"
+#include "spi_sync.hpp"
 
 #endif
