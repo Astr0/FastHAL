@@ -182,18 +182,21 @@ namespace fasthal::mysensors{
         byte				= 1,	//!< Payload type is byte
         int16				= 2,	//!< Payload type is INT16
         uint16				= 3,	//!< Payload type is UINT16
-        long32				= 4,	//!< Payload type is INT32
-        ulong32				= 5,	//!< Payload type is UINT32
+        int32				= 4,	//!< Payload type is INT32
+        uint32				= 5,	//!< Payload type is UINT32
         custom				= 6,	//!< Payload type is binary
         float32				= 7		//!< Payload type is float32
     };
 
     class mymessage{
         // command_ack_payload 
-        static constexpr std::uint8_t command_mask     = 0b00000111;
-        static constexpr std::uint8_t request_ack_mask = 0b00001000;
-        static constexpr std::uint8_t ack_mask         = 0b00010000;
-        static constexpr std::uint8_t data_type_mask   = 0b11100000;
+        static constexpr std::uint8_t command_mask      = 0b00000111;
+        static constexpr std::uint8_t request_ack_mask  = 0b00001000;
+        static constexpr std::uint8_t ack_mask          = 0b00010000;
+        static constexpr std::uint8_t payload_type_mask = 0b11100000;
+
+        // version_length
+        static constexpr std::uint8_t length_mask = 0b11111000;
     public:
         static constexpr auto protocol_version = 2u;
         static constexpr auto max_message_size = 32u;
@@ -231,13 +234,21 @@ namespace fasthal::mysensors{
                 uint8_t version; 	  // Library version
                 uint8_t sensor_type;   // Sensor type hint for controller, see table above
             };
-            char data[max_payload + 1];
+            std::uint8_t data[max_payload + 1];
         } __attribute__((packed));
 
         // we don't clear everything!
         mymessage(): version_length(protocol_version) {}
 
         // metadata
+        void length(std::uint8_t len){
+            version_length = (version_length & ~length_mask) | (len << 3);
+        }
+
+        std::uint8_t length() const{
+            return (version_length & length_mask) >> 3;
+        }
+
         void command(const my_command cmd){            
             command_ack_payload = (command_ack_payload & ~command_mask) | static_cast<std::uint8_t>(cmd);
         }
@@ -258,6 +269,14 @@ namespace fasthal::mysensors{
             return command_ack_payload & ack_mask;
         }
 
+        void payload_type(const my_payload type){
+            command_ack_payload = (command_ack_payload & ~payload_type_mask) | (static_cast<std::uint8_t>(type) << 5);
+        }
+
+        my_payload payload_type() const{
+            return static_cast<my_payload>((command_ack_payload & payload_type_mask) >> 5);
+        }        
+
         mymessage& build_gw(const my_internal gwtype){
             sender = gateway_address;
             destination = gateway_address;
@@ -276,7 +295,7 @@ namespace fasthal::mysensors{
                 len = strlen(v);
                 if (len > max_payload)
                     len = max_payload;
-                strncpy(data, v, len);
+                strncpy(reinterpret_cast<char*>(data), v, len);
             } else {
                 len = 0;
             }
@@ -291,7 +310,34 @@ namespace fasthal::mysensors{
         // *************************************** out
         template<class TStream>
         void print_value_to(TStream& stream) const{
-
+            switch (payload_type()){
+                case my_payload::string:
+                    write(stream, data, length());
+                    //write(stream, std::uint8_t{0});
+                    break;
+                case my_payload::byte:
+                    print(stream, uint8v);
+                    break;
+                case my_payload::int16:
+                    print(stream, int16v);
+                    break;
+                case my_payload::uint16:
+                    print(stream, uint16v);
+                    break;
+                case my_payload::int32:
+                    print(stream, int32v);
+                    break;
+                case my_payload::uint32:
+                    print(stream, uint32v);
+                    break;
+                case my_payload::float32:
+                    print(stream, floatv, float_precision);
+                    break;
+                case my_payload::custom:
+                    print_hex(stream, data, length());
+                    //write(stream, std::uint8_t{0});
+                    break;
+            }
         }
     };
 }

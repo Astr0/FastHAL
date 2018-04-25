@@ -29,7 +29,7 @@ namespace fasthal{
 
     // bytes
     template<class T, details::enable_if_ostream<T> dummy = nullptr>
-    void write(T& ostream, const std::uint8_t *buffer, std::size_t size){        
+    void write(T& ostream, const std::uint8_t* buffer, bsize_t size){        
         while (size--) 
             write(ostream, *buffer++);
     }

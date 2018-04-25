@@ -16,7 +16,8 @@ namespace fasthal::mysensors{
             print(stream, msg.ack());
             print(stream, ';');
             print(stream, msg.type);
-            msg.print_to(stream);            
+            print(stream, ';');
+            msg.print_value_to(stream);            
             print(stream, '\n');
 
             

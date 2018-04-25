@@ -219,6 +219,22 @@ namespace fasthal{
         print(ostream, n, digits);
         println(ostream);
     }
+
+    template<class T, details::enable_if_ostream<T> dummy = nullptr>
+    void print_hex(T& ostream, std::uint8_t v){
+        auto c0 = (v >> 4);
+        write(ostream, c0 <= 0x09 ? ('0' + c0)  : ('A' - 10 + c0));
+        auto c1 = v & 0x0F;
+        write(ostream, c1 <= 0x09 ? ('0' + c1)  : ('A' - 10 + c1));
+    }
+
+    template<class T, details::enable_if_ostream<T> dummy = nullptr>
+    void print_hex(T& ostream, const std::uint8_t* buf, bsize_t size) {
+        while (size--){
+            print_hex(ostream, *buf++);
+        }
+    }
+
 }
 
 #endif
