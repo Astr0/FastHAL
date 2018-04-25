@@ -22,9 +22,9 @@ namespace fasthal::mysensors{
         bool begin() const{
             auto msg = mymessage{};
             send(msg.build_gw(my_internal::gateway_ready).set("Gateway startup complete."));
-            // TODO
             // Send presentation of locally attached sensors (and node if applicable)
-	        // presentNode();
+	        // This will be done on gateway level after transport is ok
+            // presentNode();
             return true;
         }
     };

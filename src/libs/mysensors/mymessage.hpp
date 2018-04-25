@@ -288,6 +288,18 @@ namespace fasthal::mysensors{
             return *this;
         }
 
+        mymessage& build(const std::uint8_t sender, const std::uint8_t destination, const std::uint8_t sensor, const my_command command, const my_sensor type, const bool ack){
+            // TODO: For node this should be getNodeId()
+            this->sender = sender;
+            this->destination = destination;
+            this->sensor = sensor;
+            this->type = static_cast<std::uint8_t>(type);
+            this->command(command);
+            this->request_ack(ack);
+            this->ack(false);
+            return *this;
+        }
+
         // ************************************** set
         mymessage& set(const char* v){
             std::uint8_t len;

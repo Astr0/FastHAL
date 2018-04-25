@@ -33,18 +33,14 @@ void debug_radio(){
 }
 
 void init(){
-    if (!gateway.begin())
-    {
-        // can't turn led - it's on SCK pin =/
-        #ifndef RAW
-        print(uart0tx, "gateway error. ");
-        debug_radio();
-        #endif
+    if (gateway.begin())
         return;
-    }
+    // can't turn led - it's on SCK pin =/
     #ifndef RAW
-    println(uart0tx, "gateway ok");
+    print(uart0tx, "gateway error. ");
+    debug_radio();
     #endif
+    return;
 }
 
 int main(){        
