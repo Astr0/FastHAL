@@ -213,7 +213,9 @@ namespace fasthal::dev{
             return transfer(static_cast<std::uint8_t>(rf24_cmd::read_register) | static_cast<std::uint8_t>(reg), cmd_nop);
         }
     public:
-        constexpr nrf24l01(TSpiPtr spi, TCEPin ce, TCSPin cs, TDefaultConfig default_config = rf24_c_def): mp::holder<TDefaultConfig>(default_config){}
+        constexpr nrf24l01(TSpiPtr spi, TCEPin ce, TCSPin cs, TDefaultConfig default_config = rf24_c_def): 
+            mp::holder<TSpiPtr>(spi),
+            mp::holder<TDefaultConfig>(default_config){}
 
         void config(rf24_c config) const{
             // default config get's written every time

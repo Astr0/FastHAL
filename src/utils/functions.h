@@ -48,7 +48,6 @@ namespace fasthal{
     static inline bool is_any(T test, TValues... values){
         return (...|| (test == values));
     }
-
 }
 
 #endif
