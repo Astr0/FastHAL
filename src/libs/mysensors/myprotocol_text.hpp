@@ -17,7 +17,8 @@ namespace fasthal::mysensors{
             print(stream, ';');
             print(stream, msg.type);
             print(stream, ';');
-            msg.print_value_to(stream);            
+            // TODO: Different types of value per message? message can hold only 1, not need to waste so much stuff
+            msg.print_value_to(stream);
             print(stream, '\n');
 
             
