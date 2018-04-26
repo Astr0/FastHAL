@@ -249,6 +249,10 @@ namespace fasthal::mysensors{
             return (version_length & length_mask) >> 3;
         }
 
+        std::uint8_t total_length() const {
+            return header_size + length();
+        }
+
         void command(const my_command cmd){            
             command_ack_payload = (command_ack_payload & ~command_mask) | static_cast<std::uint8_t>(cmd);
         }

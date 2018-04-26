@@ -33,8 +33,17 @@ namespace fasthal::mysensors{
             mp::holder<TRF24Ptr>(rf24) {}
 
         bool send(mymessage& msg) const{
-            // TODO
-            return true;
+            auto& radio = rf24();
+            auto to = msg.destination;
+            // todo: stop listening
+
+            // set only first byte of address
+            radio.rx_address(0, &to, 1);
+            radio.tx_address(&to, 1);
+            
+            auto ok = radio.send(reinterpret_cast<std::uint8_t*>(&msg), msg.total_length(), true);
+            // todo: start listening
+            return ok;
         }
 
         bool update(mymessage& msg) const{

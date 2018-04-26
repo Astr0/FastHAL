@@ -75,6 +75,7 @@ namespace fasthal::dev{
 
     // status
     enum class rf24_s: std::uint8_t{
+        _       = 0,
         tx_full = 1 << 0,
         max_rt  = 1 << 4,
         tx_ds   = 1 << 5,
@@ -159,14 +160,14 @@ namespace fasthal::dev{
             delay_us(10);
         }
 
-        void transfer_do(buffer_t buf, bsize_t count) const{
+        void transfer_do(std::uint8_t* buf, bsize_t count) const{
             auto args = net_args{};
             args.buffer(buf);
             args.count(count);
             spi().transfer(args);
         }
 
-        void transfer(std::uint8_t cmd, buffer_t buf, bsize_t count) const{
+        void transfer(std::uint8_t cmd, std::uint8_t* buf, bsize_t count) const{
             transfer_begin();
 
             transfer_do(&cmd, 1);
@@ -175,7 +176,7 @@ namespace fasthal::dev{
             transfer_end();
         }
 
-        void transfer(buffer_t buf, bsize_t count) const{
+        void transfer(std::uint8_t* buf, bsize_t count) const{
             transfer_begin();
 
             transfer_do(buf, count);
@@ -201,7 +202,7 @@ namespace fasthal::dev{
             );
         }
 
-        void write_reg(rf24_reg reg, buffer_t buf, bsize_t c) const{
+        void write_reg(rf24_reg reg, std::uint8_t* buf, bsize_t c) const{
             transfer(
                 static_cast<std::uint8_t>(rf24_cmd::write_register) | static_cast<std::uint8_t>(reg),
                 buf,
@@ -289,7 +290,7 @@ namespace fasthal::dev{
         }        
 
         // set rx pipe address
-        void rx_address(std::uint8_t pipe, buffer_t addr, bsize_t c) const{
+        void rx_address(std::uint8_t pipe, std::uint8_t* addr, bsize_t c) const{
             write_reg(
                 static_cast<rf24_reg>(static_cast<std::uint8_t>(rf24_reg::rx_addr_p0) + pipe), 
                 addr, 
@@ -297,12 +298,15 @@ namespace fasthal::dev{
         }
 
         // set tx address
-        void tx_address(buffer_t addr, bsize_t c) const{
+        void tx_address(std::uint8_t* addr, bsize_t c) const{
             write_reg(rf24_reg::tx_addr, addr, c);
         }
 
         void status(rf24_s status) const{
             write_reg(rf24_reg::status, static_cast<std::uint8_t>(status));
+        }
+        rf24_s status() const{
+            return static_cast<rf24_s>(read_reg(rf24_reg::status));
         }
 
         // flush RX buffer
@@ -313,6 +317,34 @@ namespace fasthal::dev{
         // flush TX buffer
         void tx_flush() const{
             transfer(static_cast<std::uint8_t>(rf24_cmd::flush_tx));
+        }
+
+        bool send(std::uint8_t* buf, bsize_t len, bool ack) const{
+            // don't do stop/start listening!
+            transfer(
+                static_cast<std::uint8_t>(ack ? rf24_cmd::write_tx_payload : rf24_cmd::write_tx_payload_no_ack),
+                buf,
+                len);
+            // go, TX starts after ~10us, CE high also enables PA+LNA on supported HW
+            set(ce_pin);
+
+            std::uint16_t timeout = 0xFFFF;
+            rf24_s s;
+            do { 
+                s = status();
+            } while (((s & ( rf24_s::max_rt | rf24_s::tx_ds )) != rf24_s::_) && timeout--);
+            // timeout value after successful TX on 16Mhz AVR ~ 65500, i.e. msg is transmitted after ~36 loop cycles
+            clear(ce_pin);
+            // reset interrupts
+            status(rf24_s::tx_ds | rf24_s::max_rt);
+            // Max retries exceeded
+            if ((s & rf24_s::max_rt) != rf24_s::_) {
+                // flush packet
+                //RF24_DEBUG(PSTR("!RF24:TXM:MAX_RT\n"));	// max retries, no ACK
+                tx_flush();
+            }
+            // true if message sent
+            return !ack || ((s & rf24_s::tx_ds) != rf24_s::_);
         }
 
         // pins should be configured to output externally!
