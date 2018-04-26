@@ -1,5 +1,5 @@
-#ifndef FH_istream_read_H_
-#define FH_istream_read_H_
+#ifndef FH_ISTREAM_READ_H_
+#define FH_ISTREAM_READ_H_
 
 #include "stream.hpp"
 #include "../std/std_types.hpp"
@@ -32,6 +32,21 @@ namespace fasthal{
     void read_buf(T& istream, std::uint8_t *buffer, std::size_t size){        
         while (size--)
             *buffer++ = read_u8(istream);
+    }
+
+    // string
+    template<class T, details::enable_if_istream<T> dummy = nullptr>
+    bsize_t read_string(T& istream, char *str){        
+        // this may overflow str! no checks!
+        bsize_t size = 0;
+        while(true){
+            auto c = read_char(istream);
+            *str++ = c;
+            if (c == '\0')
+                break;
+            ++size;
+        }
+        return size;
     }
 
     // uint16

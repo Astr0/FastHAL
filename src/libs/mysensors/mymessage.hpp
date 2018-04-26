@@ -261,6 +261,10 @@ namespace fasthal::mysensors{
             command_ack_payload = ack ? (command_ack_payload | request_ack_mask) : (command_ack_payload & ~request_ack_mask);
         }
 
+        bool request_ack(){
+            return command_ack_payload & request_ack_mask;
+        }        
+
         void ack(bool ack){
             command_ack_payload = ack ? (command_ack_payload | ack_mask) : (command_ack_payload & ~ack_mask);
         }
@@ -277,6 +281,8 @@ namespace fasthal::mysensors{
             return static_cast<my_payload>((command_ack_payload & payload_type_mask) >> 5);
         }        
 
+        my_internal itype() const { return static_cast<my_internal>(type); }
+
         mymessage& build_gw(const my_internal gwtype){
             sender = gateway_address;
             destination = gateway_address;
@@ -288,16 +294,26 @@ namespace fasthal::mysensors{
             return *this;
         }
 
-        mymessage& build(const std::uint8_t sender, const std::uint8_t destination, const std::uint8_t sensor, const my_command command, const my_sensor type, const bool ack){
+        mymessage& build(const std::uint8_t sender, const std::uint8_t destination, const std::uint8_t sensor, const my_command command, const std::uint8_t type, const bool ack){
             // TODO: For node this should be getNodeId()
             this->sender = sender;
             this->destination = destination;
             this->sensor = sensor;
-            this->type = static_cast<std::uint8_t>(type);
+            this->type = type;
             this->command(command);
             this->request_ack(ack);
             this->ack(false);
-            return *this;
+            return *this;        
+        }
+
+        // presentation
+        mymessage& build(const std::uint8_t sender, const std::uint8_t destination, const std::uint8_t sensor, const my_sensor type, const bool ack){
+            return build(sender, destination, sensor, my_command::presentation, static_cast<std::uint8_t>(type), ack);
+        }
+
+        // internal
+        mymessage& build(const std::uint8_t sender, const std::uint8_t destination, const std::uint8_t sensor, const my_internal type, const bool ack){
+            return build(sender, destination, sensor, my_command::internal, static_cast<std::uint8_t>(type), ack);
         }
 
         // ************************************** set
@@ -319,7 +335,18 @@ namespace fasthal::mysensors{
             return *this;
         }
 
-        // *************************************** out
+        mymessage& set(const std::uint8_t v){
+            length(1);
+            payload_type(my_payload::byte);
+            data[0] = v;
+            return *this;
+        }
+
+        mymessage& set(const bool v){
+            return set(static_cast<const std::uint8_t>(v));
+        }
+
+        // *************************************** in/out string
         template<class TStream>
         void print_value_to(TStream& stream) const{
             switch (payload_type()){
@@ -350,6 +377,18 @@ namespace fasthal::mysensors{
                     //write(stream, std::uint8_t{0});
                     break;
             }
+        }
+
+        template<class TStream>
+        void parse_string_from(TStream& stream){
+            payload_type(my_payload::string);
+            length(parse_string(stream, reinterpret_cast<char*>(data)));
+        }
+
+        template<class TStream>
+        void parse_custom_from(TStream& stream){
+            payload_type(my_payload::custom);
+            length(parse_hex(stream, data));
         }
     };
 }

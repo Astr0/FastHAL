@@ -4,6 +4,7 @@
 #include "../../dev/nrf24l01.hpp"
 #include "../../std/std_types.hpp"
 #include "../../mp/holder.hpp"
+#include "mymessage.hpp"
 
 namespace fasthal::mysensors{
     struct rf24_default_config{        
@@ -30,6 +31,11 @@ namespace fasthal::mysensors{
     public:        
         constexpr transport_rf24(TRF24Ptr rf24, TConfig config = rf24_default_config{}):
             mp::holder<TRF24Ptr>(rf24) {}
+
+        bool send_route(mymessage& msg) const{
+            // TODO
+            return true;
+        }
 
         bool begin() const{
             using namespace dev;

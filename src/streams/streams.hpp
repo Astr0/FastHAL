@@ -5,7 +5,8 @@
 #include "ostream_write.hpp"
 #include "ostream_print.hpp"
 #include "istream_read.hpp"
-#include "sync_streams.hpp"
-#include "ringbuffer_streams.hpp"
+#include "istream_parse.hpp"
+#include "buffer_streams.hpp"
+#include "istream_parser.hpp"
 
 #endif

@@ -10,7 +10,6 @@
 #include "../../mp/const_list.hpp"
 #include "../../utils/ringbuffer.hpp"
 #include "../../streams/stream.hpp"
-#include "../../streams/sync_streams.hpp"
 
 #define FH_UART_TX(NUM, HANDLER) FH_ISR(FH_IRQ_TXR ## NUM, HANDLER);
 #define FH_UART_RX(NUM, HANDLER) FH_ISR(FH_IRQ_RXC ## NUM, HANDLER);

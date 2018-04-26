@@ -6,21 +6,26 @@
 #include "../utils/functions.h"
 
 namespace fasthal::mp{
-    template<class TGet>
+    template<auto* VPtr>
     struct static_ptr{
-        constexpr auto& operator*()const {return TGet::value();}
-        constexpr auto* operator->()const {return &TGet::value();}
-        constexpr operator auto*()const {return &TGet::value();}
+        using type_t = typename std::remove_reference<decltype(*VPtr)>::type;
+        constexpr static_ptr(){}
+
+        constexpr type_t& get()const { return *VPtr; }
+
+        constexpr type_t& operator*()const {return get();}
+        constexpr type_t* operator->()const {return &get();}
+        // auto gives segmentation fault here..
+        constexpr operator type_t*()const {return &get();}
     };
 
     namespace details{
-        template<class TGet>
-        struct is_static_impl<static_ptr<TGet>>: std::true_type{};
+        template<auto* VPtr>
+        struct is_static_impl<static_ptr<VPtr>>: std::true_type{};
     }
 
-    #define FH_STATIC_PTR(NAME, VALUE)\
-    FH_WRAPVARIABLE(__get ## NAME, VALUE);\
-    using NAME = ::fasthal::mp::static_ptr<__get ## NAME>;
+    // static ptr
+    #define FH_SPTR(VALUE) (::fasthal::mp::static_ptr<&VALUE>{})
 }
 
 #endif

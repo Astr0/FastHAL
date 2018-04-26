@@ -3,7 +3,6 @@
 
 #include "registers.hpp"
 #include "interrupts.hpp"
-#include "../../streams/sync_streams.hpp"
 #include "../../hal/i2c.hpp"
 
 #define FH_I2C(NUM, HANDLER) FH_ISR(FH_IRQ_I2C ## NUM, HANDLER);
