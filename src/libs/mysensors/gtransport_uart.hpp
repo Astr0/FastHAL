@@ -30,7 +30,7 @@ namespace fasthal::mysensors{
             return true;
         }
 
-        bool try_receive(mymessage& msg){
+        bool update(mymessage& msg){
             while (uartrx().available()) {
                 // get the new byte:
                 const char input = read_char(uartrx());

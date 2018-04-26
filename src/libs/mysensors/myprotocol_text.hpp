@@ -36,6 +36,7 @@ namespace fasthal::mysensors{
                 return false;
 
             // we don't have data type in this protocol, so everything suxx...
+            // todo: figure out to "fix" payload type based on other values?
             if (command == my_command::stream){
                 // custom HEX
                 msg.parse_custom_from(stream);

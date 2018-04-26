@@ -18,9 +18,13 @@ static constexpr auto spi0h = spi_sync<spi<0>>{};
 static constexpr auto ce_pin = ino<9>;
 static constexpr auto cs_pin = ino<SS>;
 
+// declare some radio on the SPI
 static constexpr auto radio = nrf24l01{ FH_SPTR(spi0h), ce_pin, cs_pin };
+// and radio RAW transport for mysensors
 static constexpr auto transport = transport_rf24{ FH_SPTR(radio) };
+// and UART gateway transport
 static auto gtransport = gtransport_uart{ FH_SPTR(uart0tx), FH_SPTR(uart0rx) };
+// and gateway with transport and gateway transport
 static constexpr auto gateway = mygateway{ FH_SPTR(transport), FH_SPTR(gtransport) };
 
 void debug_radio(){
@@ -58,6 +62,9 @@ int main(){
     }
 
     while (1){
-        gateway.update();
+        auto msg = mymessage { };
+        if (gateway.update(msg)){
+            print(uart0tx, "got message");
+        }
     }
 }

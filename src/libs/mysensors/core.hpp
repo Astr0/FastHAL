@@ -9,4 +9,9 @@ namespace fasthal::mysensors{
     static constexpr auto mysensors_library_version = "2.2.0";
 }
 
+// this my sensors implementation is purely network oriented, but highly customizable
+// based on chain-of-responsibility / piping principle
+// basic "pipe" interface: bool begin(), bool update(msg) - receive message, bool send(msg) - to send 
+// update may possibly process message internally and return true/false depending on processing
+
 #endif

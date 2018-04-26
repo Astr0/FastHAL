@@ -32,9 +32,14 @@ namespace fasthal::mysensors{
         constexpr transport_rf24(TRF24Ptr rf24, TConfig config = rf24_default_config{}):
             mp::holder<TRF24Ptr>(rf24) {}
 
-        bool send_route(mymessage& msg) const{
+        bool send(mymessage& msg) const{
             // TODO
             return true;
+        }
+
+        bool update(mymessage& msg) const{
+            // TODO
+            return false;
         }
 
         bool begin() const{

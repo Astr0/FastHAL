@@ -283,17 +283,6 @@ namespace fasthal::mysensors{
 
         my_internal itype() const { return static_cast<my_internal>(type); }
 
-        mymessage& build_gw(const my_internal gwtype){
-            sender = gateway_address;
-            destination = gateway_address;
-            sensor = node_sensor_id;
-            type = static_cast<std::uint8_t>(gwtype);
-            command(my_command::internal);
-            request_ack(false);
-            ack(false);
-            return *this;
-        }
-
         mymessage& build(const std::uint8_t sender, const std::uint8_t destination, const std::uint8_t sensor, const my_command command, const std::uint8_t type, const bool ack){
             // TODO: For node this should be getNodeId()
             this->sender = sender;
@@ -304,6 +293,10 @@ namespace fasthal::mysensors{
             this->request_ack(ack);
             this->ack(false);
             return *this;        
+        }
+
+        mymessage& build_gw(const my_internal gwtype){
+            return build(gateway_address, gateway_address, node_sensor_id, gwtype, false);
         }
 
         // presentation
