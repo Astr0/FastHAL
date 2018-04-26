@@ -23,7 +23,7 @@ static constexpr auto radio = nrf24l01{ FH_SPTR(spi0h), ce_pin, cs_pin };
 // and radio RAW transport for mysensors
 static constexpr auto transport = transport_rf24{ FH_SPTR(radio) };
 // and UART gateway transport
-static auto gtransport = gtransport_uart{ FH_SPTR(uart0tx), FH_SPTR(uart0rx) };
+static auto gtransport = gtransport_streams{ FH_SPTR(uart0tx), FH_SPTR(uart0rx) };
 // and gateway with transport and gateway transport
 static constexpr auto gateway = mygateway{ FH_SPTR(transport), FH_SPTR(gtransport) };
 

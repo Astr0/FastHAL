@@ -6,38 +6,38 @@
 #include "myprotocol_text.hpp"
 
 namespace fasthal::mysensors{
-    struct gtransport_uart_default_config{
+    struct gtransport_streams_default_config{
         static constexpr std::uint8_t max_receive_length = 100; 
     };
 
-    template <typename TUartTxPtr, typename TUartRxPtr, typename TConfig = gtransport_uart_default_config>
-    class gtransport_uart
-        : mp::holder<TUartTxPtr>
-        , mp::holder<TUartRxPtr>{
-        auto& uarttx() const{ return *(this->mp::holder<TUartTxPtr>::get()); }
-        auto& uartrx() const{ return *(this->mp::holder<TUartRxPtr>::get()); }
+    template <typename TOutputPtr, typename TInputPtr, typename TConfig = gtransport_streams_default_config>
+    class gtransport_streams
+        : mp::holder<TOutputPtr>
+        , mp::holder<TInputPtr>{
+        auto& output() const{ return *(this->mp::holder<TOutputPtr>::get()); }
+        auto& input() const{ return *(this->mp::holder<TInputPtr>::get()); }
         using protocol_t = myprotocol_text;
         using config_t = TConfig;
         bsize_t _input_index;
         std::uint8_t _input[config_t::max_receive_length];
     public:
-        gtransport_uart(TUartTxPtr uarttx, TUartRxPtr uartrx, TConfig config = gtransport_uart_default_config{})
-            : mp::holder<TUartTxPtr>(uarttx)
-            , mp::holder<TUartRxPtr>(uartrx){}
+        gtransport_streams(TOutputPtr output, TInputPtr input, TConfig config = gtransport_streams_default_config{})
+            : mp::holder<TOutputPtr>(output)
+            , mp::holder<TInputPtr>(input){}
 
         bool send(mymessage& msg) const{
-            protocol_t::write(uarttx(), msg);
+            protocol_t::write(output(), msg);
             return true;
         }
 
         bool update(mymessage& msg){
-            while (uartrx().available()) {
+            while (input().available()) {
                 // get the new byte:
-                const char input = read_char(uartrx());
+                const char c = read_char(input());
                 // if the incoming character is a newline, set a flag
-                // so the main loop can do something about it:
+                // so the main loop can do something aboutput it:
                 if (_input_index < config_t::max_receive_length - 1) {
-                    if (input == '\n') {
+                    if (c == '\n') {
                         //_input[_input_index] = 0;
                         // TODO
                         auto stream = buffer_istream{_input, _input_index};
@@ -45,7 +45,7 @@ namespace fasthal::mysensors{
                         return protocol_t::read(stream, msg);
                     } else {
                         // add it to the _input:
-                        _input[_input_index] = input;
+                        _input[_input_index] = c;
                         _input_index++;
                     }
                 } else {
