@@ -27,15 +27,13 @@ namespace fasthal::mysensors{
             return transport().send_route(msg);
         }
 
-        void presentNode() const{
-            present(node_sensor_id, my_sensor::node);
+        void presentNode(mymessage& msg) const{
+            present(msg, node_sensor_id, my_sensor::node);
             // TODO: call presentation
         }
 
-        bool present(const uint8_t sensor_id, const my_sensor sensor_type, const char *description = nullptr,
+        bool present(mymessage& msg, const uint8_t sensor_id, const my_sensor sensor_type, const char *description = nullptr,
                     const bool ack = false) const {
-            auto msg = mymessage{};
-
             return send_route(msg.build(gateway_address, gateway_address, sensor_id, sensor_type,
                                     ack).set(sensor_id == node_sensor_id ? mysensors_library_version : description));
         }
@@ -64,8 +62,7 @@ namespace fasthal::mysensors{
                     break;
                 case my_internal::presentation:
                     // Re-send node presentation to controller
-                    // we can reuse msg here
-                    presentNode();
+                    presentNode(msg);
                     break;
                 case my_internal::heartbeat_request:
                     send_heartbeat(msg, false);
@@ -136,7 +133,6 @@ namespace fasthal::mysensors{
             return false;
         }
 
-        // Message delivered through _msg
         bool process_internal(mymessage& msg) const {
             if (msg.sender == gateway_address) 
                 return process_internal_from_gateway(msg);
@@ -200,7 +196,8 @@ namespace fasthal::mysensors{
                 return false;
 
             // present this "node"
-            presentNode();
+            auto msg = mymessage{};
+            presentNode(msg);
 
             return true;
         }
