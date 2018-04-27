@@ -29,13 +29,10 @@ static constexpr auto context = mycontext{};
 // and UART gateway transport
 #ifdef MY_GATEWAY
 
-class testnode;
-
-template<typename TNodePtr>
-static auto build_transport(TNodePtr node){
+static auto build_transport(){
     return mygateway{ 
         transport_direct{
-            ntransport_rf24{ node, FH_SPTR(&radio) } 
+            ntransport_rf24{ FH_SPTR(&radio) } 
         },
         gtransport_streams{ FH_SPTR(&uart0tx), FH_SPTR(&uart0rx) } 
     };
@@ -43,23 +40,20 @@ static auto build_transport(TNodePtr node){
 
 
 // and gateway with transport and gateway transport
+template<class TTransport>
 struct testnode{
-public:
-    static testnode instance;
-private:
-    decltype(build_transport(FH_SPTR(&instance))) _transport;
-public:
-    testnode(): _transport(build_transport(FH_SPTR(&instance))){}
+    TTransport _transport;
+
+    testnode(TTransport transport): _transport(transport){}
     std::uint8_t address(){return gateway_address; }
-    bool begin() {return _transport.begin(); }
+    bool begin() {return _transport.begin(*this); }
     bool update() {
         auto msg = mymessage{};
-        return _transport.update(msg);
+        return _transport.update(*this, msg);
     }
 };
 
-testnode testnode::instance = {};
-static constexpr auto& node = testnode::instance;
+static auto node = testnode{build_transport()};
 
 
 #endif

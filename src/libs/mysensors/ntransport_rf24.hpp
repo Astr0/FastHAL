@@ -25,9 +25,8 @@ namespace fasthal::mysensors{
         static constexpr auto broadcast_pipe = 1;
     };
 
-    template<typename TContextPtr, typename TRF24Ptr, class TConfig = rf24_default_config>
+    template<typename TRF24Ptr, class TConfig = rf24_default_config>
     class ntransport_rf24:
-        mp::holder<TContextPtr>,
         mp::holder<TRF24Ptr>
     {
         using config_t = TConfig;
@@ -35,9 +34,9 @@ namespace fasthal::mysensors{
         static constexpr auto broadcast_pipe = config_t::broadcast_pipe;
 
         auto& rf24() const{return *(this->mp::holder<TRF24Ptr>::get()); }       
-        void start_listening() const{
+        
+        void start_listening(std::uint8_t address) const{
             rf24().config(dev::rf24_c::pwr_up | dev::rf24_c::prim_rx);
-            auto address = context().address();
             if (address != broadcast_address)
                 rf24().rx_address(0, &address, 1);
             rf24().start_listening();
@@ -52,13 +51,11 @@ namespace fasthal::mysensors{
             delay_ms(config_t::stop_listening_delay_ms);
         }
     public:        
-        constexpr ntransport_rf24(TContextPtr context, TRF24Ptr rf24, TConfig config = rf24_default_config{})
-            :mp::holder<TContextPtr>(context)
-            ,mp::holder<TRF24Ptr>(rf24) {}
+        constexpr ntransport_rf24(TRF24Ptr rf24, TConfig config = rf24_default_config{})
+            :mp::holder<TRF24Ptr>(rf24) {}
 
-        auto& context() const { return *(this->mp::holder<TContextPtr>::get());}
-
-        bool send(std::uint8_t to, const uint8_t* buf, bsize_t size, bool ack) const{
+        template<class TNode>
+        bool send(TNode& node, std::uint8_t to, const uint8_t* buf, bsize_t size, bool ack) const{
             auto& radio = rf24();
             stop_listening();
 
@@ -68,11 +65,12 @@ namespace fasthal::mysensors{
             
             auto ok = radio.send(buf, size, ack);
             
-            start_listening();
+            start_listening(node.address());
             return ok;
         }
 
-        std::uint8_t update(std::uint8_t* buf, bsize_t max_size) const{
+        template<class TNode>
+        std::uint8_t update(TNode& node, std::uint8_t* buf, bsize_t max_size) const{
             if (!rf24().available())
                 return 0;
             // read size
@@ -86,16 +84,18 @@ namespace fasthal::mysensors{
             return len;
         }
 
-        void address_set() const{
+        template<class TNode>
+        void address_set(TNode& node) const{
             // enable node pipes
             rf24().rx_pipes((1 << broadcast_pipe) | (1 << 0));
 		    // enable autoACK on pipe 0
             rf24().auto_ack(1 << 0);
 
-            start_listening();
+            start_listening(node.address());
         }
 
-        bool begin() const{
+        template<class TNode>
+        bool begin(TNode& node) const{
             using namespace dev;
             auto& radio = rf24();
 

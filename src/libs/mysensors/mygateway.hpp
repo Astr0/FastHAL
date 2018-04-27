@@ -129,14 +129,15 @@ namespace fasthal::mysensors{
         //     return process_internal_from_node(msg);        
         // }
 
-        bool update_gtransport(mymessage& msg) {
-            if (!gtransport().update(msg))
+        template<class TNode>
+        bool update_gtransport(TNode& node, mymessage& msg) {
+            if (!gtransport().update(node, msg))
                 return false;
 
             // we will get all messages from here, broadcasts too? shouldn't we respond to broadcasts?
             if (msg.destination != gateway_address) {
                 // not our message, pass it to the network
-                transport().send(msg);
+                transport().send(node, msg);
                 return false;
             }
 
@@ -144,13 +145,14 @@ namespace fasthal::mysensors{
             return true;
         }
 
-        bool update_transport(mymessage& msg) {
-            if (!transport().update(msg))
+        template<class TNode>
+        bool update_transport(TNode& node, mymessage& msg) {
+            if (!transport().update(node, msg))
                 return false;
             // transport also should handle ACK for us, right?
             // we should get only our messages and broadcasts from transport
             // forward them to gtransport            
-            gtransport().send(msg);
+            gtransport().send(node, msg);
 
             // and we got message!
             return true;
@@ -162,29 +164,32 @@ namespace fasthal::mysensors{
             _gtransport(gtransport) {}
 
         // init
-        bool begin() {
+        template<class TNode>
+        bool begin(TNode& node) {
             // init network and gateway transport           
-            return transport().begin() 
-                && gtransport().begin();
+            return transport().begin(node) 
+                && gtransport().begin(node);
             // TODO: present this node after init
         }
 
         // update
-        bool update(mymessage& msg) {
+        template<class TNode>
+        bool update(TNode& node, mymessage& msg) {
             // got message from gateway transport or net transport
-            return update_gtransport(msg) 
-                || update_transport(msg);
+            return update_gtransport(node, msg) 
+                || update_transport(node, msg);
         }
 
         // send message
-        bool send(mymessage& msg) {
+        template<class TNode>
+        bool send(TNode& node, mymessage& msg) {
             if (msg.destination == gateway_address) {
         		// This is a message sent from a sensor attached on the gateway node.
         		// Pass it directly to the gateway transport layer.
-		        return gtransport().send(msg);
+		        return gtransport().send(node, msg);
 	        }
             // Send through normal transport
-            return transport().send(msg);
+            return transport().send(node, msg);
         }
     };
 }

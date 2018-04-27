@@ -6,14 +6,14 @@
 
 namespace fasthal::mysensors{
     struct mytransport{
-        template <class TTransport>
-        static void handle_ack(TTransport& transport, mymessage& msg, std::uint8_t sender){
+        template <class TTransport, class TNode>
+        static void handle_ack(TNode& node, TTransport& transport, mymessage& msg){
             if (msg.request_ack())
-                send_ack(transport, msg, sender);
+                send_ack(node, transport, msg);
         }
 
-        template <class TTransport>
-        static void send_ack(TTransport& transport, mymessage& msg, std::uint8_t myaddress){
+        template <class TTransport, class TNode>
+        static void send_ack(TNode& node, TTransport& transport, mymessage& msg){
             auto copy = msg;
             // Reply without ack flag (otherwise we would end up in an eternal loop)
             copy.request_ack(false);
@@ -22,8 +22,8 @@ namespace fasthal::mysensors{
             // reverse destination
             copy.destination = msg.sender;
             // sender is us
-            copy.sender = myaddress;
-            transport.send(msg);
+            copy.sender = node.address();
+            transport.send(node, msg);
         }
     };
 }

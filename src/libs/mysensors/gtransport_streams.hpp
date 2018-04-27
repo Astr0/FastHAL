@@ -31,12 +31,14 @@ namespace fasthal::mysensors{
             , mp::holder<TInputPtr>(other.mp::holder<TInputPtr>::get())
             { }
 
-        bool send(mymessage& msg) {
+        template<class TNode>
+        bool send(TNode& node, mymessage& msg) {
             protocol_t::write(output(), msg);
             return true;
         }
 
-        bool update(mymessage& msg){
+        template<class TNode>
+        bool update(TNode& node, mymessage& msg){
             while (input().available()) {
                 // get the new byte:
                 const char c = read_char(input());
@@ -51,7 +53,7 @@ namespace fasthal::mysensors{
                         auto ok = protocol_t::read(stream, msg);
                         if (ok && msg.destination == gateway_address){
                             // Check if sender requests an ack back and send it
-                            mytransport::handle_ack(*this, msg, gateway_address);
+                            mytransport::handle_ack(node, *this, msg);
                         }
                         return ok;
                     } else {
@@ -67,9 +69,10 @@ namespace fasthal::mysensors{
             return false;
         }
 
-        bool begin() {
+        template<class TNode>
+        bool begin(TNode& node) {
             auto msg = mymessage{};
-            send(msg.build_gw(my_internal::gateway_ready).set("Gateway startup complete."));
+            send(node, msg.build_gw(my_internal::gateway_ready).set("Gateway startup complete."));
             // Send presentation of locally attached sensors (and node if applicable)
 	        // This will be done on gateway level after transport is ok
             // presentNode();

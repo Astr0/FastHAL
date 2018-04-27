@@ -16,27 +16,29 @@ namespace fasthal::mysensors{
     {
         TNTransport _ntransport;
         auto& ntransport() {return _ntransport; }
-        auto& context() {return ntransport().context(); }
     public:
         constexpr transport_direct(TNTransport ntransport)
             : _ntransport(ntransport)
             {}
 
-        bool send(mymessage& msg) {
-            return ntransport().send(msg.destination, reinterpret_cast<const std::uint8_t*>(&msg), msg.total_length(), msg.request_ack());
+        template<class TNode>
+        bool send(TNode& node, mymessage& msg) {
+            return ntransport().send(node, msg.destination, reinterpret_cast<const std::uint8_t*>(&msg), msg.total_length(), msg.request_ack());
         }
 
-        bool update(mymessage& msg) {
-            auto ok = ntransport().update(reinterpret_cast<std::uint8_t*>(&msg), mymessage::max_message_size);
-            if (ok && (msg.destination == context().address()))
-                mytransport::handle_ack(*this, msg, context().address());
+        template<class TNode>
+        bool update(TNode& node, mymessage& msg) {
+            auto ok = ntransport().update(node, reinterpret_cast<std::uint8_t*>(&msg), mymessage::max_message_size);
+            if (ok && (msg.destination == node.address()))
+                mytransport::handle_ack(node, *this, msg);
             return ok;
         }
 
-        bool begin() {
-            auto ok = ntransport().begin();
+        template<class TNode>
+        bool begin(TNode& node) {
+            auto ok = ntransport().begin(node);
             if (ok)
-                ntransport().address_set();
+                ntransport().address_set(node);
             return ok;
         }
         
