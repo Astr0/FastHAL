@@ -31,7 +31,8 @@ static constexpr auto context = mycontext{};
 
 class testnode;
 
-static auto build_transport(testnode* node){
+template<typename TNodePtr>
+static auto build_transport(TNodePtr node){
     return mygateway{ 
         transport_direct{
             ntransport_rf24{ node, FH_SPTR(&radio) } 
@@ -42,10 +43,13 @@ static auto build_transport(testnode* node){
 
 
 // and gateway with transport and gateway transport
-class testnode{    
-    decltype(build_transport(nullptr)) _transport;
+struct testnode{
 public:
-    testnode(): _transport(build_transport(this)){}
+    static testnode instance;
+private:
+    decltype(build_transport(FH_SPTR(&instance))) _transport;
+public:
+    testnode(): _transport(build_transport(FH_SPTR(&instance))){}
     std::uint8_t address(){return gateway_address; }
     bool begin() {return _transport.begin(); }
     bool update() {
@@ -54,7 +58,9 @@ public:
     }
 };
 
-static auto node = testnode{};
+testnode testnode::instance = {};
+static constexpr auto& node = testnode::instance;
+
 
 #endif
 
