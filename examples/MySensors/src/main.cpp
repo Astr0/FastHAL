@@ -1,4 +1,4 @@
-#define MY_GATEWAY
+//#define MY_GATEWAY
 
 #include "fastduino.hpp"
 #include "libs/mysensors.hpp"
@@ -24,19 +24,17 @@ static constexpr auto cs_pin = ino<SS>;
 
 // declare some radio on the SPI
 static constexpr auto radio = nrf24l01{ FH_SPTR(spi0h), ce_pin, cs_pin };
-// context
-static constexpr auto context = mycontext{};
+// node
+static constexpr auto node = mynode{};
 // and radio RAW transport for mysensors
-static constexpr auto ntransport = ntransport_rf24{ FH_SPTR(context), FH_SPTR(radio) };
+static constexpr auto ntransport = ntransport_rf24{ FH_SPTR(node), FH_SPTR(radio) };
 // direct transport
-static constexpr auto transport = direct_transport{ FH_SPTR(context), FH_SPTR(ntransport) };
+static constexpr auto transport = direct_transport{ FH_SPTR(node), FH_SPTR(ntransport) };
 // and UART gateway transport
 #ifdef MY_GATEWAY
 static auto gtransport = gtransport_streams{ FH_SPTR(uart0tx), FH_SPTR(uart0rx) };
 // and gateway with transport and gateway transport
 static constexpr auto gateway = mygateway{ FH_SPTR(transport), FH_SPTR(gtransport) };
-#else
-static constexpr auto node = mynode{ FH_SPTR(transport) };
 #endif
 
 int main(){        
@@ -62,12 +60,14 @@ int main(){
     #ifdef MY_GATEWAY
     auto ok = gateway.begin();
     #else
-    auto ok = node.begin();
+    auto ok = transport.begin();
     #endif
 
     if (!ok) {
         // can't turn led - it's on SCK pin =/
+        #ifdef MY_GATEWAY
         print(uart0tx, "error. ");
+        #endif
         //debug_radio();
         while (1);
     }
@@ -79,7 +79,7 @@ int main(){
             print(uart0tx, "got message");
         }
         #else
-        node.update(msg);
+        transport.update(msg);
         #endif
     }
 }
