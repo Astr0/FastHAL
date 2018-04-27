@@ -1,14 +1,21 @@
-#ifndef FH_LIBS_MYSENSORS_TRANSPORT_RF24_H_
-#define FH_LIBS_MYSENSORS_TRANSPORT_RF24_H_
+#ifndef FH_LIBS_MYSENSORS_NTRANSPORT_RF24_H_
+#define FH_LIBS_MYSENSORS_NTRANSPORT_RF24_H_
 
 #include "../../dev/nrf24l01.hpp"
 #include "../../std/std_types.hpp"
 #include "../../mp/holder.hpp"
 #include "mymessage.hpp"
+#include "core.hpp"
+
+// network transport
+// send(to, const uint8_t* buf, size, ack)
+// uint8_t try_receive(uint8_t* buf) -> size of message
+
 
 namespace fasthal::mysensors{
     struct rf24_default_config{        
         static constexpr auto power_on_delay_ms = 5;
+        static constexpr auto stop_listening_delay_ms = 5;
         static constexpr auto address_width = 5;
         static constexpr auto retr_delay = dev::rf24_ard::_1500us;
         static constexpr auto retr_attempts = 15;
@@ -16,39 +23,65 @@ namespace fasthal::mysensors{
         static constexpr auto power = dev::rf24_pwr::max;
         static constexpr auto rate = dev::rf24_rate::_250kbps;
         static constexpr auto broadcast_pipe = 1;
-        static constexpr auto broadcast_address = 255;
     };
 
-    template<typename TRF24Ptr, class TConfig = rf24_default_config>
-    class transport_rf24:
+    template<typename TContextPtr, typename TRF24Ptr, class TConfig = rf24_default_config>
+    class ntransport_rf24:
+        mp::holder<TContextPtr>,
         mp::holder<TRF24Ptr>
     {
         using config_t = TConfig;
         static constexpr auto addr_width = config_t::address_width;
         static constexpr auto broadcast_pipe = config_t::broadcast_pipe;
 
-        auto& rf24() const{return *(this->mp::holder<TRF24Ptr>::get()); }
-    public:        
-        constexpr transport_rf24(TRF24Ptr rf24, TConfig config = rf24_default_config{}):
-            mp::holder<TRF24Ptr>(rf24) {}
+        auto& context() const { return *(this->mp::holder<TContextPtr>::get());}
+        auto& rf24() const{return *(this->mp::holder<TRF24Ptr>::get()); }       
+        void start_listening() const{
+            rf24().config(dev::rf24_c::pwr_up | dev::rf24_c::prim_rx);
+            auto address = context().address();
+            if (address != broadcast_address)
+                rf24().rx_address(0, &address, 1);
+            rf24().start_listening();
+        }         
 
-        bool send(mymessage& msg) const{
+        void stop_listening() const{
+            rf24().stop_listening();
+            // todo: do we need those delays?
+            delay_ms(config_t::stop_listening_delay_ms);
+            rf24().config(dev::rf24_c::pwr_up);
+            // todo: do we need those delays?
+            delay_ms(config_t::stop_listening_delay_ms);
+        }
+    public:        
+        constexpr ntransport_rf24(TContextPtr context, TRF24Ptr rf24, TConfig config = rf24_default_config{})
+            :mp::holder<TContextPtr>(context)
+            ,mp::holder<TRF24Ptr>(rf24) {}
+
+        bool send(std::uint8_t to, const uint8_t* buf, bsize_t size, bool ack) const{
             auto& radio = rf24();
-            auto to = msg.destination;
-            // todo: stop listening
+            stop_listening();
 
             // set only first byte of address
             radio.rx_address(0, &to, 1);
             radio.tx_address(&to, 1);
             
-            auto ok = radio.send(reinterpret_cast<std::uint8_t*>(&msg), msg.total_length(), true);
-            // todo: start listening
+            auto ok = radio.send(buf, size, ack);
+            
+            start_listening();
             return ok;
         }
 
-        bool update(mymessage& msg) const{
-            // TODO
-            return false;
+        std::uint8_t update(std::uint8_t* buf) const{
+            return 0;
+        }
+
+        void address_set() const{
+            // enable node pipes
+            rf24().rx_pipes((1 << broadcast_pipe) | (1 << 0));
+		    // enable autoACK on pipe 0
+            rf24().auto_ack(1 << 0);
+
+            start_listening();
         }
 
         bool begin() const{
@@ -80,13 +113,14 @@ namespace fasthal::mysensors{
             radio.rx_pipes(1 << broadcast_pipe);
             // disable AA on all pipes, activate when node pipe set
             radio.auto_ack(0x00);
+
             // enable dynamic payloads on used pipes
             radio.dynamic_payload((1 << broadcast_pipe) | 1 << 0);
             
             std::uint8_t base_id[addr_width] = {0x00,0xFC,0xE1,0xA8,0xA8};
 
             // listen to broadcast pipe
-            base_id[0] = config_t::broadcast_address;
+            base_id[0] = broadcast_address;
             radio.rx_address(broadcast_pipe, base_id, broadcast_pipe > 1 ? 1 : addr_width);
             
             // pipe 0, set full address, later only LSB is updated

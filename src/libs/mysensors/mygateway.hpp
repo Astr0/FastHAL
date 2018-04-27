@@ -139,9 +139,6 @@ namespace fasthal::mysensors{
                 transport().send(msg);
                 return false;
             }
-            // our message
-            // Check if sender requests an ack back and send it
-            mytransport::handle_ack(gtransport(), msg, gateway_address);
 
             // we got message!
             return true;

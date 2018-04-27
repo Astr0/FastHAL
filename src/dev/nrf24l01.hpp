@@ -160,50 +160,53 @@ namespace fasthal::dev{
             delay_us(10);
         }
 
-        void transfer_do(std::uint8_t* buf, bsize_t count) const{
-            auto args = net_args{};
-            args.buffer(buf);
-            args.count(count);
-            spi().transfer(args);
-        }
-
-        void transfer(std::uint8_t cmd, std::uint8_t* buf, bsize_t count) const{
+        void transfer(std::uint8_t cmd, std::uint8_t* buf, bsize_t count, bool read = true) const{
             transfer_begin();
 
-            transfer_do(&cmd, 1);
-            transfer_do(buf, count);
+            spi().transfer(cmd);
+            while (count--){
+                auto v = spi().transfer(*buf);
+                if (read)
+                    *buf = v;
+                buf++;
+            }
 
             transfer_end();
         }
 
-        void transfer(std::uint8_t* buf, bsize_t count) const{
-            transfer_begin();
+        void write(std::uint8_t cmd, const std::uint8_t* buf, bsize_t count) const{
+            transfer(cmd, const_cast<std::uint8_t*>(buf), count);
+            // transfer_begin();
 
-            transfer_do(buf, count);
+            // spi().transfer(cmd);
+            // spi().write(buf, count);
 
-            transfer_end();
+            // transfer_end();
+        }
+        
+        void write(std::uint8_t cmd) const{
+            write(cmd, nullptr, 0);
         }
 
-        void transfer(std::uint8_t cmd) const{
-            transfer(&cmd, 1);
+        void write(std::uint8_t cmd, std::uint8_t v) const{
+            write(cmd, &v, 1);
         }
 
         std::uint8_t transfer(std::uint8_t cmd, std::uint8_t v) const{
             // prepare write register command
-            std::uint8_t buf[2] = { cmd, v};
-            transfer(buf, 2);
-            return buf[1];
+            transfer(cmd, &v, 1);
+            return v;
         }
 
         void write_reg(rf24_reg reg, std::uint8_t v) const{
-            transfer(
+            write(
                 static_cast<std::uint8_t>(rf24_cmd::write_register) | static_cast<std::uint8_t>(reg),
                 v
             );
         }
 
         void write_reg(rf24_reg reg, std::uint8_t* buf, bsize_t c) const{
-            transfer(
+            write(
                 static_cast<std::uint8_t>(rf24_cmd::write_register) | static_cast<std::uint8_t>(reg),
                 buf,
                 c
@@ -260,7 +263,7 @@ namespace fasthal::dev{
 
         // copied from my_sensors, purpose and functionality unknown
         void enable_features() const{
-            transfer(static_cast<std::uint8_t>(rf24_cmd::activate), 0x73);
+            write(static_cast<std::uint8_t>(rf24_cmd::activate), 0x73);
         }
 
         // set features
@@ -311,17 +314,17 @@ namespace fasthal::dev{
 
         // flush RX buffer
         void rx_flush() const{
-            transfer(static_cast<std::uint8_t>(rf24_cmd::flush_rx));
+            write(static_cast<std::uint8_t>(rf24_cmd::flush_rx));
         }
 
         // flush TX buffer
         void tx_flush() const{
-            transfer(static_cast<std::uint8_t>(rf24_cmd::flush_tx));
+            write(static_cast<std::uint8_t>(rf24_cmd::flush_tx));
         }
 
-        bool send(std::uint8_t* buf, bsize_t len, bool ack) const{
+        bool send(const std::uint8_t* buf, bsize_t len, bool ack) const{
             // don't do stop/start listening!
-            transfer(
+            write(
                 static_cast<std::uint8_t>(ack ? rf24_cmd::write_tx_payload : rf24_cmd::write_tx_payload_no_ack),
                 buf,
                 len);
@@ -345,6 +348,14 @@ namespace fasthal::dev{
             }
             // true if message sent
             return !ack || ((s & rf24_s::tx_ds) != rf24_s::_);
+        }
+
+        void start_listening() const{
+            set(ce_pin);
+        }
+
+        void stop_listening() const{
+            clear(ce_pin);
         }
 
         // pins should be configured to output externally!

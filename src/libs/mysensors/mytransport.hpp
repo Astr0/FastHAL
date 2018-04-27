@@ -13,7 +13,7 @@ namespace fasthal::mysensors{
         }
 
         template <class TTransport>
-        static void send_ack(TTransport& transport, mymessage& msg, std::uint8_t sender){
+        static void send_ack(TTransport& transport, mymessage& msg, std::uint8_t myaddress){
             auto copy = msg;
             // Reply without ack flag (otherwise we would end up in an eternal loop)
             copy.request_ack(false);
@@ -22,7 +22,7 @@ namespace fasthal::mysensors{
             // reverse destination
             copy.destination = msg.sender;
             // sender is us
-            copy.sender = sender;
+            copy.sender = myaddress;
             transport.send(msg);
         }
     };

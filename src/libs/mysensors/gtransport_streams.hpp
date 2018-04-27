@@ -4,6 +4,7 @@
 #include "../../mp/holder.hpp"
 #include "mymessage.hpp"
 #include "myprotocol_text.hpp"
+#include "mytransport.hpp"
 
 namespace fasthal::mysensors{
     struct gtransport_streams_default_config{
@@ -42,7 +43,12 @@ namespace fasthal::mysensors{
                         // TODO
                         auto stream = buffer_istream{_input, _input_index};
                         _input_index = 0;
-                        return protocol_t::read(stream, msg);
+                        auto ok = protocol_t::read(stream, msg);
+                        if (ok && msg.destination == gateway_address){
+                            // Check if sender requests an ack back and send it
+                            mytransport::handle_ack(*this, msg, gateway_address);
+                        }
+                        return ok;
                     } else {
                         // add it to the _input:
                         _input[_input_index] = c;

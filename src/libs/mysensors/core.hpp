@@ -5,7 +5,9 @@
 
 namespace fasthal::mysensors{
     static constexpr std::uint8_t gateway_address = 0;
-    static constexpr std::uint8_t node_sensor_id = 255;
+    static constexpr std::uint8_t broadcast_address = 255;
+    
+    static constexpr std::uint8_t node_sensor_id = 255;    
     static constexpr auto mysensors_library_version = "2.2.0";
 }
 
