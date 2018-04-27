@@ -4,4 +4,5 @@
 #include "mysensors/ntransport_rf24.hpp"
 #include "mysensors/gtransport_streams.hpp"
 #include "mysensors/transport_direct.hpp"
+#include "mysensors/mynode.hpp"
 #include "mysensors/mygateway.hpp"
