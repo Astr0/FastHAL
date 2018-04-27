@@ -51,10 +51,9 @@ namespace fasthal::mysensors{
                         auto stream = buffer_istream{_input, _input_index};
                         _input_index = 0;
                         auto ok = protocol_t::read(stream, msg);
-                        if (ok && msg.destination == gateway_address){
-                            // Check if sender requests an ack back and send it
-                            mytransport::handle_ack(node, *this, msg);
-                        }
+                        if (ok)
+                            mytransport::try_handle_ack(node, *this, msg);
+                                                    
                         return ok;
                     } else {
                         // add it to the _input:

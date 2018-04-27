@@ -7,8 +7,8 @@
 namespace fasthal::mysensors{
     struct mytransport{
         template <class TTransport, class TNode>
-        static void handle_ack(TNode& node, TTransport& transport, mymessage& msg){
-            if (msg.request_ack())
+        static void try_handle_ack(TNode& node, TTransport& transport, mymessage& msg){
+            if (msg.destination == node.address() && msg.request_ack())
                 send_ack(node, transport, msg);
         }
 

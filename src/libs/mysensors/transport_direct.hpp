@@ -29,8 +29,8 @@ namespace fasthal::mysensors{
         template<class TNode>
         bool update(TNode& node, mymessage& msg) {
             auto ok = ntransport().update(node, reinterpret_cast<std::uint8_t*>(&msg), mymessage::max_message_size);
-            if (ok && (msg.destination == node.address()))
-                mytransport::handle_ack(node, *this, msg);
+            if (ok)
+                mytransport::try_handle_ack(node, *this, msg);
             return ok;
         }
 
