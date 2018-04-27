@@ -35,8 +35,6 @@ static constexpr auto transport = direct_transport{ FH_SPTR(context), FH_SPTR(nt
 static auto gtransport = gtransport_streams{ FH_SPTR(uart0tx), FH_SPTR(uart0rx) };
 // and gateway with transport and gateway transport
 static constexpr auto gateway = mygateway{ FH_SPTR(transport), FH_SPTR(gtransport) };
-#else
-static constexpr auto node = mynode{ FH_SPTR(transport) };
 #endif
 
 int main(){        
@@ -62,12 +60,14 @@ int main(){
     #ifdef MY_GATEWAY
     auto ok = gateway.begin();
     #else
-    auto ok = node.begin();
+    auto ok = transport.begin();
     #endif
 
     if (!ok) {
         // can't turn led - it's on SCK pin =/
+        #ifdef MY_GATEWAY
         print(uart0tx, "error. ");
+        #endif
         //debug_radio();
         while (1);
     }
@@ -79,7 +79,7 @@ int main(){
             print(uart0tx, "got message");
         }
         #else
-        node.update(msg);
+        transport.update(msg);
         #endif
     }
 }

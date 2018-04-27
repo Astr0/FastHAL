@@ -26,6 +26,10 @@ namespace fasthal::mysensors{
             : mp::holder<TOutputPtr>(output)
             , mp::holder<TInputPtr>(input){}
 
+        gtransport_streams(const gtransport_streams<TOutputPtr, TInputPtr, TConfig>& other)
+            : mp::holder<TOutputPtr>(&(other.output()))
+            , mp::holder<TInputPtr>(&(other.input())){}
+
         bool send(mymessage& msg) const{
             protocol_t::write(output(), msg);
             return true;
