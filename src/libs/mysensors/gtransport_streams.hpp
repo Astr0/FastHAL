@@ -27,10 +27,11 @@ namespace fasthal::mysensors{
             , mp::holder<TInputPtr>(input){}
 
         gtransport_streams(const gtransport_streams<TOutputPtr, TInputPtr, TConfig>& other)
-            : mp::holder<TOutputPtr>(&(other.output()))
-            , mp::holder<TInputPtr>(&(other.input())){}
+            : mp::holder<TOutputPtr>(other.mp::holder<TOutputPtr>::get())
+            , mp::holder<TInputPtr>(other.mp::holder<TInputPtr>::get())
+            { }
 
-        bool send(mymessage& msg) const{
+        bool send(mymessage& msg) {
             protocol_t::write(output(), msg);
             return true;
         }
@@ -66,7 +67,7 @@ namespace fasthal::mysensors{
             return false;
         }
 
-        bool begin() const{
+        bool begin() {
             auto msg = mymessage{};
             send(msg.build_gw(my_internal::gateway_ready).set("Gateway startup complete."));
             // Send presentation of locally attached sensors (and node if applicable)

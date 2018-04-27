@@ -11,31 +11,29 @@ namespace fasthal::mysensors{
     // bool update(msg&)
     // bool begin()
 
-    template<typename TContextPtr, typename TNTransportPtr>
-    class direct_transport: 
-        mp::holder<TContextPtr>,
-        mp::holder<TNTransportPtr>
+    template<typename TNTransport>
+    class transport_direct
     {
-        auto& ntransport() const{return *(this->mp::holder<TNTransportPtr>::get()); }
-        auto& context()const {return *(this->mp::holder<TContextPtr>::get()); }
+        TNTransport _ntransport;
+        auto& ntransport() {return _ntransport; }
+        auto& context() {return ntransport().context(); }
     public:
-        constexpr direct_transport(TContextPtr context, TNTransportPtr ntransport)
-            : mp::holder<TContextPtr>(context)
-            , mp::holder<TNTransportPtr>(ntransport)
+        constexpr transport_direct(TNTransport ntransport)
+            : _ntransport(ntransport)
             {}
 
-        bool send(mymessage& msg) const{
+        bool send(mymessage& msg) {
             return ntransport().send(msg.destination, reinterpret_cast<const std::uint8_t*>(&msg), msg.total_length(), msg.request_ack());
         }
 
-        bool update(mymessage& msg) const{
+        bool update(mymessage& msg) {
             auto ok = ntransport().update(reinterpret_cast<std::uint8_t*>(&msg), mymessage::max_message_size);
             if (ok && (msg.destination == context().address()))
                 mytransport::handle_ack(*this, msg, context().address());
             return ok;
         }
 
-        bool begin() const{
+        bool begin() {
             auto ok = ntransport().begin();
             if (ok)
                 ntransport().address_set();

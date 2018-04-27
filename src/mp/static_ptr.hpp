@@ -25,7 +25,7 @@ namespace fasthal::mp{
     }
 
     // static ptr
-    #define FH_SPTR(VALUE) (::fasthal::mp::static_ptr<&VALUE>{})
+    #define FH_SPTR(PVALUE) (::fasthal::mp::static_ptr<PVALUE>{})
 }
 
 #endif

@@ -34,7 +34,6 @@ namespace fasthal::mysensors{
         static constexpr auto addr_width = config_t::address_width;
         static constexpr auto broadcast_pipe = config_t::broadcast_pipe;
 
-        auto& context() const { return *(this->mp::holder<TContextPtr>::get());}
         auto& rf24() const{return *(this->mp::holder<TRF24Ptr>::get()); }       
         void start_listening() const{
             rf24().config(dev::rf24_c::pwr_up | dev::rf24_c::prim_rx);
@@ -56,6 +55,8 @@ namespace fasthal::mysensors{
         constexpr ntransport_rf24(TContextPtr context, TRF24Ptr rf24, TConfig config = rf24_default_config{})
             :mp::holder<TContextPtr>(context)
             ,mp::holder<TRF24Ptr>(rf24) {}
+
+        auto& context() const { return *(this->mp::holder<TContextPtr>::get());}
 
         bool send(std::uint8_t to, const uint8_t* buf, bsize_t size, bool ack) const{
             auto& radio = rf24();

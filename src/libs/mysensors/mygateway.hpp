@@ -8,13 +8,13 @@
 
 namespace fasthal::mysensors{
     
-    template<typename TTransportPtr, typename TGTransportPtr>
-    class mygateway
-        : mp::holder<TTransportPtr>
-        , mp::holder<TGTransportPtr>{
-        auto& transport() const { return *(this->mp::holder<TTransportPtr>::get()); }
-        auto& gtransport() const { return *(this->mp::holder<TGTransportPtr>::get()); }
-
+    template<typename TTransport, typename TGTransport>
+    class mygateway{
+        TTransport _transport;
+        TGTransport _gtransport;
+        auto& transport() { return _transport; }
+        auto& gtransport() { return _gtransport; }
+ 
         // void presentNode(mymessage& msg) const{
         //     present(msg, node_sensor_id, my_sensor::node);
         //     // TODO: call presentation
@@ -129,7 +129,7 @@ namespace fasthal::mysensors{
         //     return process_internal_from_node(msg);        
         // }
 
-        bool update_gtransport(mymessage& msg) const {
+        bool update_gtransport(mymessage& msg) {
             if (!gtransport().update(msg))
                 return false;
 
@@ -144,7 +144,7 @@ namespace fasthal::mysensors{
             return true;
         }
 
-        bool update_transport(mymessage& msg) const {
+        bool update_transport(mymessage& msg) {
             if (!transport().update(msg))
                 return false;
             // transport also should handle ACK for us, right?
@@ -157,12 +157,12 @@ namespace fasthal::mysensors{
         }
 
     public:
-        constexpr mygateway(TTransportPtr transport, TGTransportPtr gtransport):
-            mp::holder<TTransportPtr>(transport),
-            mp::holder<TGTransportPtr>(gtransport) {}
+        mygateway(TTransport transport, TGTransport gtransport):
+            _transport(transport),
+            _gtransport(gtransport) {}
 
         // init
-        bool begin() const {
+        bool begin() {
             // init network and gateway transport           
             return transport().begin() 
                 && gtransport().begin();
@@ -170,14 +170,14 @@ namespace fasthal::mysensors{
         }
 
         // update
-        bool update(mymessage& msg) const {
+        bool update(mymessage& msg) {
             // got message from gateway transport or net transport
             return update_gtransport(msg) 
                 || update_transport(msg);
         }
 
         // send message
-        bool send(mymessage& msg) const {
+        bool send(mymessage& msg) {
             if (msg.destination == gateway_address) {
         		// This is a message sent from a sensor attached on the gateway node.
         		// Pass it directly to the gateway transport layer.

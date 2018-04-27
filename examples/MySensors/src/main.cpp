@@ -23,18 +23,39 @@ static constexpr auto ce_pin = ino<9>;
 static constexpr auto cs_pin = ino<SS>;
 
 // declare some radio on the SPI
-static constexpr auto radio = nrf24l01{ FH_SPTR(spi0h), ce_pin, cs_pin };
+static constexpr auto radio = nrf24l01{ FH_SPTR(&spi0h), ce_pin, cs_pin };
 // context
 static constexpr auto context = mycontext{};
-// and radio RAW transport for mysensors
-static constexpr auto ntransport = ntransport_rf24{ FH_SPTR(context), FH_SPTR(radio) };
-// direct transport
-static constexpr auto transport = direct_transport{ FH_SPTR(context), FH_SPTR(ntransport) };
 // and UART gateway transport
 #ifdef MY_GATEWAY
-static auto gtransport = gtransport_streams{ FH_SPTR(uart0tx), FH_SPTR(uart0rx) };
+
+class testnode;
+
+static auto build_transport(testnode* node){
+    return mygateway{ 
+        transport_direct{
+            ntransport_rf24{ node, FH_SPTR(&radio) } 
+        },
+        gtransport_streams{ FH_SPTR(&uart0tx), FH_SPTR(&uart0rx) } 
+    };
+}
+
+
 // and gateway with transport and gateway transport
-static constexpr auto gateway = mygateway{ FH_SPTR(transport), FH_SPTR(gtransport) };
+class testnode{    
+    decltype(build_transport(nullptr)) _transport;
+public:
+    testnode(): _transport(build_transport(this)){}
+    std::uint8_t address(){return gateway_address; }
+    bool begin() {return _transport.begin(); }
+    bool update() {
+        auto msg = mymessage{};
+        return _transport.update(msg);
+    }
+};
+
+static auto node = testnode{};
+
 #endif
 
 int main(){        
@@ -58,7 +79,7 @@ int main(){
     );
 
     #ifdef MY_GATEWAY
-    auto ok = gateway.begin();
+    auto ok = node.begin();
     #else
     auto ok = transport.begin();
     #endif
@@ -73,9 +94,8 @@ int main(){
     }
 
     while (1){
-        auto msg = mymessage { };
         #ifdef MY_GATEWAY
-        if (gateway.update(msg)){
+        if (node.update()){
             print(uart0tx, "got message");
         }
         #else
