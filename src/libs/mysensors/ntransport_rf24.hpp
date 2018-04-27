@@ -71,8 +71,18 @@ namespace fasthal::mysensors{
             return ok;
         }
 
-        std::uint8_t update(std::uint8_t* buf) const{
-            return 0;
+        std::uint8_t update(std::uint8_t* buf, bsize_t max_size) const{
+            if (!rf24().available())
+                return 0;
+            // read size
+            const uint8_t len = rf24().read_payload_size();
+            if (len > max_size){
+                // error - too much data
+                rf24().rx_flush();
+                return 0;
+            }
+            rf24().read_message(buf, len);
+            return len;
         }
 
         void address_set() const{

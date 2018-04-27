@@ -198,6 +198,10 @@ namespace fasthal::dev{
             return v;
         }
 
+        std::uint8_t read(std::uint8_t cmd) const{
+            return transfer(cmd, cmd_nop);
+        }
+
         void write_reg(rf24_reg reg, std::uint8_t v) const{
             write(
                 static_cast<std::uint8_t>(rf24_cmd::write_register) | static_cast<std::uint8_t>(reg),
@@ -214,7 +218,7 @@ namespace fasthal::dev{
         }
 
         std::uint8_t read_reg(rf24_reg reg) const{
-            return transfer(static_cast<std::uint8_t>(rf24_cmd::read_register) | static_cast<std::uint8_t>(reg), cmd_nop);
+            return read(static_cast<std::uint8_t>(rf24_cmd::read_register) | static_cast<std::uint8_t>(reg));
         }
     public:
         constexpr nrf24l01(TSpiPtr spi, TCEPin ce, TCSPin cs, TDefaultConfig default_config = rf24_c_def): 
@@ -356,6 +360,21 @@ namespace fasthal::dev{
 
         void stop_listening() const{
             clear(ce_pin);
+        } 
+
+        bool available() const{
+            return !(read_reg(rf24_reg::fifo_status) & (1 << 0));
+        }
+
+        bsize_t read_payload_size() const{
+            return read(static_cast<std::uint8_t>(rf24_cmd::read_rx_pl_wid));
+        }
+
+        void read_message(std::uint8_t* buf, bsize_t size) const {            
+            // read message
+            transfer(static_cast<std::uint8_t>(rf24_cmd::read_rx_payload), buf, size);
+            // clear RX interrupt
+            status(rf24_s::rx_dr);
         }
 
         // pins should be configured to output externally!

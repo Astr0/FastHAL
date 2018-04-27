@@ -29,7 +29,7 @@ namespace fasthal::mysensors{
         }
 
         bool update(mymessage& msg) const{
-            auto ok = ntransport().update(reinterpret_cast<std::uint8_t*>(&msg));
+            auto ok = ntransport().update(reinterpret_cast<std::uint8_t*>(&msg), mymessage::max_message_size);
             if (ok && msg.destination == context().address())
                 mytransport::handle_ack(*this, msg, context().address());
             return ok;
