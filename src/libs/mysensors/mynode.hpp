@@ -1,25 +1,33 @@
 #ifndef FH_LIBS_MYSENSORS_MYNODE_H_
 #define FH_LIBS_MYSENSORS_MYNODE_H_
 
-#include "core.hpp"
-#include "../../std/std_types.hpp"
-
 namespace fasthal::mysensors{
-    struct mynode{
-        constexpr mynode(){}
+    template<typename TTransportPtr>
+    class mynode
+        : mp::holder<TTransportPtr>{
+        auto& transport() const { return *(this->mp::holder<TTransportPtr>::get()); }        
 
-        static constexpr std::uint8_t address(){return gateway_address;}
+    public:
+        constexpr mynode(TTransportPtr transport):
+            mp::holder<TTransportPtr>(transport) {}
 
-        template<class TTransport>
-        static bool present(TTransport& transport, mymessage& msg, const uint8_t sensor_id, const my_sensor sensor_type, const char *description = nullptr,
-                    const bool ack = false)  {
-            return transport.send(msg.build(address(), gateway_address, sensor_id, sensor_type,
-                                    ack).set(sensor_id == node_sensor_id ? mysensors_library_version : description));
+        // init
+        bool begin() const {
+            // init network and gateway transport           
+            return transport().begin();
+            // TODO: present this node after init
         }
 
-        template<class TTransport>
-        static void present(TTransport& transport, mymessage& msg){
-            present(transport, msg, node_sensor_id, my_sensor::node);
+        // update
+        bool update(mymessage& msg) const {
+            // got message from gateway transport or net transport
+            return transport().update(msg);
+        }
+
+        // send message
+        bool send(mymessage& msg) const {
+            // Send through normal transport
+            return transport().send(msg);
         }
     };
 }

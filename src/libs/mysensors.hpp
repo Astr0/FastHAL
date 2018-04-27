@@ -1,3 +1,4 @@
+#include "mysensors/mycontext.hpp"
 #include "mysensors/core.hpp"
 #include "mysensors/mymessage.hpp"
 #include "mysensors/ntransport_rf24.hpp"

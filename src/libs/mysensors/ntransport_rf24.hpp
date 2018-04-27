@@ -25,20 +25,20 @@ namespace fasthal::mysensors{
         static constexpr auto broadcast_pipe = 1;
     };
 
-    template<typename TNodePtr, typename TRF24Ptr, class TConfig = rf24_default_config>
+    template<typename TContextPtr, typename TRF24Ptr, class TConfig = rf24_default_config>
     class ntransport_rf24:
-        mp::holder<TNodePtr>,
+        mp::holder<TContextPtr>,
         mp::holder<TRF24Ptr>
     {
         using config_t = TConfig;
         static constexpr auto addr_width = config_t::address_width;
         static constexpr auto broadcast_pipe = config_t::broadcast_pipe;
 
-        auto& node() const { return *(this->mp::holder<TNodePtr>::get());}
+        auto& context() const { return *(this->mp::holder<TContextPtr>::get());}
         auto& rf24() const{return *(this->mp::holder<TRF24Ptr>::get()); }       
         void start_listening() const{
             rf24().config(dev::rf24_c::pwr_up | dev::rf24_c::prim_rx);
-            auto address = node().address();
+            auto address = context().address();
             if (address != broadcast_address)
                 rf24().rx_address(0, &address, 1);
             rf24().start_listening();
@@ -53,8 +53,8 @@ namespace fasthal::mysensors{
             delay_ms(config_t::stop_listening_delay_ms);
         }
     public:        
-        constexpr ntransport_rf24(TNodePtr node, TRF24Ptr rf24, TConfig config = rf24_default_config{})
-            :mp::holder<TNodePtr>(node)
+        constexpr ntransport_rf24(TContextPtr context, TRF24Ptr rf24, TConfig config = rf24_default_config{})
+            :mp::holder<TContextPtr>(context)
             ,mp::holder<TRF24Ptr>(rf24) {}
 
         bool send(std::uint8_t to, const uint8_t* buf, bsize_t size, bool ack) const{
@@ -127,9 +127,10 @@ namespace fasthal::mysensors{
             // enable dynamic payloads on used pipes
             radio.dynamic_payload((1 << broadcast_pipe) | 1 << 0);
             
-            std::uint8_t base_id[addr_width] = {broadcast_address, 0xFC, 0xE1, 0xA8, 0xA8};
+            std::uint8_t base_id[addr_width] = {0x00,0xFC,0xE1,0xA8,0xA8};
 
-            // listen to broadcast pipe            
+            // listen to broadcast pipe
+            base_id[0] = broadcast_address;
             radio.rx_address(broadcast_pipe, base_id, broadcast_pipe > 1 ? 1 : addr_width);
             
             // pipe 0, set full address, later only LSB is updated

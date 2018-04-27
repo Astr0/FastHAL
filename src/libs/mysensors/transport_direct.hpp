@@ -11,16 +11,16 @@ namespace fasthal::mysensors{
     // bool update(msg&)
     // bool begin()
 
-    template<typename TNodePtr, typename TNTransportPtr>
+    template<typename TContextPtr, typename TNTransportPtr>
     class direct_transport: 
-        mp::holder<TNodePtr>,
+        mp::holder<TContextPtr>,
         mp::holder<TNTransportPtr>
     {
         auto& ntransport() const{return *(this->mp::holder<TNTransportPtr>::get()); }
-        auto& node()const {return *(this->mp::holder<TNodePtr>::get()); }
+        auto& context()const {return *(this->mp::holder<TContextPtr>::get()); }
     public:
-        constexpr direct_transport(TNodePtr node, TNTransportPtr ntransport)
-            : mp::holder<TNodePtr>(node)
+        constexpr direct_transport(TContextPtr context, TNTransportPtr ntransport)
+            : mp::holder<TContextPtr>(context)
             , mp::holder<TNTransportPtr>(ntransport)
             {}
 
@@ -30,8 +30,8 @@ namespace fasthal::mysensors{
 
         bool update(mymessage& msg) const{
             auto ok = ntransport().update(reinterpret_cast<std::uint8_t*>(&msg), mymessage::max_message_size);
-            if (ok && (msg.destination == node().address()))
-                mytransport::handle_ack(*this, msg, node().address());
+            if (ok && (msg.destination == context().address()))
+                mytransport::handle_ack(*this, msg, context().address());
             return ok;
         }
 
